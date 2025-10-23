@@ -1,0 +1,116 @@
+# ============================
+# General
+# ============================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# ============================
+# Visual Studio / C++ Project
+# ============================
+.vs/
+.vscode/
+*.VC.db
+*.VC.opendb
+*.sdf
+*.ipch
+*.opensdf
+*.user
+*.tlog
+*.obj
+*.pch
+*.idb
+*.pdb
+*.ilk
+*.exe
+*.dll
+*.lib
+*.exp
+*.aps
+*.ncb
+*.res
+*.rsp
+*.cache
+*.db
+*.opendb
+
+# Build folders
+x64/
+x86/
+Debug/
+Release/
+build/
+out/
+bin/
+obj/
+
+# CMake / vcpkg
+CMakeFiles/
+CMakeCache.txt
+cmake-build-*/
+vcpkg_installed/
+vcpkg_downloads/
+*.cmake
+*.manifest
+*.targets
+
+# Boost / External Libraries
+boost/
+websocketpp/
+nlohmann/
+third_party/
+external/
+
+# ============================
+# SFML Resources
+# ============================
+*.psd
+*.xcf
+*.wav
+*.mp3
+*.mp4
+*.avi
+*.zip
+*.rar
+
+# ============================
+# Node.js / PWA
+# ============================
+# Node modules and build artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.pnp.*
+coverage/
+dist/
+build/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# React / PWA specific
+*.tsbuildinfo
+.cache/
+.eslintcache
+.next/
+out/
+*.map
+
+# ============================
+# System / IDE files
+# ============================
+.idea/
+*.iml
+*.class
+*.suo
+*.userosscache
+*.sln.docstates
+*.orig
