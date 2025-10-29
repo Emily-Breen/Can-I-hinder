@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include <iostream>
 #include "AnimationHandler.h"
+#include "Input Handler.h"
 
 
 
@@ -15,7 +16,6 @@ public:
 	void update(float dt)override;
 	void draw(sf::RenderWindow& window) override;
 	void movePlayer(sf::Vector2f direction);
-
 private:
 	void playerInit();
 	sf::Texture m_playerTexture;
@@ -23,7 +23,7 @@ private:
 	PlayerState m_State{ PlayerState::IDLE };
 	Direction m_direction{ Direction::DOWN };
 	float m_speed{ 100.f };
-
+	InputHandler m_inputHandler;
 	int m_health{ 100 };
 	int attackPower{ 10 };
 

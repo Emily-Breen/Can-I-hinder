@@ -22,7 +22,6 @@ void Player::movePlayer(sf::Vector2f direction)
 		return;
 	}
 
-	
 	if (std::abs(direction.x) > std::abs(direction.y))
 		m_direction = (direction.x > 0) ? Direction::RIGHT : Direction::LEFT;
 	else
@@ -68,28 +67,12 @@ void Player::playerInit()
 
 void Player::update(float dt)
 {
-	sf::Vector2f movement(0.f, 0.f);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::W))
-	{
-		movement.y -= 1;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::S))
-	{
-		movement.y += 1.f;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::A))
-	{
-		movement.x -= 1.f;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::D))
-	{
-		movement.x += 1.f;
-	}
-	movePlayer(movement);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Space))
-	{
+	m_inputHandler.update();
+	movePlayer(m_inputHandler.getMovement());
+	if (m_inputHandler.isAttackPressed()) {
 		m_State = PlayerState::ATTACK;
 	}
+	
 	m_animationHandler.changeState(m_State);
 	m_animationHandler.changeDirection(m_direction);
 	m_animationHandler.update(dt);
