@@ -2,34 +2,30 @@
 #include <SFML/Graphics.hpp>
 #include "Entity.h"
 #include <iostream>
+#include "AnimationHandler.h"
 
-enum class PlayerState
-{
-	IDLE,
-	WALK
-};
-enum class PlayerDirection
-{
-	Down = 0,
-	Left = 1,
-	Right = 2,
-	Up = 3
-};
+
 
 class Player : public Entity
 {
 public:
 	Player();
 	~Player();
-	PlayerState m_state{ PlayerState::IDLE };
-	PlayerDirection m_direction = PlayerDirection::Down;
-	void playerInit();
-	void updateAnimation(float dt) override;
-	void playerUpdate(float dt);
+
+	void update(float dt)override;
 	void draw(sf::RenderWindow& window) override;
 	void movePlayer(sf::Vector2f direction);
-	void updateSpriteRect() override;
 
 private:
+	void playerInit();
+	sf::Texture m_playerTexture;
+	AnimationHandler m_animationHandler;
+	PlayerState m_State{ PlayerState::IDLE };
+	Direction m_direction{ Direction::DOWN };
+	float m_speed{ 100.f };
+
+	int m_health{ 100 };
+	int attackPower{ 10 };
+
 
 };

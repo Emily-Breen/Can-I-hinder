@@ -9,7 +9,7 @@ const ws = new WebSocket("ws://localhost:8080");
 
 // WebSocket events
 ws.onopen = () => {
-  console.log("Connected to WebSocket server");
+  console.log("Connected to WebSocket server 🤖");
 };
 
 ws.onmessage = (event: MessageEvent) => {

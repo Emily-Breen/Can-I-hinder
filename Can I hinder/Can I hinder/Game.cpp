@@ -86,24 +86,7 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 	{
 		m_DELETEexitGame = true; 
 	}
-	if (sf::Keyboard::Key::W == newKeypress->code)
-	{
-		m_player.movePlayer(sf::Vector2f(0.f, -5.f));
-	}
-	if (sf::Keyboard::Key::A == newKeypress->code)
-	{
-		m_player.movePlayer(sf::Vector2f(-5.f, 0.f));
-	}
-	if (sf::Keyboard::Key::S == newKeypress->code)
-	{
-		m_player.movePlayer(sf::Vector2f(0.f, 5.f));
-	}
-	if (sf::Keyboard::Key::D == newKeypress->code)
-	{
-		m_player.movePlayer(sf::Vector2f(5.f, 0.f));
-	}
-
-
+	
 }
 
 
@@ -123,7 +106,7 @@ void Game::update(sf::Time t_deltaTime)
 	{
 		m_window.close();
 	}
-	m_player.playerUpdate(t_deltaTime.asSeconds());
+	m_player.update(t_deltaTime.asSeconds());
 }
 
 

@@ -24,7 +24,6 @@ function App() {
         </div>
       </div>
 
-      <p className="status">Connected via WebSocket...</p>
     </div>
   );
 }
