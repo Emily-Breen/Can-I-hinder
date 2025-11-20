@@ -59,7 +59,7 @@ void Game::run()
 			std::cout << "An enemy has spawned to hinder you!" << std::endl;
 			spawnEnemy = false;
 
-			// Pick a spawn position (for example, near player)
+			// Pick a spawn position - near player for now 
 			sf::Vector2f spawnPos = m_player.getPosition() + sf::Vector2f(200.f, 0.f);
 			spawnNPC(spawnPos);
 		}
@@ -115,23 +115,23 @@ void Game::update(sf::Time t_deltaTime)
 			return;
 		}
 
-		// 1. Let the player read input + update animation state
+		
 		m_player.update(t_deltaTime.asSeconds());
 
-		// 2. Get desired movement direction from Player/InputHandler
-		sf::Vector2f direction = m_player.getMovement();  // normalized (-1..1)
+		
+		sf::Vector2f direction = m_player.getMovement(); 
 		std::cout << "direction = (" << direction.x << ", " << direction.y << ")\n";
-		// 3. Convert direction into world movement using dt
-		float speed = 200.f; // tweak to taste
+		
+		float speed = 300.f; 
 		sf::Vector2f movement = direction * speed * t_deltaTime.asSeconds();
 
 		if (movement != sf::Vector2f(0.f, 0.f))
 		{
-			// 4. Predict next position
+			//tracks movement of player
 			sf::FloatRect nextBounds = m_player.getBounds();
 			nextBounds.position += movement;
 
-			// 5. Check against collision rects from Tiled
+			//this is for the tiles
 			bool blocked = false;
 			const auto& walls = m_mapRenderer.getCollisionRects();
 
@@ -144,20 +144,20 @@ void Game::update(sf::Time t_deltaTime)
 				}
 			}
 
-			// 6. Apply movement only if not blocked
+			//only move if there is no collision
 			if (!blocked)
 			{
 				m_player.movement(movement);
 			}
 		}
 
-		// 7. NPCs still update normally
+		// for now npcs are free to roam into the sunset :D
 		for (auto& npc : m_npcs)
 		{
 			npc.update(t_deltaTime.asSeconds());
 		}
 
-		// 8. Camera follows player
+		//Camera follows player
 		m_camera.follow(m_player.getPosition());
 
 }

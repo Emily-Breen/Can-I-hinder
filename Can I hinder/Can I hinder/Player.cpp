@@ -61,7 +61,7 @@ sf::FloatRect Player::getBounds()
 {
 	sf::FloatRect global = m_sprite.getGlobalBounds();
 
-	// Feet hitbox: narrow width, short height
+	//hitbox for the player feet area for collision AABB
 	float hitboxWidth = global.size.x * 0.40f;
 	float hitboxHeight = global.size.y * 0.25f;
 
