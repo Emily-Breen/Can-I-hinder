@@ -1,11 +1,12 @@
 ﻿#include "WebSocketClient.h"
 
 
-using json = nlohmann::json;
-using tcp = boost::asio::ip::tcp;
-namespace websocket = boost::beast::websocket;
+using json = nlohmann::json; // for JSON parsing
+using tcp = boost::asio::ip::tcp; // for TCP sockets
+namespace websocket = boost::beast::websocket; // for WebSocket protocol
 
-WebsocketClient::WebsocketClient(): m_resolver(m_ioc)
+WebsocketClient::WebsocketClient() : m_resolver(m_ioc) // initialize DNS resolver with io_context (event loop) so it can resolve hostnames
+
 {
 }
 
@@ -17,9 +18,10 @@ WebsocketClient::~WebsocketClient()
 void WebsocketClient::connect(const std::string& host, const std::string& port)
 {
 	m_running = true;
+	// start the background thread so not to interrupt game loop
 	m_thread = std::thread(&WebsocketClient::run, this, host, port);
 }
-
+// stops the background thread
 void WebsocketClient::close()
 {
 	m_running = false;
@@ -35,23 +37,23 @@ void WebsocketClient::close()
 
 void WebsocketClient::setOnMessage(std::function<void(const std::string&,const std::string&)> callback)
 {
-	onMessage = callback;
+	onMessage = callback; // this is so it'll define what happens when a message is recieved (spawning an eneny)
 }
-
+// runs in background thread
 void WebsocketClient::run(const std::string& host, const std::string& port)
 {
 	try {
 		auto const results = m_resolver.resolve(host, port);
 		m_ws = std::make_unique<websocket::stream<tcp::socket>>(m_ioc);
-
-		boost::asio::connect(m_ws->next_layer(), results.begin(), results.end());
-		m_ws->handshake(host, "/");
+		
+		boost::asio::connect(m_ws->next_layer(), results.begin(), results.end()); // connect the underlying TCP socket
+		m_ws->handshake(host, "/"); // perform the WebSocket handshake with the server
 
 		std::cout << "Connected to WebSocket server at " << host << ":" << port << std::endl;
 		readLoop(); // stays here reading in a background thread
 	}
-	catch (const std::exception& e) {
-		std::cerr << "WebSocket connection failed: " << e.what() << std::endl;
+	catch (const std::exception& e) { // connection failed 
+		std::cout << "WebSocket connection failed: " << e.what() << std::endl;
 		m_running = false;
 	}
 }

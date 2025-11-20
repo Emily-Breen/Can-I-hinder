@@ -7,9 +7,10 @@
 
 
 Game::Game() :
-	m_window{ sf::VideoMode{ sf::Vector2u{800U, 600U}, 32U }, "SFML Game 3.0" },
-	m_DELETEexitGame{false} //when true game will exit
+	m_window{ sf::VideoMode{ sf::Vector2u{1920, 1080U}, 32U }, "SFML Game 3.0" },
+	m_DELETEexitGame{false}, m_camera(1920,1080) //when true game will exit
 { 
+	
 	m_client.setOnMessage([this](const std::string& action, const std::string& effect) {
 		if (action == "hinder" && effect == "spawn_enemy") {
 			spawnEnemy = true;
@@ -20,6 +21,12 @@ Game::Game() :
 		});
 	
 	m_client.connect("localhost", "8080");
+
+
+
+	//TESTING LOADING A MAP
+
+	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
 }
 
 
@@ -52,10 +59,9 @@ void Game::run()
 			std::cout << "An enemy has spawned to hinder you!" << std::endl;
 			spawnEnemy = false;
 
-		}
-		if (healPlayer) {
-			std::cout << "You have been healed!" << std::endl;
-			healPlayer = false;
+			// Pick a spawn position (for example, near player)
+			sf::Vector2f spawnPos = m_player.getPosition() + sf::Vector2f(200.f, 0.f);
+			spawnNPC(spawnPos);
 		}
 
 	}
@@ -101,21 +107,109 @@ void Game::checkKeyboardState()
 
 void Game::update(sf::Time t_deltaTime)
 {
-	checkKeyboardState();
-	if (m_DELETEexitGame)
-	{
-		m_window.close();
-	}
-	m_player.update(t_deltaTime.asSeconds());
+	
+		checkKeyboardState();
+		if (m_DELETEexitGame)
+		{
+			m_window.close();
+			return;
+		}
+
+		// 1. Let the player read input + update animation state
+		m_player.update(t_deltaTime.asSeconds());
+
+		// 2. Get desired movement direction from Player/InputHandler
+		sf::Vector2f direction = m_player.getMovement();  // normalized (-1..1)
+		std::cout << "direction = (" << direction.x << ", " << direction.y << ")\n";
+		// 3. Convert direction into world movement using dt
+		float speed = 200.f; // tweak to taste
+		sf::Vector2f movement = direction * speed * t_deltaTime.asSeconds();
+
+		if (movement != sf::Vector2f(0.f, 0.f))
+		{
+			// 4. Predict next position
+			sf::FloatRect nextBounds = m_player.getBounds();
+			nextBounds.position += movement;
+
+			// 5. Check against collision rects from Tiled
+			bool blocked = false;
+			const auto& walls = m_mapRenderer.getCollisionRects();
+
+			for (const auto& wall : walls)
+			{
+				if (rectsIntersect(nextBounds, wall))
+				{
+					blocked = true;
+					break;
+				}
+			}
+
+			// 6. Apply movement only if not blocked
+			if (!blocked)
+			{
+				m_player.movement(movement);
+			}
+		}
+
+		// 7. NPCs still update normally
+		for (auto& npc : m_npcs)
+		{
+			npc.update(t_deltaTime.asSeconds());
+		}
+
+		// 8. Camera follows player
+		m_camera.follow(m_player.getPosition());
+
 }
 
 
 void Game::render()
 {
+	m_camera.applyCam(m_window);
 	m_window.clear(sf::Color::Black);
+	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
 	m_player.draw(m_window);
+	for (auto& npc : m_npcs) {
+		npc.draw(m_window);
+	}
+	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, true);
+
+	for (const auto& r : m_mapRenderer.getCollisionRects())
+	{
+		sf::RectangleShape box;
+		box.setPosition(r.position);
+		box.setSize(r.size);
+		box.setFillColor({ 255,0,0,100 });
+		m_window.draw(box);
+	}
 	m_window.display();
 }
+
+void Game::spawnNPC(sf::Vector2f position)
+{
+	if (!m_enemyTexture) {
+		m_enemyTexture = std::make_shared<sf::Texture>();
+		if (!m_enemyTexture->loadFromFile("ASSETS/IMAGES/Skeleton.png")) {
+			std::cerr << "Failed to load enemy texture\n";
+			return;
+		}
+	}
+
+	NPC newNPC(m_enemyTexture);
+	newNPC.setPosition(position.x,position.y);
+	m_npcs.push_back(newNPC); 
+}
+
+bool Game::rectsIntersect(const sf::FloatRect& a, const sf::FloatRect& b)
+{
+	return !(
+		a.position.x + a.size.x <= b.position.x ||
+		a.position.x >= b.position.x + b.size.x ||
+		a.position.y + a.size.y <= b.position.y ||
+		a.position.y >= b.position.y + b.size.y
+		);
+}
+
 
 
 

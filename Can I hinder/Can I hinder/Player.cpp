@@ -12,6 +12,12 @@ Player::~Player()
 void Player::draw(sf::RenderWindow& window)
 {
 	Entity::draw(window);
+	sf::FloatRect hb = getBounds();
+	sf::RectangleShape box;
+	box.setPosition(hb.position);
+	box.setSize(hb.size);
+	box.setFillColor(sf::Color(255, 0, 0, 100));
+	window.draw(box);
 }
 
 void Player::movePlayer(sf::Vector2f direction)
@@ -28,9 +34,44 @@ void Player::movePlayer(sf::Vector2f direction)
 		m_direction = (direction.y > 0) ? Direction::DOWN : Direction::UP;
 
 	m_State = PlayerState::WALK;
-
-	m_sprite.move(direction * m_speed * (1.f / 60.f));
 	
+}
+
+void Player::movement(sf::Vector2f t_movement)
+{
+	m_sprite.move(t_movement);
+}
+
+sf::Vector2f Player::getInputDirection()
+{
+	return m_inputHandler.getMovement();
+}
+sf::Vector2f Player::getMovement()
+{
+	return m_inputHandler.getMovement();
+}
+sf::Vector2f Player::getPosition()
+{
+	sf::Vector2f pos = m_sprite.getPosition();
+	std::cout << "Player Position: (" << pos.x << ", " << pos.y << ")\n";
+	return pos;
+}
+
+sf::FloatRect Player::getBounds()
+{
+	sf::FloatRect global = m_sprite.getGlobalBounds();
+
+	// Feet hitbox: narrow width, short height
+	float hitboxWidth = global.size.x * 0.40f;
+	float hitboxHeight = global.size.y * 0.25f;
+
+	float hitboxLeft = global.position.x + (global.size.x - hitboxWidth) / 2.f;
+	float hitboxTop = global.position.y + (global.size.y - hitboxHeight);
+
+	return sf::FloatRect(
+		{ hitboxLeft, hitboxTop },
+		{ hitboxWidth, hitboxHeight }
+	);
 }
 
 
@@ -42,9 +83,9 @@ void Player::playerInit()
 		std::cout << "Failed to load player texture!" << std::endl;
 	}
 	m_sprite.setTexture(m_texture);
-	m_sprite.setPosition(sf::Vector2f(100.f, 100.f));
-	m_sprite.setScale(sf::Vector2f(2.f, 2.f));
-
+	m_sprite.setPosition(sf::Vector2f(1590, 4621.f));
+	m_sprite.setScale(sf::Vector2f(2.5f, 2.5f));
+	m_sprite.setOrigin(sf::Vector2f(24.f, 48.f)); // Center origin based on frame size (48x48)
 
 	//addAnimation(PlayerState m_state, Direction m_direction, int startFrame, int frameCount, float frameDuration, int offsetX, int offsetY, int frameWidth) - remember to remove just here to remind of params
 	m_animationHandler.addAnimation(PlayerState::IDLE, Direction::DOWN, 0, 5, 0.08f, 0 ,150,48);
@@ -77,6 +118,7 @@ void Player::update(float dt)
 	m_animationHandler.changeDirection(m_direction);
 	m_animationHandler.update(dt);
 	m_animationHandler.applyToSprite(m_sprite);
+	
 }
 
 
