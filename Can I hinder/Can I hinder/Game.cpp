@@ -151,36 +151,41 @@ void Game::update(sf::Time t_deltaTime)
 			}
 		}
 
-		// for now npcs are free to roam into the sunset :D - 11/01/26 Collisions added but NPC is dumb and likes licking the walls :O
+		// for now npcs are free to roam into the sunset :D - 11/01/26 Collisions added but NPC is dumb and likes licking the walls some Ai Behaviours added its a little janky atm :O
+		static sf::Vector2f lastPlayerPos = m_player.getPosition();
+		sf::Vector2f playerPos = m_player.getPosition();
+		sf::Vector2f playerVel = (playerPos - lastPlayerPos) / t_deltaTime.asSeconds();
+		lastPlayerPos = playerPos;
+
 		for (auto& npc : m_npcs)
 		{
-			npc.update(t_deltaTime.asSeconds());
+			npc.update(t_deltaTime.asSeconds()); 
 
-			sf::Vector2f dir = npc.getDirection();
-			if (dir != sf::Vector2f(0.f, 0.f))
+			sf::Vector2f delta = npc.computeAIMovement(playerPos, playerVel, t_deltaTime.asSeconds());
+			if (delta == sf::Vector2f(0.f, 0.f))
+				continue;
+
+			sf::FloatRect next = npc.getBounds();
+			next.position += delta;
+
+			bool blocked = false;
+			for (const auto& wall : m_mapRenderer.getCollisionRects())
 			{
-				float npcSpeed = 180.f; 
-				sf::Vector2f npcMove = dir * npcSpeed * t_deltaTime.asSeconds();
-
-				sf::FloatRect nextNpcBounds = npc.getBounds();
-				nextNpcBounds.position += npcMove;
-
-				bool npcBlocked = false;
-				const auto& walls = m_mapRenderer.getCollisionRects();
-
-				for (const auto& wall : walls)
+				if (rectsIntersect(next, wall))
 				{
-					if (rectsIntersect(nextNpcBounds, wall))
-					{
-						npcBlocked = true;
-						break;
-					}
+					blocked = true;
+					break;
 				}
+			}
 
-				if (!npcBlocked)
-				{
-					npc.movement(npcMove);
-				}
+			if (!blocked)
+			{
+				npc.movement(delta);
+			}
+			else
+			{
+				// Stop sliding into a wall
+				npc.setVelocity({ 0.f, 0.f });
 			}
 		}
 
@@ -217,12 +222,14 @@ void Game::spawnNPC(sf::Vector2f position)
 	if (!m_enemyTexture) {
 		m_enemyTexture = std::make_shared<sf::Texture>();
 		if (!m_enemyTexture->loadFromFile("ASSETS/IMAGES/Skeleton.png")) {
-			std::cerr << "Failed to load enemy texture\n";
+			std::cout << "Failed to load enemy texture\n";
 			return;
 		}
 	}
 
 	NPC newNPC(m_enemyTexture);
+	//added AI Behaviour here just to test how things run for now 
+	newNPC.setAIMode(AIBehaviour::Mode::Pursue);
 	newNPC.setPosition(position.x,position.y);
 	m_npcs.push_back(newNPC); 
 }

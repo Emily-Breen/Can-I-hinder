@@ -18,7 +18,8 @@ void NPC::draw(sf::RenderWindow& window)
 
 void NPC::update(float dt)
 {
-    
+ //FUTURE EMILY TO DO: this needs to be fleshed out better so if NPC is pursuing or seeking the idle timer is disabled i.e no break in animation    
+
     m_idleTime+= dt;
 
     if (m_idleTime > 2.5f) 
@@ -92,6 +93,32 @@ sf::Vector2f NPC::setPosition(float x, float y)
 	sf::Vector2f pos = sf::Vector2f(x, y);
 	m_sprite.setPosition(pos);
 	return pos;
+}
+
+void NPC::setAIMode(AIBehaviour::Mode mode)
+{
+	m_aiBehaviour.setMode(mode);
+}
+
+sf::Vector2f NPC::getVelocity(sf::Vector2f vel) const
+{
+	vel = m_velocity;
+	return vel;
+}
+
+void NPC::setVelocity(sf::Vector2f vel)
+{
+	m_velocity = vel;
+}
+
+sf::Vector2f NPC::computeAIMovement(const sf::Vector2f& targetPos, const sf::Vector2f& targetVel, float dt)
+{
+	sf::Vector2f movement = m_aiBehaviour.computeSteering(m_sprite.getPosition(), m_velocity, targetPos, targetVel, dt);
+    if (dt > 0.0001f) {
+		m_velocity = movement / dt;
+
+    }
+	return movement;
 }
 
 
