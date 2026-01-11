@@ -43,20 +43,6 @@ void NPC::update(float dt)
             m_State = PlayerState::IDLE;
         }
     }
-
-    if (m_isMoving)
-    {
-        sf::Vector2f direction(0.f, 0.f);
-        switch (m_direction)
-        {
-        case Direction::DOWN: direction.y += 1.f; break;
-        case Direction::LEFT: direction.x -= 1.f; break;
-        case Direction::RIGHT: direction.x += 1.f; break;
-        case Direction::UP: direction.y -= 1.f; break;
-        }
-        moveNPC(direction);
-    }
-
     // Animation updates
     m_animationHandler.changeState(m_State);
     m_animationHandler.changeDirection(m_direction);
@@ -65,21 +51,40 @@ void NPC::update(float dt)
 
 }
 
-void NPC::moveNPC(sf::Vector2f direction)
+sf::FloatRect NPC::getBounds()
 {
-    if (direction == sf::Vector2f(0, 0))
+    sf::FloatRect global = m_sprite.getGlobalBounds();
+
+    //hitbox for the NPC feet area for collision AABB
+    float hitboxWidth = global.size.x * 0.40f;
+    float hitboxHeight = global.size.y * 0.25f;
+
+    float hitboxLeft = global.position.x + (global.size.x - hitboxWidth) / 2.f;
+    float hitboxTop = global.position.y + (global.size.y - hitboxHeight);
+
+    return sf::FloatRect(
+        { hitboxLeft, hitboxTop },
+        { hitboxWidth, hitboxHeight }
+    );
+}
+
+sf::Vector2f NPC::getDirection() const
+{
+    if (!m_isMoving) return { 0.f, 0.f };
+
+    switch (m_direction)
     {
-        m_State = PlayerState::IDLE;
-        return;
+    case Direction::DOWN:  return { 0.f, 1.f };
+    case Direction::LEFT:  return { -1.f, 0.f };
+    case Direction::RIGHT: return { 1.f, 0.f };
+    case Direction::UP:    return { 0.f, -1.f };
     }
+    return { 0.f, 0.f };
+}
 
-    if (std::abs(direction.x) > std::abs(direction.y))
-        m_direction = (direction.x > 0) ? Direction::RIGHT : Direction::LEFT;
-    else
-        m_direction = (direction.y > 0) ? Direction::DOWN : Direction::UP;
-
-    m_State = PlayerState::WALK;
-    m_sprite.move(direction * m_speed * (1.f / 60.f));
+void NPC::movement(sf::Vector2f t_movement)
+{
+	m_sprite.move(t_movement);
 }
 
 sf::Vector2f NPC::setPosition(float x, float y)

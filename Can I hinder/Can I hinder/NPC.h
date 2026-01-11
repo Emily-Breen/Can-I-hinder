@@ -12,8 +12,9 @@ public:
 	~NPC();
 	void draw(sf::RenderWindow& window) override;
 	void update(float dt) override;
-
-	void moveNPC(sf::Vector2f direction);
+	sf::FloatRect getBounds();
+	sf::Vector2f getDirection() const;
+	void movement(sf::Vector2f t_movement);
 	sf::Vector2f setPosition(float x, float y);
 private:
 	void NPCInit();

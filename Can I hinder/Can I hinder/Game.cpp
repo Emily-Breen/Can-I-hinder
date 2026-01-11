@@ -151,10 +151,37 @@ void Game::update(sf::Time t_deltaTime)
 			}
 		}
 
-		// for now npcs are free to roam into the sunset :D
+		// for now npcs are free to roam into the sunset :D - 11/01/26 Collisions added but NPC is dumb and likes licking the walls :O
 		for (auto& npc : m_npcs)
 		{
 			npc.update(t_deltaTime.asSeconds());
+
+			sf::Vector2f dir = npc.getDirection();
+			if (dir != sf::Vector2f(0.f, 0.f))
+			{
+				float npcSpeed = 180.f; 
+				sf::Vector2f npcMove = dir * npcSpeed * t_deltaTime.asSeconds();
+
+				sf::FloatRect nextNpcBounds = npc.getBounds();
+				nextNpcBounds.position += npcMove;
+
+				bool npcBlocked = false;
+				const auto& walls = m_mapRenderer.getCollisionRects();
+
+				for (const auto& wall : walls)
+				{
+					if (rectsIntersect(nextNpcBounds, wall))
+					{
+						npcBlocked = true;
+						break;
+					}
+				}
+
+				if (!npcBlocked)
+				{
+					npc.movement(npcMove);
+				}
+			}
 		}
 
 		//Camera follows player
