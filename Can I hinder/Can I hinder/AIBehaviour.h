@@ -16,7 +16,8 @@ public:
 	AIBehaviour();
 
 	//setting behaviour modes
-	void setMode(Mode mode);	
+	void setMode(Mode mode);
+	Mode getMode() const { return m_mode; }
 	//main output function for steering behaviours
 	sf::Vector2f computeSteering(const sf::Vector2f& agentPos,
 		const sf::Vector2f& agentVelocity,

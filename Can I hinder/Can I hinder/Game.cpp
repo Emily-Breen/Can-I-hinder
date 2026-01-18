@@ -5,10 +5,11 @@
 
 
 
-
+auto desktopMode = sf::VideoMode::getDesktopMode(); 
 Game::Game() :
-	m_window{ sf::VideoMode{ sf::Vector2u{1920, 1080U}, 32U }, "SFML Game 3.0" },
-	m_DELETEexitGame{false}, m_camera(1920,1080) //when true game will exit
+	m_window{desktopMode,"SFML Game 3.0",sf::State::Fullscreen},
+	m_DELETEexitGame{false}, m_camera(static_cast<float>(sf::VideoMode::getDesktopMode().size.x),static_cast<float>(sf::VideoMode::getDesktopMode().size.y)
+	) //when true game will exit
 { 
 	
 	m_client.setOnMessage([this](const std::string& action, const std::string& effect) {
@@ -24,9 +25,18 @@ Game::Game() :
 
 
 
-	//TESTING LOADING A MAP
+	
 
 	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
+
+	if (!m_hud.load())
+	{
+		std::cout << "Failed to load HUD\n";
+	}
+	else
+	{
+		m_hud.layout(m_window.getSize()); // makes sure the hud elements are in the right place when loaded.
+	}
 }
 
 
@@ -92,6 +102,24 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 	{
 		m_DELETEexitGame = true; 
 	}
+	if (sf::Keyboard::Key::Numpad1 == newKeypress->code) //just for testing so I dont have to set up the PWA aswell will be removed later
+	{
+		spawnEnemy = true;
+	}
+	if (sf::Keyboard::Key::Numpad2 == newKeypress->code) //just for testing to see if the health is being updated will be removed later
+	{
+		m_testHealth -= 0.1f;
+		if (m_testHealth < 0.f) 
+			m_testHealth = 0.f;
+
+		
+	}
+	if (sf::Keyboard::Key::Numpad3 == newKeypress->code) //testing healing player will be removed later
+	{
+		m_testHealth += 0.1f;
+		if (m_testHealth > 1.f) 
+			m_testHealth = 1.f;
+	}
 	
 }
 
@@ -118,13 +146,13 @@ void Game::update(sf::Time t_deltaTime)
 		
 		m_player.update(t_deltaTime.asSeconds());
 
-		
+		//tracks direction of player movement
 		sf::Vector2f direction = m_player.getMovement(); 
 		std::cout << "direction = (" << direction.x << ", " << direction.y << ")\n";
 		
 		float speed = 300.f; 
 		sf::Vector2f movement = direction * speed * t_deltaTime.asSeconds();
-
+		//for collision with walls 
 		if (movement != sf::Vector2f(0.f, 0.f))
 		{
 			//tracks movement of player
@@ -151,44 +179,74 @@ void Game::update(sf::Time t_deltaTime)
 			}
 		}
 
-		// for now npcs are free to roam into the sunset :D - 11/01/26 Collisions added but NPC is dumb and likes licking the walls some Ai Behaviours added its a little janky atm :O
+		// for now npcs are free to roam into the sunset :D - 11/01/26 Collisions added but NPC is dumb and likes licking the walls some Ai Behaviours added its a little janky atm :O 18/01/2026 
+		// NPCS behaviour is a bit smart but have to elaborate more as in flee if player strength increases etc
 		static sf::Vector2f lastPlayerPos = m_player.getPosition();
 		sf::Vector2f playerPos = m_player.getPosition();
 		sf::Vector2f playerVel = (playerPos - lastPlayerPos) / t_deltaTime.asSeconds();
 		lastPlayerPos = playerPos;
 
+		
+
 		for (auto& npc : m_npcs)
 		{
-			npc.update(t_deltaTime.asSeconds()); 
+			const float dt = t_deltaTime.asSeconds();
 
-			sf::Vector2f delta = npc.computeAIMovement(playerPos, playerVel, t_deltaTime.asSeconds());
-			if (delta == sf::Vector2f(0.f, 0.f))
-				continue;
+			sf::Vector2f npcPos = npc.getPosition();
+			sf::Vector2f toPlayer = playerPos - npcPos;
 
-			sf::FloatRect next = npc.getBounds();
-			next.position += delta;
+			float distance = std::sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
 
-			bool blocked = false;
-			for (const auto& wall : m_mapRenderer.getCollisionRects())
+			const float attackRange = npc.getAttackRange();	
+
+			if (distance <= attackRange)
 			{
-				if (rectsIntersect(next, wall))
+				
+				npc.setVelocity({ 0.f, 0.f });
+				npc.setAttacking(true);
+				npc.facing(playerPos);
+
+				// Apply damage on cooldown
+				if (npc.attackTimer(dt))
 				{
-					blocked = true;
-					break;
+					//just testing damage variable name will change when all is set up :D
+					m_testHealth -= 0.1f;
+					if (m_testHealth < 0.f) m_testHealth = 0.f;
 				}
-			}
-
-			if (!blocked)
-			{
-				npc.movement(delta);
 			}
 			else
 			{
-				// Stop sliding into a wall
-				npc.setVelocity({ 0.f, 0.f });
-			}
-		}
+				npc.setAttacking(false);
 
+				//NPC is always pursuing player for now
+				sf::Vector2f delta = npc.computeAIMovement(playerPos, playerVel, dt);
+				//for collision against walls 
+				if (delta != sf::Vector2f(0.f, 0.f))
+				{
+					
+					sf::FloatRect next = npc.getBounds();
+					next.position += delta;
+
+					bool blocked = false;
+					for (const auto& wall : m_mapRenderer.getCollisionRects())
+					{
+						if (rectsIntersect(next, wall))
+						{
+							blocked = true;
+							break;
+						}
+					}
+
+					if (!blocked)
+						npc.movement(delta);
+					else
+						npc.setVelocity({ 0.f, 0.f });
+				}
+			}
+
+			npc.update(dt);
+		}
+		m_hud.update(m_testHealth,t_deltaTime.asSeconds());
 		//Camera follows player
 		m_camera.follow(m_player.getPosition());
 
@@ -200,6 +258,7 @@ void Game::render()
 	m_camera.applyCam(m_window);
 	m_window.clear(sf::Color::Black);
 	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
+	
 	m_player.draw(m_window);
 	for (auto& npc : m_npcs) {
 		npc.draw(m_window);
@@ -214,6 +273,8 @@ void Game::render()
 		box.setFillColor({ 255,0,0,100 });
 		m_window.draw(box);
 	}
+	m_window.setView(m_window.getDefaultView());
+	m_hud.draw(m_window);
 	m_window.display();
 }
 

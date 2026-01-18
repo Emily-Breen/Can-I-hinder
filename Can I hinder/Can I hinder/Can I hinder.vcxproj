@@ -26,6 +26,7 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Input Handler.cpp" />
+    <ClCompile Include="Items.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MathUtils.cpp" />
@@ -42,6 +43,7 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Input Handler.h" />
+    <ClInclude Include="Items.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="NPC.h" />

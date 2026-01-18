@@ -17,6 +17,7 @@
 #include "NPC.h"
 #include<iostream>
 #include "Camera.h"
+#include "HUD.h"
 
 
 
@@ -53,10 +54,11 @@ private:
 	bool isSpawnNPC{ false };
 
 	//TESTING
-	
+	float m_testHealth = 1.0f;
 
 	MapRenderer m_mapRenderer;
-
+	HUD m_hud;
+	float m_playerHP = 1.f;
 	tmx::Map m_map;
 
 
