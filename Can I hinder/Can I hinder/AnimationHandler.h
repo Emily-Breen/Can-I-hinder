@@ -22,7 +22,7 @@ class Animation
 {
   public:
     Animation() = default;
-    Animation(sf::Texture& texture, int startFrame, int frameCount, float frameDuration, int offsetX = 0, int offsetY = 0, int frameWidth =0);
+    Animation(sf::Texture& texture, int startFrame, int frameCount, float frameDuration, int offsetX = 0, int offsetY = 0, int frameWidth =0 , int frameHeight = 48);
 	void update(float dt);
 	void applyToSprite(sf::Sprite& sprite) const;
     void reset();
@@ -37,7 +37,7 @@ class AnimationHandler
 {
    public:
        AnimationHandler(sf::Texture& t_texture);
-	   void addAnimation(PlayerState t_state, Direction t_direction, int startFrame, int frameCount, float frameDuration, int offsetX = 0, int offsetY = 0, int frameWidth = 0);
+	   void addAnimation(PlayerState t_state, Direction t_direction, int startFrame, int frameCount, float frameDuration, int offsetX = 0, int offsetY = 0, int frameWidth = 0, int frameHeight = 48);
        void changeState(PlayerState newState);
 	   void changeDirection(Direction newDirection);
        void update(float dt);

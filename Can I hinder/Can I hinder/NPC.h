@@ -15,14 +15,17 @@ public:
 	void draw(sf::RenderWindow& window) override;
 	void update(float dt) override;
 	sf::FloatRect getBounds();
+	static sf::Vector2f rectCenter(const sf::FloatRect& rect);
 	sf::Vector2f getDirection() const;
-	void movement(sf::Vector2f t_movement);
+	void movement(sf::Vector2f t_movement);;
+	void moveWithCollision(const sf::Vector2f& delta, const std::vector<sf::FloatRect>& walls);
 	sf::Vector2f setPosition(float x, float y);
 	sf::Vector2f getPosition() const;
 	void setAIMode(AIBehaviour::Mode mode);
 	sf::Vector2f getVelocity(sf::Vector2f vel) const;
 	void setVelocity(sf::Vector2f vel);
-	sf::Vector2f computeAIMovement(const sf::Vector2f& targetPos, const sf::Vector2f& targetVel, float dt);
+	sf::Vector2f computeAIMovement(const sf::Vector2f& targetPos, const sf::Vector2f& targetVel, float dt, const sf::Vector2f& separation,
+	const std::vector<sf::FloatRect>& walls);
 	void setAttacking(bool attacking);
 	bool isAttacking() const;
 	bool attackTimer(float dt);
@@ -30,6 +33,12 @@ public:
 	bool inAttackZone() const;
 	void setInAttackZone(bool v);
 	void facing(const sf::Vector2f& targetPos);
+	void takeDamage(float amount, float hurtDuration = 0.25f);
+	bool isDead() const;
+	float heathRatio() const;
+	//these may or may not stay
+	bool hasDroppedLoot() const;
+	void markDroppedLoot();
 
 private:
 	void NPCInit();
@@ -47,9 +56,27 @@ private:
 	float m_attackRange{ 50.f }; //close but not too close so no overlap
 	float m_attackCooldown{ 0.8f };
 	float m_attackTimer{ 0.f };
+	//Health and damage
+	float m_hpMax{ 1.0f };
+	float m_hp{ 1.0f };
+	float m_hurtTimer{ 0.f };
+	float m_invulnerabilityTimer{ 0.f };
+	bool m_dead{ false };
+	float m_deathTimer{ 0.f };
+	float m_deathDuration{ 0.64f };
+	bool m_droppedLoot{ false }; //this may or may not stay 
+	sf::Vector2f m_healthBarOffset{ 0.f, -100.f };
+	float m_healthBarWidth{ 40.f };
+	float m_healthBarHeight{ 6.f };
+
+
+
+
 
 
 	AIBehaviour m_aiBehaviour;
 	sf::Vector2f m_velocity{ 0.f, 0.f };
+
+
 };
 

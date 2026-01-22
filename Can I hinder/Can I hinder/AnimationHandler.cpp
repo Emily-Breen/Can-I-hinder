@@ -9,10 +9,10 @@
 /// <param name="offsetY"></param>
 Animation::Animation(sf::Texture& texture, int startFrame, int frameCount,
 	float frameDuration, int offsetX, int offsetY,
-	int frameWidth)
+	int frameWidth, int frameHeight)
 	: frameTime(frameDuration)
 {
-	const int frameHeight = 48;
+	
 
 	for (int i = 0; i < frameCount; ++i)
 	{
@@ -52,11 +52,11 @@ AnimationHandler::AnimationHandler(sf::Texture& t_texture) : m_texture(t_texture
 
 }
 
-void AnimationHandler::addAnimation(PlayerState m_state, Direction m_direction, int startFrame, int frameCount, float frameDuration, int offsetX, int offsetY, int frameWidth)
+void AnimationHandler::addAnimation(PlayerState m_state, Direction m_direction, int startFrame, int frameCount, float frameDuration, int offsetX, int offsetY, int frameWidth, int frameHeight)
 {
 	m_animations[{m_state, m_direction}] =
 		Animation(m_texture, startFrame, frameCount, frameDuration,
-			offsetX, offsetY, frameWidth);
+			offsetX, offsetY, frameWidth,frameHeight);
 }
 
 void AnimationHandler::changeState(PlayerState newState)

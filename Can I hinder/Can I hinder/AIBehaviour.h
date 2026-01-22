@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cmath>
 #include "MathUtils.h"
+#include "Entity.h"
 class AIBehaviour
 {
 public:
@@ -23,7 +24,7 @@ public:
 		const sf::Vector2f& agentVelocity,
 		const sf::Vector2f& targetPos,
 		const sf::Vector2f& targetVelocity,
-		float dt);
+		float dt, const sf::Vector2f& separation, const std::vector<sf::FloatRect>& walls, sf::FloatRect agentFeetBounds);
 
 	//fine tuning parameters for behaviours
 	void setMaxSpeed(float maxSpeed) { m_maxSpeed = maxSpeed; }
@@ -37,6 +38,7 @@ public:
 	}
 
 private:
+	void applyWallAvoidance(sf::Vector2f& desiredVelocity,const sf::FloatRect& agentFeetBounds,const std::vector<sf::FloatRect>& walls) const;
 
 	Mode m_mode = Mode::Wander;
 	float m_maxSpeed = 180.0f;
@@ -49,7 +51,8 @@ private:
 	float m_wanderCircleRadius = 40.0f;
 	float m_wanderJitter = 2.5f;
 	float m_wanderAngle = 0.0f;
-
+	float m_separationWeight{ 1.0f };
+	float m_separationMax{ 1.0f };
 	// Steering behaviour implementations
 	sf::Vector2f seek(const sf::Vector2f& agentPos, const sf::Vector2f targetPos) const;
 	sf::Vector2f arrive(const sf::Vector2f& agentPos, const sf::Vector2f targetPos) const;

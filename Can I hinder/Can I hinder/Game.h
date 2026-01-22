@@ -12,15 +12,29 @@
 #include <tmxlite/Map.hpp>
 #include <tmxlite/Layer.hpp>
 #include <tmxlite/TileLayer.hpp>
+#include <cstdlib> 
+#include <ctime>   
 #include <unordered_map>
 #include "Map.h"
 #include "NPC.h"
 #include<iostream>
 #include "Camera.h"
 #include "HUD.h"
+#include "Items.h"
 
-
-
+enum class menuState
+{
+	MAIN_MENU,
+	OPTIONS,
+	GAMEPLAY,
+	PAUSE,
+	GAME_OVER
+};
+enum class EnemyType
+{
+	Skeleton,
+	Goblin
+};
 const sf::Color ULTRAMARINE{ 5, 55,242,255 }; // const colour
 
 
@@ -38,12 +52,12 @@ private:
 	void checkKeyboardState();
 	void update(sf::Time t_deltaTime);
 	void render();
-	void spawnNPC(sf::Vector2f position);
-	bool rectsIntersect(const sf::FloatRect& a, const sf::FloatRect& b);
+	void spawnNPC(sf::Vector2f position, EnemyType type);
+	std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type);
 	
 	Player m_player; // player object
 	std::vector<NPC> m_npcs;
-	std::shared_ptr<sf::Texture> m_enemyTexture;
+	std::unordered_map<EnemyType, std::shared_ptr<sf::Texture>> m_enemyTextures;
 	WebsocketClient m_client; // websocket client
 	bool spawnEnemy{ false };
 	bool healPlayer{ false };
@@ -52,13 +66,15 @@ private:
 	sf::Font m_jerseyFont;// font used by message
 	bool m_DELETEexitGame; // control exiting game
 	bool isSpawnNPC{ false };
-
+	
 	//TESTING
 	float m_testHealth = 1.0f;
 
 	MapRenderer m_mapRenderer;
+	std::vector<Items> m_items;
+	
 	HUD m_hud;
-	float m_playerHP = 1.f;
+	
 	tmx::Map m_map;
 
 

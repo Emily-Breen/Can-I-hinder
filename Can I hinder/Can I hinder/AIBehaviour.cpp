@@ -9,34 +9,91 @@ void AIBehaviour::setMode(Mode mode)
     m_mode = mode;
 }
 
-sf::Vector2f AIBehaviour::computeSteering(const sf::Vector2f& agentPos, const sf::Vector2f& agentVelocity, const sf::Vector2f& targetPos, const sf::Vector2f& targetVelocity, float dt)
-{   //get desired velocity based on mode
-	sf::Vector2f desiredVelocity{ 0.f, 0.f };
-    switch (m_mode) {
-	case Mode::Seek:
-		desiredVelocity = seek(agentPos, targetPos);
-		break;
-	case Mode::Arrive:
-		desiredVelocity = arrive(agentPos, targetPos);
-		break;
-	case Mode::Flee:
-		desiredVelocity = flee(agentPos, targetPos);
-		break;
-	case Mode::Pursue:
-		desiredVelocity = pursue(agentPos, agentVelocity, targetPos, targetVelocity);
-		break;
-	case Mode::Wander:
-		desiredVelocity = wander(agentVelocity, dt);
-		break;
+sf::Vector2f AIBehaviour::computeSteering(
+    const sf::Vector2f& agentPos,
+    const sf::Vector2f& agentVelocity,
+    const sf::Vector2f& targetPos,
+    const sf::Vector2f& targetVelocity,
+    float dt,
+    const sf::Vector2f& separation,
+    const std::vector<sf::FloatRect>& walls,
+    const sf::FloatRect agentFeetBounds
+)
+{
+	//different steering behaviours
+    sf::Vector2f desiredVelocity{ 0.f, 0.f };
+    switch (m_mode)
+    {
+    case Mode::Seek:   desiredVelocity = seek(agentPos, targetPos); break;
+    case Mode::Arrive: desiredVelocity = arrive(agentPos, targetPos); break;
+    case Mode::Flee:   desiredVelocity = flee(agentPos, targetPos); break;
+    case Mode::Pursue: desiredVelocity = pursue(agentPos, agentVelocity, targetPos, targetVelocity); break;
+    case Mode::Wander: desiredVelocity = wander(agentVelocity, dt); break;
     }
-	//calculate steering force
-	sf::Vector2f steering = desiredVelocity - agentVelocity;
-	steering = MathUtils::truncate(steering, m_maxAcceleration);
-	//integrate to get new velocity
-	sf::Vector2f newVelocity = agentVelocity + steering * dt;
-	newVelocity = MathUtils::truncate(newVelocity, m_maxSpeed);
-	//return displacement
-	return newVelocity * dt;
+
+    //Separttion so NPCS dont overlap
+    const sf::Vector2f separationForce = MathUtils::truncate(separation, m_separationMax);
+    desiredVelocity += separationForce * (m_separationWeight * m_maxSpeed);
+
+	//applies wall avoidance to desired velocity
+    applyWallAvoidance(desiredVelocity, agentFeetBounds, walls);
+
+	//Steering force and new velocity
+    const sf::Vector2f steeringForce =
+        MathUtils::truncate(desiredVelocity - agentVelocity, m_maxAcceleration);
+
+    sf::Vector2f newVelocity =
+        MathUtils::truncate(agentVelocity + steeringForce * dt, m_maxSpeed);
+
+    return newVelocity * dt; // displacement
+}
+
+//needs a bit of work NPCS are still getting stuck on walls and not traversing corridors well
+void AIBehaviour::applyWallAvoidance(sf::Vector2f& desiredVelocity, const sf::FloatRect& agentFeetBounds, const std::vector<sf::FloatRect>& walls) const
+{
+	// No walls to avoid return
+    if (walls.empty())
+        return;
+	// Parameters for wall avoidance
+    const float lookAhead = 60.f;
+    const float avoidStrength = 0.8f;
+	// Direction the NPC is moving
+    sf::Vector2f moveDir = MathUtils::normalize(desiredVelocity);
+    if (MathUtils::vectorLength(moveDir) <= 0.0001f)
+        return;
+	// Create a probe box in front of the agent
+    sf::FloatRect probeBox = agentFeetBounds;
+    probeBox.position += moveDir * lookAhead;
+	// Center point of the probe box
+    const sf::Vector2f probeCenter{
+        probeBox.position.x + probeBox.size.x * 0.5f,
+        probeBox.position.y + probeBox.size.y * 0.5f
+    };
+
+    for (const auto& wall : walls)
+    {
+        if (!Entity::rectsIntersect(probeBox, wall))
+            continue;
+
+        const sf::Vector2f wallContactPoint =
+            MathUtils::nearestPointOnRect(wall, probeCenter);
+
+        sf::Vector2f wallNormal = MathUtils::normalize(probeCenter - wallContactPoint);
+
+		// Fallback normal if calculation fails
+        if (MathUtils::vectorLength(wallNormal) <= 0.0001f)
+            wallNormal = sf::Vector2f(-moveDir.y, moveDir.x);
+
+        // Slide along the wall
+        float velocityIntoWall = MathUtils::dotProduct(desiredVelocity, wallNormal);
+        if (velocityIntoWall < 0.f)
+            desiredVelocity -= wallNormal * velocityIntoWall;
+
+        // Small push outward for clearance
+        desiredVelocity += wallNormal * (avoidStrength * m_maxSpeed);
+
+        break; 
+    }
 }
 
 sf::Vector2f AIBehaviour::seek(const sf::Vector2f& agentPos, const sf::Vector2f targetPos) const

@@ -44,4 +44,10 @@ namespace MathUtils {
 		float dot = dotProduct(normalize(a), normalize(b));
 		return std::acos(dot);;
 	}
+	sf::Vector2f nearestPointOnRect(const sf::FloatRect& r, const sf::Vector2f& p)
+	{
+		float x = std::max(r.position.x, std::min(p.x, r.position.x + r.size.x));
+		float y = std::max(r.position.y, std::min(p.y, r.position.y + r.size.y));
+		return { x, y };
+	}
 }

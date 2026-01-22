@@ -32,6 +32,8 @@ bool HUD::load()
         return false;
 	if (!m_weaponBgTexture2.loadFromFile("ASSETS/IMAGES/HUD/currentWeapon.png"))
 		return false;
+	if (!m_font.openFromFile("ASSETS/FONTS/Jersey20-Regular.ttf"))
+		return false;
 
 	// Initialize sprites
     m_chatBGSprite = sf::Sprite(m_chatBGTexture);
@@ -60,6 +62,18 @@ void HUD::layout(const sf::Vector2u& windowSize)
 	m_weaponBgSprite2.setPosition({ 0.f, size.y - 160.f });
 	m_hotBarSprite.setPosition({ size.x * 0.5f - 250.f, size.y - 140.f });
 	m_chatBGSprite.setPosition({ size.x - 420.f, 30.f });
+
+	const float margin = 30.f;
+	sf::FloatRect chatLocal = m_chatBGSprite.getLocalBounds();
+
+	m_chatBGSprite.setPosition({
+		size.x - chatLocal.size.x * m_chatBGSprite.getScale().x - margin,
+		margin
+		});
+
+	// Text starts inside the chat box with some padding
+	m_chatMessageTopLeft = m_chatBGSprite.getPosition() + sf::Vector2f(45.f, 28.f);
+
 
 	//for inner healthbar fill position and scale
 	const sf::Vector2f decorScale = m_healthBarDecorSprite.getScale();
@@ -92,14 +106,23 @@ void HUD::update(float hp01, float dt)
 	const int fullW = static_cast<int>(texSize.x);
 	const int fullH = static_cast<int>(texSize.y);
 
-	const int w = std::max(0, std::min(fullW, (int)std::round(fullW * m_hpShown)));
+	const int visibleWidth = std::max(0, std::min(fullW, (int)std::round(fullW * m_hpShown)));
 
 	sf::IntRect rect{
 		sf::Vector2i{0, 0},
-		sf::Vector2i{w, fullH}
+		sf::Vector2i{visibleWidth, fullH}
 	};
 
 	m_healthBarSprite.setTextureRect(rect);
+	//update chat messages time to live
+	for (auto& msg : m_chatMessages)
+	{
+		msg.timeToLive -= dt;
+	}
+	while (!m_chatMessages.empty() && m_chatMessages.front().timeToLive <= 0.f)
+	{
+		m_chatMessages.pop_front();
+	}
 }
 
 void HUD::draw(sf::RenderWindow& window)
@@ -107,8 +130,55 @@ void HUD::draw(sf::RenderWindow& window)
 	
 	window.draw(m_healthBarDecorSprite);
 	window.draw(m_healthBarSprite);
+
 	window.draw(m_chatBGSprite);
+	sf::Text userNameText(m_font);
+	sf::Text messageText(m_font);
+	userNameText.setCharacterSize(20);
+	messageText.setCharacterSize(20);
+
+	sf::Vector2f chatPos = m_chatMessageTopLeft;
+
+	for (const auto& msg : m_chatMessages)
+	{
+		auto fade = [&](sf::Color color)
+			{
+				// last 1 second fades out
+				if (msg.timeToLive < 1.f)
+				{
+					color.a = static_cast<std::uint8_t>(
+						255.f * std::clamp(msg.timeToLive / 1.f, 0.f, 1.f)
+						);
+				}
+				return color;
+			};
+
+		userNameText.setString(msg.username + ": ");
+		userNameText.setFillColor(fade(msg.userColor));
+		userNameText.setPosition(chatPos);
+		window.draw(userNameText);
+
+		sf::FloatRect userBounds = userNameText.getLocalBounds();
+
+		messageText.setString(msg.message);
+		messageText.setFillColor(fade(msg.messageColor));
+		messageText.setPosition({ chatPos.x + userBounds.size.x, chatPos.y });
+		window.draw(messageText);
+
+		chatPos.y += m_chatMessageLineSpacing;
+	}
 	window.draw(m_hotBarSprite);
 	window.draw(m_weaponBgSprite);
 	window.draw(m_weaponBgSprite2);
+
+
+}
+
+void HUD::pushChatMessage(const std::string& username, const std::string& message, const sf::Color& userColor, const sf::Color& messageColor, float timeToLive)
+{
+	m_chatMessages.push_back(ChatMessage{ username, message, userColor, messageColor, timeToLive });
+	while (m_chatMessages.size() > m_maxChatMessages)
+	{
+		m_chatMessages.pop_front();
+	}
 }

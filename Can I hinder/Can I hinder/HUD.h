@@ -2,7 +2,15 @@
 #include <SFML/Graphics.hpp>
 #include <unordered_map>
 #include <string>
-
+#include <deque> //for chat messages
+struct ChatMessage
+{
+	std::string username;
+	std::string message;
+	sf::Color userColor;
+	sf::Color messageColor;
+	float timeToLive;
+};
 class HUD
 {
 public:
@@ -11,6 +19,7 @@ public:
 	void layout(const sf::Vector2u& windowSize);
 	void update(float hp01,float dt);
 	void draw(sf::RenderWindow& window);
+	void pushChatMessage(const std::string& username, const std::string& message, const sf::Color& userColor, const sf::Color& messageColor = sf::Color::White, float timeToLive = 6.0f);
 
 private:
 	
@@ -34,9 +43,18 @@ private:
 
 	sf::Sprite m_weaponSprite;
 	
-	float m_hp01 = 1.0f; //health percentage
+	float m_healthPercentage = 1.0f; //health percentage
 	float m_hpTarget = 1.0f;
 	float m_hpShown = 1.0f;
+
+
+	sf::Font m_font;
+	
+	std::deque<ChatMessage> m_chatMessages;
+	std::size_t m_maxChatMessages = 10;
+	sf::Vector2f m_chatMessageTopLeft{ 0.f, 0.f };
+	float m_chatMessageLineSpacing = 18.f;
+
 
 
 };
