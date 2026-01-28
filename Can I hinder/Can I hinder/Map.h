@@ -24,6 +24,7 @@ class MapRenderer : public sf::Drawable
 {
 public:
     bool load(const std::string& tmxPath);
+    const std::string& getMapPath() const;
     void drawLayered(sf::RenderTarget& target,sf::RenderStates renderStates,bool drawAbove) const;
     const std::vector<sf::FloatRect>& getCollisionRects() const;
 
@@ -31,6 +32,6 @@ private:
     std::unordered_map<std::string, sf::Texture> m_tilesetTextures;
     std::vector<LayerGroup> m_layerGroups;
     std::vector<sf::FloatRect> m_collisionRects;
-
+    std::string m_mapPath;
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };

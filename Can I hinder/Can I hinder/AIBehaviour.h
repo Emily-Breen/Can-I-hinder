@@ -1,7 +1,5 @@
 #pragma once
 #include <SFML/System.hpp>
-#include <cstdlib>
-#include <cmath>
 #include "MathUtils.h"
 #include "Entity.h"
 class AIBehaviour

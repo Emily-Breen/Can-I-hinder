@@ -50,7 +50,6 @@
     <ClInclude Include="Obstacles.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="HUD.h" />
-    <ClInclude Include="SteeringBehaviour.h" />
     <ClInclude Include="WebSocketClient.h" />
   </ItemGroup>
   <ItemGroup>

@@ -21,12 +21,14 @@ public:
 	sf::Vector2f getInputDirection();
 	sf::Vector2f getMovement();
 	sf::Vector2f getPosition();
+	void setPosition(sf::Vector2f position);
 	sf::FloatRect getBounds() const;
 	sf::FloatRect getAttackBounds() const;
 	void takeDamage(float duration = 0.35f);
 	bool isHurt() const;
 	void dead();
 	bool isDead() const;
+	
 private:
 	void playerInit();
 	sf::Texture m_playerTexture;

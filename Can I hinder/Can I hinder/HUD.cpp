@@ -105,9 +105,9 @@ void HUD::update(float hp01, float dt)
 	const auto texSize = m_healthBarTexture.getSize();
 	const int fullW = static_cast<int>(texSize.x);
 	const int fullH = static_cast<int>(texSize.y);
-
+	
 	const int visibleWidth = std::max(0, std::min(fullW, (int)std::round(fullW * m_hpShown)));
-
+	
 	sf::IntRect rect{
 		sf::Vector2i{0, 0},
 		sf::Vector2i{visibleWidth, fullH}
@@ -146,6 +146,7 @@ void HUD::draw(sf::RenderWindow& window)
 				// last 1 second fades out
 				if (msg.timeToLive < 1.f)
 				{
+					
 					color.a = static_cast<std::uint8_t>(
 						255.f * std::clamp(msg.timeToLive / 1.f, 0.f, 1.f)
 						);

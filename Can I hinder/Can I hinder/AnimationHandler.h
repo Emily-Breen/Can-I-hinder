@@ -44,7 +44,7 @@ class AnimationHandler
 	   void applyToSprite(sf::Sprite& sprite);
    private:
 	   sf::Texture& m_texture;
-	   std::map<std::pair<PlayerState, Direction>, Animation> m_animations;
+	   std::map<std::pair<PlayerState, Direction>, Animation> m_animations; 
 	   PlayerState m_currentState{ PlayerState::IDLE };
 	   Direction m_currentDirection{ Direction::DOWN };
 

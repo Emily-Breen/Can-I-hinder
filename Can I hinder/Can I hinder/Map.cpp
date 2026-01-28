@@ -4,6 +4,7 @@
 
 bool MapRenderer::load(const std::string& tmxFilePath)
 {
+    m_mapPath = tmxFilePath;
     // Load the TMX map file
     tmx::Map mapData;
     if (!mapData.load(tmxFilePath))
@@ -161,6 +162,11 @@ bool MapRenderer::load(const std::string& tmxFilePath)
         r.size *= mapScale;
     }
     return true;
+}
+
+const std::string& MapRenderer::getMapPath() const
+{
+    return m_mapPath;
 }
 
 void MapRenderer::drawLayered(sf::RenderTarget& target, sf::RenderStates renderStates, bool drawAbove) const

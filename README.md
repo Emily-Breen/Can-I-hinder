@@ -14,18 +14,22 @@ An interactive multiplayer game experience where spectators can influence gamepl
 
 ```
 Can I hinder/
-├── Can I hinder/                    # C++ Game Client (Visual Studio Project)
-│   ├── Can I hinder/                # Source files
-│   │   ├── Game.cpp/h              # Main game logic
+├── Can I hinder/                   # C++ Game Client (Visual Studio Project)
+│   ├── Can I hinder/               # Source files
+│   │   ├── Game.cpp/h              # Game.cpp/h # Main loop + applies events to gameplay (spawn/heal)
 │   │   ├── main.cpp                # Entry point
 │   │   ├── Player.cpp/h            # Player entity
-│   │   ├── NPC.cpp/h               # Non-player characters
+│   │   ├── NPC.cpp/h               # Non-player characters (Enemies)
 │   │   ├── Entity.cpp/h            # Base entity class
 │   │   ├── Map.cpp/h               # Map rendering and management
 │   │   ├── Camera.cpp/h            # Camera system
-│   │   ├── Input Handler.cpp/h    # Input management
+│   │   ├── Input Handler.cpp/h     # Input management
 │   │   ├── AnimationHandler.cpp/h  # Animation system
-│   │   ├── WebSocketClient.cpp/h   # WebSocket integration
+│   │   ├── WebSocketClient.cpp/h   # WebSocketClient.cpp/h # Receives JSON events (help/hinder) from server
+|   |   ├── AIBehaviour.cpp/h       # Movement behaviours for the NPC
+|   |   ├── Audio.cpp/h             # Music/sound effects for in game actions/ambience
+|   |   ├── HUD.cpp/h               # UI on screen (Health bar, chat box, hotbar, current weapon)
+|   |   ├── Items.cpp/h             # Item loading, animation, control flags
 │   │   ├── MathUtils.h             # Utility functions
 │   │   ├── Obstacles.h             # Obstacle definitions
 │   │   ├── ASSETS/                 # Game assets
@@ -74,7 +78,6 @@ Can I hinder/
 - **React 19.1** - UI framework
 - **TypeScript 5.9** - Type-safe JavaScript
 - **Vite 7.1** - Build tool and dev server
-- **ESLint** - Code linting
 
 ## 🚀 Getting Started
 
@@ -151,12 +154,19 @@ Messages are sent as JSON objects:
 ### Game Client Components
 
 - **Game**: Main game loop, event processing, and rendering
-- **Player**: Player character with movement and health
+- **Player**: Player character with movement and timers
 - **NPC**: Enemy entities that interact with the player
 - **WebSocketClient**: Handles real-time communication with the server
-- **MapRenderer**: Renders Tiled maps (.tmx files)
+- **MapRenderer**: Renders Tiled maps & AABB collisions (.tmx files)
 - **Camera**: Manages viewport and camera movement
 - **AnimationHandler**: Manages sprite animations
+- **HUD**: Manages UI elements in game
+- **Items**: Handles item rendering and animations 
+- **AIBehaviour**: Manages NPC movement logic seperation and wall avoidance
+  
+- **NOT ACTIVE IN GAME YET**:
+- **Audio**: Will manage all sound effects/music in game
+- **Obstacles**: Will manage obstacle spawning in game
 
 ### Server
 
@@ -218,6 +228,19 @@ Default settings:
 
 See `ASSETS/LICENSES/` for asset licensing information.
 
+
+ ### TODO:
+ **Networking**
+ - Begin work in a RESTful Api to log usernames, pass and analyytics (how many times which button is pressed)
+ - Further work to be done on PWA (service worker, Login page, Radial menu for Spectator choices, connection status, Mobile phone responsiveness, Identifiers)
+ - Move PWA and server.js to a P.H.E and change ports to new end point(https).
+  **SFML**
+  - Implement puzzle mechanic logic.
+  - Updaye so items effects apply to health bar.
+  - Implement level progression (Map1-Map2-Map3-super secret ending).
+  - Implement Obstacles that spawn when action is sent via websocket message
+  - Ractor code to remove any dead redundant code (better performance)
+  - Begin inserting audio into game.
 ---
 
 **Built using C++, Node.js, TypeScript & React**

@@ -7,11 +7,11 @@
 
 auto desktopMode = sf::VideoMode::getDesktopMode(); 
 Game::Game() :
-	m_window{desktopMode,"SFML Game 3.0",sf::State::Fullscreen},
-	m_DELETEexitGame{false}, m_camera(static_cast<float>(sf::VideoMode::getDesktopMode().size.x),static_cast<float>(sf::VideoMode::getDesktopMode().size.y)
+	m_window{ desktopMode,"SFML Game 3.0",sf::State::Fullscreen },
+	m_DELETEexitGame{ false }, m_camera(static_cast<float>(sf::VideoMode::getDesktopMode().size.x), static_cast<float>(sf::VideoMode::getDesktopMode().size.y)
 	) //when true game will exit
-{ 
-	
+{
+
 	m_client.setOnMessage([this](const std::string& action, const std::string& effect)
 		{
 			std::string user = "User123"; //just for testing should if all going right be set from the PWA to display the username of the user sending the action
@@ -27,14 +27,20 @@ Game::Game() :
 				m_hud.pushChatMessage(user, "healed you!", sf::Color(80, 255, 80));
 			}
 		});
-	
+
 	m_client.connect("localhost", "8080");
 
 
 
-	
 
-	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
+
+	m_mapRenderer.load("ASSETS/LEVELS/Map2.tmx");
+	if (m_mapRenderer.getMapPath() == "ASSETS/LEVELS/Map4.tmx")
+	{
+		m_player.setPosition({ 450.f, 1900.f });
+	}
+
+		
 
 	if (!m_hud.load())
 	{
@@ -226,8 +232,7 @@ void Game::update(sf::Time t_deltaTime)
 			}
 		}
 
-		// for now npcs are free to roam into the sunset :D - 11/01/26 Collisions added but NPC is dumb and likes licking the walls some Ai Behaviours added its a little janky atm :O 18/01/2026 
-		// NPCS behaviour is a bit smart but have to elaborate more as in flee if player strength increases etc
+		
 		static sf::Vector2f lastPlayerPos = m_player.getPosition();
 		sf::Vector2f playerPos = m_player.getPosition();
 		sf::Vector2f playerVel = (playerPos - lastPlayerPos) / t_deltaTime.asSeconds();
@@ -401,15 +406,16 @@ void Game::spawnNPC(sf::Vector2f position, EnemyType type)
 	auto tex = getEnemyTexture(type);
 	if (!tex) return;
 
-	NPC newNPC(tex);
-	newNPC.setAIMode(AIBehaviour::Mode::Pursue);
-	newNPC.setPosition(position.x, position.y);
-	m_npcs.push_back(newNPC);
+	//create and add NPC to vector and gives it the pursue behavuior alos sets its position
+	m_npcs.emplace_back(tex);
+	m_npcs.back().setAIMode(AIBehaviour::Mode::Pursue);
+	m_npcs.back().setPosition(position.x, position.y);
 }
 
 
 std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type)
 {
+	//uses a cache to avoid reloading same texture multiple times to save memory
 	auto textureIt = m_enemyTextures.find(type);
 	if (textureIt != m_enemyTextures.end())
 		return textureIt->second;

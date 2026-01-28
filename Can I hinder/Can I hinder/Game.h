@@ -57,7 +57,7 @@ private:
 	
 	Player m_player; // player object
 	std::vector<NPC> m_npcs;
-	std::unordered_map<EnemyType, std::shared_ptr<sf::Texture>> m_enemyTextures;
+	std::unordered_map<EnemyType, std::shared_ptr<sf::Texture>> m_enemyTextures; // enemy textures using unordered map to avoid reloading same texture
 	WebsocketClient m_client; // websocket client
 	bool spawnEnemy{ false };
 	bool healPlayer{ false };
@@ -75,7 +75,6 @@ private:
 	
 	HUD m_hud;
 	
-	tmx::Map m_map;
 
 
 };

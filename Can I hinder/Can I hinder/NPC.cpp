@@ -260,16 +260,7 @@ void NPC::setVelocity(sf::Vector2f vel)
 sf::Vector2f NPC::computeAIMovement(const sf::Vector2f& targetPos, const sf::Vector2f& targetVel, float dt, const sf::Vector2f& separation, const std::vector<sf::FloatRect>& walls)
 {
     sf::Vector2f movement =
-        m_aiBehaviour.computeSteering(
-            m_sprite.getPosition(),
-            m_velocity,
-            targetPos,
-            targetVel,
-            dt,
-            separation,
-            walls,
-            getBounds() 
-            );
+        m_aiBehaviour.computeSteering(m_sprite.getPosition(), m_velocity,targetPos,targetVel,dt,separation,walls,getBounds());
 
     if (dt > 0.0001f)
         m_velocity = movement / dt;
@@ -366,6 +357,7 @@ void NPC::NPCInit()
 {
     if (!m_texture || !m_texture->getSize().x) {
         std::cout << "No texture \n";
+        return;
     }
 
     m_sprite.setTexture(*m_texture);
@@ -378,7 +370,6 @@ void NPC::NPCInit()
 	m_animationHandler.addAnimation(PlayerState::IDLE, Direction::LEFT, 0, 5, 0.08f, 0, 400, 48, 48);
 	m_animationHandler.addAnimation(PlayerState::IDLE, Direction::RIGHT, 0, 5, 0.08f, 0, 650, 48, 48);
 	m_animationHandler.addAnimation(PlayerState::IDLE, Direction::UP, 0, 5, 0.08f, 0, 900, 48, 48);
-
 	// WALK Animations
 	m_animationHandler.addAnimation(PlayerState::WALK, Direction::DOWN, 0, 6, 0.08f, 0, 200, 48, 48);
 	m_animationHandler.addAnimation(PlayerState::WALK, Direction::LEFT, 0, 6, 0.08f, 0, 450, 48, 48);
