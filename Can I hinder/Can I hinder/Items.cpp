@@ -13,7 +13,8 @@ Items::Items(ItemEffect effect, sf::Vector2f worldPos, float pickupRadius)
 
 void Items::update(float dt)
 {
-	if (m_collected) return;
+	if (m_collected) 
+		return;
 
 	//just for a bob look onscreen
 	m_bobTimer += dt;
@@ -28,7 +29,8 @@ void Items::update(float dt)
 
 void Items::draw(sf::RenderWindow& window) const
 {
-	if (m_collected) return;
+	if (m_collected) 
+		return;
 	window.draw(m_sprite);
 }
 

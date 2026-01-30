@@ -397,6 +397,28 @@ void Game::update(sf::Time t_deltaTime)
 			m_audio.stopNpcWalkingSound();
 			npcStepsOn = false;
 		}
+
+		for (auto& item : m_items)
+		{
+			if (item.isCollected())
+				continue;
+
+			
+			if (Entity::rectsIntersect(m_player.getBounds(), item.getBounds()))
+			{
+				item.collect();
+
+				const ItemEffect& effect = item.getEffect();
+
+				if (effect.type == ItemType::healthPotion)
+				{
+					m_testHealth += effect.amount;
+					if (m_testHealth > 1.f)
+						m_testHealth = 1.f;
+				}
+			}
+		}
+
 		for (auto& item : m_items)
 		{
 			item.update(t_deltaTime.asSeconds());
