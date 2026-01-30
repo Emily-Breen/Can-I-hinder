@@ -50,4 +50,5 @@ namespace MathUtils {
 		float y = std::max(r.position.y, std::min(p.y, r.position.y + r.size.y));
 		return { x, y };
 	}
+	
 }

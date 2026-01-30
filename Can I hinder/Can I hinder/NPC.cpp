@@ -268,6 +268,43 @@ sf::Vector2f NPC::computeAIMovement(const sf::Vector2f& targetPos, const sf::Vec
     return movement;
 }
 
+sf::Vector2f NPC::computeSeparation(std::vector<NPC>& npcs, float separationRadius)
+{
+    const float separationRadiusSq = separationRadius * separationRadius;
+
+    sf::Vector2f seperationForce{ 0.f, 0.f };
+    int count = 0;
+
+    const sf::Vector2f selfFeetHBCenter = rectCenter(getBounds());
+
+    for (auto& neighbour : npcs)
+    {
+        if (&neighbour == this) 
+            continue;
+        if (neighbour.isDead()) 
+            continue;
+
+        const sf::Vector2f neighbourHBFeetCenter = rectCenter(neighbour.getBounds());
+
+        sf::Vector2f offset = selfFeetHBCenter - neighbourHBFeetCenter;
+		float distSq = MathUtils::vectorLength(offset);
+
+        if (distSq > 0.0001f && distSq < separationRadiusSq)
+        {
+           
+            seperationForce += offset / distSq;
+            ++count;
+        }
+    }
+    //so it doesnt scale with the neightbours in range
+    if (count > 0)
+        seperationForce /= static_cast<float>(count);
+
+    return seperationForce;
+
+}
+
+
 void NPC::setAttacking(bool attacking)
 {
     if (m_dead) { 
@@ -404,4 +441,15 @@ bool NPC::hasDroppedLoot() const
 void NPC::markDroppedLoot()
 {
 	m_droppedLoot = true;
+}
+
+EnemyType NPC::getType() const
+{
+    return m_type;
+}
+
+void NPC::setType(EnemyType type)
+{
+
+  m_type = type;
 }

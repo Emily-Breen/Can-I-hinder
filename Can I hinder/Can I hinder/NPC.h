@@ -5,6 +5,11 @@
 #include <string>
 #include "AIBehaviour.h"
 #include <cmath>
+enum class EnemyType
+{
+	Skeleton,
+	Goblin
+};
 class NPC : public Entity
 {
 public:
@@ -26,6 +31,7 @@ public:
 	void setVelocity(sf::Vector2f vel);
 	sf::Vector2f computeAIMovement(const sf::Vector2f& targetPos, const sf::Vector2f& targetVel, float dt, const sf::Vector2f& separation,
 	const std::vector<sf::FloatRect>& walls);
+	sf::Vector2f computeSeparation(std::vector<NPC>& npcs, float separationRadius);
 	void setAttacking(bool attacking);
 	bool isAttacking() const;
 	bool attackTimer(float dt);
@@ -39,6 +45,8 @@ public:
 	//these may or may not stay
 	bool hasDroppedLoot() const;
 	void markDroppedLoot();
+	EnemyType getType() const;
+	void setType(EnemyType type);
 
 private:
 	void NPCInit();
@@ -69,7 +77,7 @@ private:
 	float m_healthBarWidth{ 40.f };
 	float m_healthBarHeight{ 6.f };
 
-
+	EnemyType m_type;
 
 
 

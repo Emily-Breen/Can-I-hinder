@@ -34,7 +34,7 @@ Game::Game() :
 
 
 
-	m_mapRenderer.load("ASSETS/LEVELS/Map2.tmx");
+	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
 	if (m_mapRenderer.getMapPath() == "ASSETS/LEVELS/Map4.tmx")
 	{
 		m_player.setPosition({ 450.f, 1900.f });
@@ -193,6 +193,41 @@ void Game::update(sf::Time t_deltaTime)
 			m_window.close();
 			return;
 		}
+		//handle menu state changes sound only right now
+		if (m_currentMenuState != m_prevState)
+		{
+			m_audio.stopBackgroundMusic();
+
+			switch (m_currentMenuState)
+			{
+			case menuState::MAIN_MENU:
+				
+				m_audio.playMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main menu music.ogg");
+
+
+				break;
+
+			case menuState::GAMEPLAY:
+				m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+				break;
+
+			case menuState::GAME_OVER:
+				
+				break;
+
+			case menuState::PAUSE:
+				
+				break;
+
+			case menuState::SETTINGS:
+
+
+				break;
+			}
+
+			m_prevState = m_currentMenuState;
+		}
+
 		static bool attackWasHeld = false;
 		const bool attackHeld = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space); 
 		const bool attackJustPressed = attackHeld && !attackWasHeld;
@@ -205,6 +240,7 @@ void Game::update(sf::Time t_deltaTime)
 		
 		float speed = 300.f; 
 		sf::Vector2f movement = direction * speed * t_deltaTime.asSeconds();
+		bool blocked = false;
 		//for collision with walls 
 		if (movement != sf::Vector2f(0.f, 0.f))
 		{
@@ -213,7 +249,6 @@ void Game::update(sf::Time t_deltaTime)
 			nextBounds.position += movement;
 
 			//this is for the tiles
-			bool blocked = false;
 			const auto& walls = m_mapRenderer.getCollisionRects();
 
 			for (const auto& wall : walls)
@@ -230,8 +265,28 @@ void Game::update(sf::Time t_deltaTime)
 			{
 				m_player.movement(movement);
 			}
+			
 		}
+		//walking sound effect for player
+		
+		//treat very small movement as zero
+		const float epsilon = 0.1f;
+		//bool if player is moving a noticable amount and not blocked
+		const bool shouldFootstep =
+			(std::abs(movement.x) > epsilon || std::abs(movement.y) > epsilon) && !blocked;
 
+		static bool footstepsOn = false;
+
+		if (shouldFootstep && !footstepsOn)
+		{
+			m_audio.startWalkingSound();
+			footstepsOn = true;
+		}
+		else if (!shouldFootstep && footstepsOn)
+		{
+			m_audio.stopWalkingSound();
+			footstepsOn = false;
+		}
 		
 		static sf::Vector2f lastPlayerPos = m_player.getPosition();
 		sf::Vector2f playerPos = m_player.getPosition();
@@ -241,7 +296,7 @@ void Game::update(sf::Time t_deltaTime)
 		if (!m_player.isDead()&& attackJustPressed)
 		{
 			const sf::FloatRect atk = m_player.getAttackBounds();
-			
+			m_audio.startswordSlashSound();
 
 			for (auto& npc : m_npcs)
 			{
@@ -251,6 +306,9 @@ void Game::update(sf::Time t_deltaTime)
 					npc.takeDamage(0.25f);
 			}
 		}
+
+		bool anyNpcMoving = false;
+		const float npcEpsilon = 0.1f;
 
 		for (auto& npc : m_npcs)
 		{
@@ -272,9 +330,10 @@ void Game::update(sf::Time t_deltaTime)
 			sf::Vector2f npcPos = npc.getPosition();
 			sf::Vector2f toPlayer = playerPos - npcPos;
 
-			float distance = std::sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
+			float distance = MathUtils::vectorLength(toPlayer);
 
 			const float attackRange = npc.getAttackRange();
+			sf::Vector2f delta{ 0.f, 0.f };
 
 			if (distance <= attackRange)
 			{
@@ -297,66 +356,46 @@ void Game::update(sf::Time t_deltaTime)
 			{
 				npc.setAttacking(false);
 
-				auto SeparationVector = [&](NPC& self) -> sf::Vector2f
-					{
-						const float desiredSeparation = 100.f;
-						const float desiredSeparationSq = desiredSeparation * desiredSeparation;
-
-						sf::Vector2f seperationForce{ 0.f, 0.f };
-						int neighbourCount = 0;
-
-						const sf::Vector2f selfPos = self.getPosition();
-
-						for (auto& neighbour : m_npcs)
-						{
-							if (&neighbour == &self) 
-								continue;
-							if (neighbour.isDead()) 
-								continue;
-
-							sf::Vector2f offset = selfPos - neighbour.getPosition();
-							float offsetSq = offset.x * offset.x + offset.y * offset.y;
-
-							if (offsetSq > 0.0001f && offsetSq < desiredSeparationSq)
-							{
-								seperationForce += offset; 
-								++neighbourCount;
-							}
-						}
-
-						if (neighbourCount > 0)
-							seperationForce /= static_cast<float>(neighbourCount);
-
-						return seperationForce;
-				};
-				sf::Vector2f sep = SeparationVector(npc);
+				//this was causing a "sticky" situation with the NPC's lol 
+				//double movement was applied and duplicate collision Npcs still not fully navigating collisions 
+				//but much better 
+				sf::Vector2f sep = npc.computeSeparation(m_npcs, 10.f);
 				const auto& walls = m_mapRenderer.getCollisionRects();
-				sf::Vector2f delta = npc.computeAIMovement(playerPos, playerVel, dt, sep,walls);
-				npc.moveWithCollision(delta, walls);
 
-				if (delta != sf::Vector2f(0.f, 0.f))
-				{
-					sf::FloatRect next = npc.getBounds();
-					next.position += delta;
+				sf::Vector2f intended = npc.computeAIMovement(playerPos, playerVel, dt, sep, walls);
 
-					bool blocked = false;
-					for (const auto& wall : m_mapRenderer.getCollisionRects())
-					{
-						if (Entity::rectsIntersect(next, wall))
-						{
-							blocked = true;
-							break;
-						}
-					}
+				sf::Vector2f before = npc.getPosition();
+				npc.moveWithCollision(intended, walls);
+				sf::Vector2f after = npc.getPosition();
 
-					if (!blocked)
-						npc.movement(delta);
-					else
-						npc.setVelocity({ 0.f, 0.f });
-				}
+				delta = after - before; //track how much npc moved this frame
+				
 			}
+			//bool if npc is moving a noticable amout this frame
+			if (std::abs(delta.x) > npcEpsilon || std::abs(delta.y) > npcEpsilon)
+				anyNpcMoving = true;
 
 			npc.update(dt);
+		}
+		static bool npcStepsOn = false;
+
+		if (anyNpcMoving && !npcStepsOn)
+		{
+			for (auto& npc : m_npcs) {
+				if (npc.getType() == EnemyType::Goblin) {
+					m_audio.startWalkingSound();
+					npcStepsOn = true;
+				}
+				else if (npc.getType() == EnemyType::Skeleton) {
+					m_audio.startNpcWalkingSound();
+					npcStepsOn = true;
+				}
+			}
+		}
+		else if (!anyNpcMoving && npcStepsOn)
+		{
+			m_audio.stopNpcWalkingSound();
+			npcStepsOn = false;
 		}
 		for (auto& item : m_items)
 		{
@@ -410,7 +449,11 @@ void Game::spawnNPC(sf::Vector2f position, EnemyType type)
 	m_npcs.emplace_back(tex);
 	m_npcs.back().setAIMode(AIBehaviour::Mode::Pursue);
 	m_npcs.back().setPosition(position.x, position.y);
+	m_npcs.back().setType(type);
 }
+
+
+
 
 
 std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type)

@@ -21,4 +21,5 @@ namespace MathUtils {
 	float angleBetween(const sf::Vector2f& a, const sf::Vector2f& b);
     
 	sf::Vector2f nearestPointOnRect(const sf::FloatRect& r, const sf::Vector2f& p);
+
 }

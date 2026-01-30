@@ -24,6 +24,7 @@
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="FinalLevel.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Input Handler.cpp" />
     <ClCompile Include="Items.cpp" />
@@ -33,6 +34,7 @@
     <ClCompile Include="NPC.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="HUD.cpp" />
+    <ClCompile Include="Puzzles.cpp" />
     <ClCompile Include="WebSocketClient.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -41,6 +43,7 @@
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Entity.h" />
+    <ClInclude Include="FinalLevel.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Input Handler.h" />
     <ClInclude Include="Items.h" />
@@ -50,6 +53,7 @@
     <ClInclude Include="Obstacles.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="HUD.h" />
+    <ClInclude Include="Puzzles.h" />
     <ClInclude Include="WebSocketClient.h" />
   </ItemGroup>
   <ItemGroup>

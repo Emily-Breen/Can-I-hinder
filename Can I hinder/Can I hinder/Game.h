@@ -21,20 +21,17 @@
 #include "Camera.h"
 #include "HUD.h"
 #include "Items.h"
+#include "Audio.h"
 
 enum class menuState
 {
 	MAIN_MENU,
-	OPTIONS,
+	SETTINGS,
 	GAMEPLAY,
 	PAUSE,
 	GAME_OVER
 };
-enum class EnemyType
-{
-	Skeleton,
-	Goblin
-};
+
 const sf::Color ULTRAMARINE{ 5, 55,242,255 }; // const colour
 
 
@@ -53,6 +50,7 @@ private:
 	void update(sf::Time t_deltaTime);
 	void render();
 	void spawnNPC(sf::Vector2f position, EnemyType type);
+	
 	std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type);
 	
 	Player m_player; // player object
@@ -66,13 +64,18 @@ private:
 	sf::Font m_jerseyFont;// font used by message
 	bool m_DELETEexitGame; // control exiting game
 	bool isSpawnNPC{ false };
-	
 	//TESTING
 	float m_testHealth = 1.0f;
 
 	MapRenderer m_mapRenderer;
 	std::vector<Items> m_items;
-	
+	Audio m_audio;
+
+	menuState m_currentMenuState{menuState::GAMEPLAY};
+	menuState m_prevState{ menuState::MAIN_MENU };
+
+
+
 	HUD m_hud;
 	
 
