@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <string>
 #include <deque> //for chat messages
+#include <array> //for hotbar slots
+constexpr int HOTBAR_SLOTS = 6;
 struct ChatMessage
 {
 	std::string username;
@@ -26,6 +28,8 @@ private:
 
 	sf::Texture m_chatBGTexture;
 	sf::Texture m_hotBarTexture;
+	sf::Texture m_hotBarBackgroundTexture;
+	sf::Texture m_hotBarBackgroundTexture2;
 	sf::Texture m_healthBarDecorTexture;
 	sf::Texture m_healthBarTexture;
 	sf::Texture m_weaponBgTexture;
@@ -34,6 +38,8 @@ private:
 
 	sf::Sprite m_chatBGSprite;
 	sf::Sprite m_hotBarSprite;
+	sf::Sprite m_hotBarSlotBackground;
+	sf::Sprite m_hotBarCircleBackground;
 	sf::Sprite m_healthBarDecorSprite;
 	sf::Sprite m_healthBarSprite;
 	sf::Sprite m_weaponBgSprite;
@@ -50,10 +56,14 @@ private:
 
 	sf::Font m_font;
 	
-	std::deque<ChatMessage> m_chatMessages;
+	std::deque<ChatMessage> m_chatMessages; 
 	std::size_t m_maxChatMessages = 10;
 	sf::Vector2f m_chatMessageTopLeft{ 0.f, 0.f };
 	float m_chatMessageLineSpacing = 18.f;
+
+	std::array<sf::Vector2f, HOTBAR_SLOTS> m_slotPositions{}; 
+	sf::Vector2f m_leftCirclePos{};
+	sf::Vector2f m_rightCirclePos{};
 
 
 

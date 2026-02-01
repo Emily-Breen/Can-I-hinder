@@ -14,6 +14,8 @@ HUD::HUD()
 	, m_weaponBgSprite(m_weaponBgTexture)
 	, m_weaponBgSprite2(m_weaponBgTexture2)
 	,m_weaponSprite(m_weaponTexture)
+	, m_hotBarSlotBackground(m_hotBarBackgroundTexture)
+	, m_hotBarCircleBackground(m_hotBarBackgroundTexture2)
 {
 }
 
@@ -24,6 +26,10 @@ bool HUD::load()
         return false;
     if (!m_hotBarTexture.loadFromFile("ASSETS/IMAGES/HUD/Hotbar.png")) 
         return false;
+	if (!m_hotBarBackgroundTexture.loadFromFile("ASSETS/IMAGES/HUD/HotbarBackground.png"))
+		return false;
+	if (!m_hotBarBackgroundTexture2.loadFromFile("ASSETS/IMAGES/HUD/HotBarBackground2.png"))
+		return false;
     if (!m_healthBarDecorTexture.loadFromFile("ASSETS/IMAGES/HUD/health_bar_decoration.png"))
         return false;
 	if (!m_healthBarTexture.loadFromFile("ASSETS/IMAGES/HUD/health_bar.png")) 
@@ -42,6 +48,8 @@ bool HUD::load()
 	m_healthBarSprite = sf::Sprite(m_healthBarTexture);
     m_weaponBgSprite = sf::Sprite(m_weaponBgTexture);
 	m_weaponBgSprite2 = sf::Sprite(m_weaponBgTexture2);
+	m_hotBarSlotBackground = sf::Sprite(m_hotBarBackgroundTexture);
+	m_hotBarCircleBackground = sf::Sprite(m_hotBarBackgroundTexture2);
 
 	// Scaling
 	m_healthBarDecorSprite.setScale({ 6.f,6.f });
@@ -49,6 +57,11 @@ bool HUD::load()
 	m_hotBarSprite.setScale({ 3.f, 3.f });
 	m_weaponBgSprite.setScale({ 2.7f, 2.7f });
 	m_weaponBgSprite2.setScale({ 2.7f, 2.7f });
+	m_hotBarSlotBackground.setScale({ 3.f, 3.f });
+	m_hotBarCircleBackground.setScale({ 3.2f, 3.2f });
+
+	
+
 
     return true;
 }
@@ -60,7 +73,24 @@ void HUD::layout(const sf::Vector2u& windowSize)
 	m_healthBarDecorSprite.setPosition({ 30.f, 25.f });
 	m_weaponBgSprite.setPosition({ 0.f, size.y - 160.f });
 	m_weaponBgSprite2.setPosition({ 0.f, size.y - 160.f });
+	
 	m_hotBarSprite.setPosition({ size.x * 0.5f - 250.f, size.y - 140.f });
+
+	const sf::Vector2f hotbarPos = m_hotBarSprite.getPosition();
+
+	const sf::Vector2f firstSlotPos = hotbarPos + sf::Vector2f(127.f, 67.f); 
+	const float paddingX = 60.f; 
+	const sf::Vector2f leftCirclePos = hotbarPos + sf::Vector2f(10.f, 10.f);  
+	const sf::Vector2f rightCirclePos = hotbarPos + sf::Vector2f(490.f, 10.f);
+
+	for (int i = 0; i < 6; ++i)
+	{
+		m_slotPositions[i] = firstSlotPos + sf::Vector2f(paddingX * i, 0.f);
+	}
+
+	m_leftCirclePos = leftCirclePos;
+	m_rightCirclePos = rightCirclePos;
+
 	m_chatBGSprite.setPosition({ size.x - 420.f, 30.f });
 
 	const float margin = 30.f;
@@ -168,6 +198,21 @@ void HUD::draw(sf::RenderWindow& window)
 
 		chatPos.y += m_chatMessageLineSpacing;
 	}
+	//for left circle
+	m_hotBarCircleBackground.setPosition(m_leftCirclePos);
+	window.draw(m_hotBarCircleBackground);
+
+	// draw the 6 HB slots
+	for (int i = 0; i < 6; ++i)
+	{
+		m_hotBarSlotBackground.setPosition(m_slotPositions[i]);
+		window.draw(m_hotBarSlotBackground);
+	}
+
+	//for the right circle
+	m_hotBarCircleBackground.setPosition(m_rightCirclePos);
+	window.draw(m_hotBarCircleBackground);
+
 	window.draw(m_hotBarSprite);
 	window.draw(m_weaponBgSprite);
 	window.draw(m_weaponBgSprite2);
