@@ -35,11 +35,14 @@ Game::Game() :
 
 
 	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
+
+	std::cout << "player posX: " << m_player.getPosition().x << "player posY: " << m_player.getPosition().y;
 	if (m_mapRenderer.getMapPath() == "ASSETS/LEVELS/Map4.tmx")
 	{
 		m_player.setPosition({ 450.f, 1900.f });
+		return;
 	}
-
+	std::cout << "Doors loaded: " << m_mapRenderer.getDoors().size() << "\n";
 		
 
 	if (!m_hud.load())
@@ -248,18 +251,44 @@ void Game::update(sf::Time t_deltaTime)
 			sf::FloatRect nextBounds = m_player.getBounds();
 			nextBounds.position += movement;
 
-			//this is for the tiles
-			const auto& walls = m_mapRenderer.getCollisionRects();
-
-			for (const auto& wall : walls)
+			for (const auto& door : m_mapRenderer.getDoors())
 			{
-				if (Entity::rectsIntersect(nextBounds, wall))
+				if (Entity::rectsIntersect(nextBounds, door.rect))
 				{
-					blocked = true;
+					if (m_keyCount >= door.requiredKeys)
+					{
+						std::cout << "Door spawn read: " << door.spawn.x << ", " << door.spawn.y << "\n";
+						m_mapRenderer.load(door.nextMap);
+
+						
+						m_player.setPosition(door.spawn);
+						//m_player.setPosition({ 1590.f, 4621.f });
+						m_camera.follow(m_player.getPosition());
+						m_camera.applyCam(m_window);
+						return;
+					}
+					else
+					{
+						//door acts locked 
+						blocked = true;
+					}
+					
 					break;
 				}
 			}
-
+			if (!blocked)
+			{
+				//this is for tiles 
+				const auto& walls = m_mapRenderer.getCollisionRects();
+				for (const auto& wall : walls)
+				{
+					if (Entity::rectsIntersect(nextBounds, wall))
+					{
+						blocked = true;
+						break;
+					}
+				}
+			}
 			//only move if there is no collision
 			if (!blocked)
 			{

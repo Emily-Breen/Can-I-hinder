@@ -1,0 +1,6 @@
+@Can_I_HinderAPI_HostAddress = http://localhost:5055
+
+GET {{Can_I_HinderAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

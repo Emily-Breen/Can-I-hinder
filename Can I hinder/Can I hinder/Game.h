@@ -70,7 +70,7 @@ private:
 	MapRenderer m_mapRenderer;
 	std::vector<Items> m_items;
 	Audio m_audio;
-
+	int m_keyCount = 3; // for testing level progression
 	menuState m_currentMenuState{menuState::GAMEPLAY};
 	menuState m_prevState{ menuState::MAIN_MENU };
 

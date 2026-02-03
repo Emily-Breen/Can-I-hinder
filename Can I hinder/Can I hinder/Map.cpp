@@ -23,6 +23,7 @@ bool MapRenderer::load(const std::string& tmxFilePath)
     m_layerGroups.clear();
     m_tilesetTextures.clear();
 	m_collisionRects.clear();
+    m_doors.clear(); //this fecker I forgot to add it in when creating the door mechanic and caused me HOURS of debugging :'O
 
     // Load all tileset textures
     for (const auto& tileset : mapData.getTilesets())
@@ -153,14 +154,59 @@ bool MapRenderer::load(const std::string& tmxFilePath)
                 );
             }
         }
+        //Le door this basically is for the rectangle (I love me some AABB) for the object "Doors" in tiled so it I set properties for the door when the player hits the door with 3 keys moves it to the next map so cool!
+
+        if (layer->getType() == tmx::Layer::Type::Object &&
+            layer->getName() == "Doors")
+        {
+            const auto& objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
+
+            for (const auto& obj : objects)
+            {
+                DoorData door;
+
+                auto aabb = obj.getAABB();
+                door.rect = sf::FloatRect(
+                    sf::Vector2f(static_cast<float>(aabb.left),
+                        static_cast<float>(aabb.top)),
+                    sf::Vector2f(static_cast<float>(aabb.width),
+                        static_cast<float>(aabb.height))
+                );
+                
+                for (const auto& prop : obj.getProperties())
+                {
+                    if (prop.getName() == "requiredKeys") 
+                        door.requiredKeys = prop.getIntValue();
+                    else if (prop.getName() == "nextMap") 
+                        door.nextMap = prop.getStringValue();
+                    else if (prop.getName() == "spawnX") 
+                        door.spawn.x = prop.getFloatValue();
+                    else if (prop.getName() == "spawnY") 
+                        door.spawn.y = prop.getFloatValue();
+                    
+                }
+
+                m_doors.push_back(door);
+            }
+        }
+
     }
     float mapScale = 3.f;
 
-    for (auto& r : m_collisionRects)
+    for (auto& rect : m_collisionRects)
     {
-        r.position *= mapScale;
-        r.size *= mapScale;
+        rect.position *= mapScale;
+        rect.size *= mapScale;
+
     }
+    for (auto& door : m_doors)
+    {
+        door.rect.position *= mapScale;
+        door.rect.size *= mapScale;
+   
+       
+    }
+
     return true;
 }
 
@@ -177,8 +223,10 @@ void MapRenderer::drawLayered(sf::RenderTarget& target, sf::RenderStates renderS
     {
         bool isAboveLayer = (layer.name == "Above");
 
-        if (!drawAbove && isAboveLayer) continue;
-        if (drawAbove && !isAboveLayer) continue;
+        if (!drawAbove && isAboveLayer) 
+            continue;
+        if (drawAbove && !isAboveLayer) 
+            continue;
 
         for (const auto& batch : layer.batches)
         {
@@ -199,4 +247,9 @@ void MapRenderer::draw(sf::RenderTarget& target, sf::RenderStates renderState) c
     drawLayered(target, renderState, true); //draw above
 
 
+}
+
+const std::vector<DoorData>& MapRenderer::getDoors() const
+{
+    return m_doors;
 }

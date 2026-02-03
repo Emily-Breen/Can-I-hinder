@@ -25,7 +25,7 @@ public:
 	void update(float dt);
 	void draw(sf::RenderWindow& window) const;
 	sf::FloatRect getBounds() const;
-	sf::Vector2f getPosition() const;
+	sf::Vector2f getSpritePosition() const;
 	bool isCollected() const;
 	void collect();
 	const ItemEffect& getEffect() const;

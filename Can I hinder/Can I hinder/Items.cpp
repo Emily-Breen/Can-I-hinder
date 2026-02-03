@@ -39,7 +39,7 @@ sf::FloatRect Items::getBounds() const
 	return m_sprite.getGlobalBounds();
 }
 
-sf::Vector2f Items::getPosition() const
+sf::Vector2f Items::getSpritePosition() const
 {
 	return m_sprite.getPosition();
 }
