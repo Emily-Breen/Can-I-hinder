@@ -33,8 +33,9 @@ enum class menuState
 };
 
 const sf::Color ULTRAMARINE{ 5, 55,242,255 }; // const colour
-
-
+constexpr float VIRTUAL_WIDTH = 1920.f;
+constexpr float VIRTUAL_HEIGHT = 1080.f;
+constexpr bool USE_LOCAL_WS = true;
 class Game
 {
 public:
@@ -56,6 +57,7 @@ private:
 	Player m_player; // player object
 	std::vector<NPC> m_npcs;
 	std::unordered_map<EnemyType, std::shared_ptr<sf::Texture>> m_enemyTextures; // enemy textures using unordered map to avoid reloading same texture
+	
 	WebsocketClient m_client; // websocket client
 	bool spawnEnemy{ false };
 	bool healPlayer{ false };

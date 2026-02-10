@@ -8,10 +8,10 @@
 auto desktopMode = sf::VideoMode::getDesktopMode(); 
 Game::Game() :
 	m_window{ desktopMode,"SFML Game 3.0",sf::State::Fullscreen },
-	m_DELETEexitGame{ false }, m_camera(static_cast<float>(sf::VideoMode::getDesktopMode().size.x), static_cast<float>(sf::VideoMode::getDesktopMode().size.y)
-	) //when true game will exit
+	m_DELETEexitGame{ false }, m_camera(VIRTUAL_WIDTH,VIRTUAL_HEIGHT) //when true game will exit
 {
-
+	m_camera.onResize(m_window.getSize());
+	m_window.setVerticalSyncEnabled(true);
 	m_client.setOnMessage([this](const std::string& action, const std::string& effect)
 		{
 			std::string user = "User123"; //just for testing should if all going right be set from the PWA to display the username of the user sending the action
@@ -27,21 +27,23 @@ Game::Game() :
 				m_hud.pushChatMessage(user, "healed you!", sf::Color(80, 255, 80));
 			}
 		});
-
-	m_client.connect("localhost", "8080");
-
-
+	
+	if (USE_LOCAL_WS) {
+		m_client.connect("localhost", "8080", false); //localhost testing
+	}
+	else {
+		m_client.connect(
+			"can-i-hinder-ws-fkc5d6hwgdg0f0fp.germanywestcentral-01.azurewebsites.net",
+			"443",
+			true //Azure tls 
+		);
+	}
 
 
 
 	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
 
 	std::cout << "player posX: " << m_player.getPosition().x << "player posY: " << m_player.getPosition().y;
-	if (m_mapRenderer.getMapPath() == "ASSETS/LEVELS/Map4.tmx")
-	{
-		m_player.setPosition({ 450.f, 1900.f });
-		return;
-	}
 	std::cout << "Doors loaded: " << m_mapRenderer.getDoors().size() << "\n";
 		
 
@@ -51,7 +53,10 @@ Game::Game() :
 	}
 	else
 	{
-		m_hud.layout(m_window.getSize()); // makes sure the hud elements are in the right place when loaded.
+		m_hud.layout({
+	static_cast<unsigned>(VIRTUAL_WIDTH),
+	static_cast<unsigned>(VIRTUAL_HEIGHT)
+			}); // makes sure the hud elements are in the right place when loaded.
 	}
 	std::srand(static_cast<unsigned>(std::time(nullptr)));
 }
@@ -113,6 +118,14 @@ void Game::processEvents()
 		if (newEvent->is<sf::Event::KeyPressed>()) //user pressed a key
 		{
 			processKeys(newEvent);
+		}
+		if (const auto* resize = newEvent->getIf<sf::Event::Resized>())
+		{
+			m_camera.onResize({ resize->size.x, resize->size.y });
+			m_hud.layout({
+	                     static_cast<unsigned>(VIRTUAL_WIDTH),
+	                     static_cast<unsigned>(VIRTUAL_HEIGHT)
+				            }); //resizing to any screen (for mostly the 4k ones as my laptop is 1920x1080
 		}
 	}
 }
@@ -251,20 +264,18 @@ void Game::update(sf::Time t_deltaTime)
 			sf::FloatRect nextBounds = m_player.getBounds();
 			nextBounds.position += movement;
 
-			for (const auto& door : m_mapRenderer.getDoors())
+			for (const auto& doorRef : m_mapRenderer.getDoors())
 			{
-				if (Entity::rectsIntersect(nextBounds, door.rect))
+				if (Entity::rectsIntersect(nextBounds, doorRef.rect))
 				{
-					if (m_keyCount >= door.requiredKeys)
+					if (m_keyCount >= doorRef.requiredKeys)
 					{
-						std::cout << "Door spawn read: " << door.spawn.x << ", " << door.spawn.y << "\n";
-						m_mapRenderer.load(door.nextMap);
+						std::cout << "Door spawn read: " << doorRef.spawn.x << ", " << doorRef.spawn.y << "\n";
+						m_mapRenderer.load(doorRef.nextMap);
 
 						
-						m_player.setPosition(door.spawn);
-						//m_player.setPosition({ 1590.f, 4621.f });
+						m_player.setPosition(doorRef.spawn);
 						m_camera.follow(m_player.getPosition());
-						m_camera.applyCam(m_window);
 						return;
 					}
 					else
@@ -486,8 +497,15 @@ void Game::render()
 	//	m_window.draw(box);
 	//}
 
-	m_window.setView(m_window.getDefaultView());
+	sf::View uiView;
+	uiView.setSize({ m_camera.getVirtualSize()});
+	uiView.setCenter({ m_camera.getVirtualSize() * 0.5f});
+
+	uiView.setViewport(m_camera.getViewport());
+
+	m_window.setView(uiView);
 	m_hud.draw(m_window);
+
 	m_window.display();
 }
 

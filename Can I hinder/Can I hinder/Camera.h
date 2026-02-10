@@ -12,10 +12,25 @@ public:
 
 	void applyCam(sf::RenderWindow& m_window);
 
-private:
+	void onResize(const sf::Vector2u& newWindowSize);
+	
+	void setSmoothness(float smoothness);
 
+	void setPixelSnap(bool enabled);
+
+	const sf::FloatRect& getViewport() const;
+
+	const sf::Vector2f& getVirtualSize() const;
+
+
+private:
+	void updateViewport();
+
+	sf::Vector2f m_virtualSize;
+	sf::Vector2u m_windowSize;
 	sf::View m_view;
-	float smoothness{ 0.1f };
+	float m_smoothness{ 0.1f };
+	bool m_pixelSnap{ true };
 
 
 };
