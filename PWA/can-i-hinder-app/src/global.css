@@ -1,0 +1,177 @@
+/* ========== Global theme + reset ========== */
+@font-face {
+  font-family: "Magical World";
+  src: url("./assets/Magical World.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+:root{
+  --bg0: #060b14;
+  --bg1: #0b1324;
+
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.72);
+
+  --teal: #2fe6d6;
+  --teal2: #14b8a6;
+
+  --border: rgba(255,255,255,0.12);
+  --card: rgba(14, 24, 45, 0.85);
+
+  --shadow: 0 18px 60px rgba(0,0,0,0.6);
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background-color: var(--bg0);
+}
+
+body {
+  color: var(--text);
+  font-family: "Magical World", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+/* Force navy background behind everything */
+#root{
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 700px at 20% 15%, rgba(47,230,214,0.12), transparent 55%),
+    radial-gradient(900px 600px at 80% 30%, rgba(20,184,166,0.10), transparent 55%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+}
+
+a { color: var(--teal); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+::selection { background: rgba(47,230,214,0.25); }
+
+/* ========== App page (Can I Hinder screen) ========== */
+.app {
+  min-height: 100vh;
+  padding-top: 80px;      /* replaces margin-top */
+  text-align: center;
+  background: transparent;
+  font-family: "Magical World", Comic Sans MS, system-ui, sans-serif;
+}
+
+h1 {
+  font-family: "Magical World", Comic Sans MS, sans-serif;
+  letter-spacing: 0.06em;
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+}
+.wave-title {
+  font-family: "Magical World", Comic Sans MS, sans-serif;
+  letter-spacing: 0.06em;
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+  margin: 0;
+  text-shadow:
+    0 4px 18px rgba(47,230,214,0.25),
+    0 0 40px rgba(20,184,166,0.15);
+}
+
+.wave-char {
+  display: inline-block;
+  animation: mexicanWave 1.25s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.06s);
+  will-change: transform;
+}
+@keyframes mexicanWave {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+p {
+  font-size: clamp(1rem, 3.5vw, 1.1rem);
+  
+}
+
+.status {
+  margin-top: 2rem;
+  color: rgba(255,255,255,0.65);
+  font-style: italic;
+}
+
+/* Layout for the two actions */
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Buttons */
+button {
+  font-size: clamp(1rem, 4vw, 1.2rem);
+  padding: clamp(0.9rem, 4vw, 1rem) clamp(1.4rem, 6vw, 2rem);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #041016;
+  font-weight: 800;
+  transition: transform 0.08s ease, filter 0.15s ease;
+}
+
+button:active { transform: scale(0.96); }
+button:focus-visible {
+  outline: 3px solid rgba(47,230,214,0.45);
+  outline-offset: 3px;
+}
+
+.help {
+  background: linear-gradient(90deg, var(--teal), var(--teal2));
+  box-shadow: 0 12px 30px rgba(20,184,166,0.25);
+}
+
+.hinder {
+  background: linear-gradient(90deg, #ff5a5a, #ef4444);
+  box-shadow: 0 12px 30px rgba(239,68,68,0.18);
+}
+
+.help:hover, .hinder:hover { filter: brightness(1.05); }
+
+/* Characters */
+.character {
+  display: block;
+  animation: characterFloat 4.5s ease-in-out infinite;
+  will-change: transform;
+}
+.character.bee {
+  width: clamp(50px, 18vw, 70px);
+}
+
+.character.boo {
+  width: clamp(65px, 22vw, 90px);
+}
+
+@keyframes characterFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+/* mobile adjustments */
+@media (max-width: 768px) {
+  .button-group {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+@media (max-width: 768px) {
+  .app {
+    padding-top: 48px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wave-char { animation: none; }
+}
