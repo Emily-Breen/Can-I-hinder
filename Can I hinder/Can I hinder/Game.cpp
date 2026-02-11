@@ -12,14 +12,31 @@ Game::Game() :
 {
 	m_camera.onResize(m_window.getSize());
 	m_window.setVerticalSyncEnabled(true);
-	m_client.setOnMessage([this](const std::string& action, const std::string& effect)
+	m_client.setOnMessage([this](const std::string& user,const std::string& action, const std::string& effect)
 		{
-			std::string user = "User123"; //just for testing should if all going right be set from the PWA to display the username of the user sending the action
+			//std::string user = "User123"; //just for testing should if all going right be set from the PWA to display the username of the user sending the action
 
 			if (action == "hinder" && effect == "spawn_enemy")
 			{
 				spawnEnemy = true;
 				m_hud.pushChatMessage(user, "sent an enemy!", sf::Color(255, 80, 80));
+			}
+			else if (action == "hinder" && effect == "steal_power")
+			{
+				m_playerDamageMultiplier = 0.2f; // 80% damage reduction from the player to enemies for 6 seconds
+				m_stealPowerDuration = 6.0f;
+				m_stealPowerClock.restart();
+				m_stealPowerActive = true;
+
+				m_hud.pushChatMessage(user, "has weakened you!", sf::Color(255, 80, 80));
+			}
+			else if (action == "hinder" && effect == "drop_trap")
+			{
+				m_hud.pushChatMessage(user, "has blocked your path!", sf::Color(80, 255, 80));
+			}
+			else if (action == "hinder" && effect == "slow_player")
+			{
+				m_hud.pushChatMessage(user, "Has slowed your movements!", sf::Color(80, 255, 80));
 			}
 			else if (action == "help" && effect == "heal_player")
 			{
@@ -209,6 +226,14 @@ void Game::update(sf::Time t_deltaTime)
 			m_window.close();
 			return;
 		}
+		if (m_stealPowerActive)
+		{
+			if (m_stealPowerClock.getElapsedTime().asSeconds() >= m_stealPowerDuration)
+			{
+				m_stealPowerActive = false;
+				m_playerDamageMultiplier = 1.0f;
+			}
+		}
 		//handle menu state changes sound only right now
 		if (m_currentMenuState != m_prevState)
 		{
@@ -338,12 +363,14 @@ void Game::update(sf::Time t_deltaTime)
 			const sf::FloatRect atk = m_player.getAttackBounds();
 			m_audio.startswordSlashSound();
 
+			const float baseDamage = 0.25f;
+			const float finalDamage = baseDamage * m_playerDamageMultiplier;
 			for (auto& npc : m_npcs)
 			{
 				if (npc.isDead()) 
 					continue;
 				if (Entity::rectsIntersect(atk, npc.getBounds()))
-					npc.takeDamage(0.25f);
+					npc.takeDamage(finalDamage);
 			}
 		}
 

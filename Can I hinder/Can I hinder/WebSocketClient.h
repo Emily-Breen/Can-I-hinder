@@ -25,14 +25,14 @@ class WebsocketClient {
 
 	   void connect(const std::string& host, const std::string& port, bool useTls);
 	   void close();
-	   void setOnMessage(std::function<void(const std::string&, const std::string&)> callback);
+	   void setOnMessage(std::function<void(const std::string& ,const std::string&, const std::string&)> callback);
 
    private:
 
 	   void run(const std::string& host, const std::string& port, bool useTls);
 	   void readLoop(bool useTls);
 	   // Callback function to handle incoming messages, takes action and effect as parameters
-	   std::function<void(const std::string&, const std::string&)> onMessage;
+	   std::function<void(const std::string& ,const std::string&, const std::string&)> onMessage;
 	   // Background thread for running the WebSocket client
 	   std::thread m_thread;
 	   //flag so all threads know when to stop

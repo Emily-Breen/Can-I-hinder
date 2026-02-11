@@ -35,7 +35,7 @@ enum class menuState
 const sf::Color ULTRAMARINE{ 5, 55,242,255 }; // const colour
 constexpr float VIRTUAL_WIDTH = 1920.f;
 constexpr float VIRTUAL_HEIGHT = 1080.f;
-constexpr bool USE_LOCAL_WS = true;
+constexpr bool USE_LOCAL_WS = false; //set this to true to do local testing ws and false for wss azure
 class Game
 {
 public:
@@ -76,7 +76,10 @@ private:
 	menuState m_currentMenuState{menuState::GAMEPLAY};
 	menuState m_prevState{ menuState::MAIN_MENU };
 
-
+	bool  m_stealPowerActive = false;
+	float m_playerDamageMultiplier = 1.0f;  
+	float m_stealPowerDuration = 0.0f;      
+	sf::Clock m_stealPowerClock;
 
 	HUD m_hud;
 	

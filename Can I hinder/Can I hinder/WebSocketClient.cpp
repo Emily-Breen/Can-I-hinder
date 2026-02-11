@@ -23,20 +23,16 @@ void WebsocketClient::connect(const std::string& host, const std::string& port, 
 void WebsocketClient::close()
 {
 	m_running = false;
-	if (m_wss) {
-		boost::system::error_code ec;
-		if (m_wss) 
-			m_wss->close(websocket::close_code::normal, ec);
-		if (m_ws)  
-			m_ws->close(websocket::close_code::normal, ec);
-	}
 
-	if (m_thread.joinable()) {
+	boost::system::error_code ec;
+	if (m_wss) m_wss->close(websocket::close_code::normal, ec);
+	if (m_ws)  m_ws->close(websocket::close_code::normal, ec);
+
+	if (m_thread.joinable())
 		m_thread.join();
-	}
 }
 
-void WebsocketClient::setOnMessage(std::function<void(const std::string&,const std::string&)> callback)
+void WebsocketClient::setOnMessage(std::function<void(const std::string& ,const std::string&,const std::string&)> callback)
 {
 	onMessage = callback; // this is so it'll define what happens when a message is recieved (spawning an eneny)
 }
@@ -53,6 +49,8 @@ void WebsocketClient::run(const std::string& host, const std::string& port, bool
 			m_ssl_ctx.set_default_verify_paths();
 			// Set the verification mode to verify the server's certificate
 			m_ssl_ctx.set_verify_mode(ssl::verify_peer);
+			// Load the CA certificate to verify the server's certificate against trusted CAs... this broke the connection until this was added!!!!
+			m_ssl_ctx.load_verify_file("ASSETS/certs/cacert.pem");
 			// Create the WebSocket stream with SSL
 			m_wss = std::make_unique<websocket::stream<beast::ssl_stream<tcp::socket>>>(m_ioc, m_ssl_ctx);
 			// Set a timeout on the underlying TCP socket
@@ -61,7 +59,8 @@ void WebsocketClient::run(const std::string& host, const std::string& port, bool
 			// SNI for Azure/custom domains
 			if (!SSL_set_tlsext_host_name(m_wss->next_layer().native_handle(), host.c_str()))
 				throw std::runtime_error("Failed to set SNI hostname");
-			// Perform SSL handshake
+			// Verify cert matches hostname
+			m_wss->next_layer().set_verify_callback(ssl::host_name_verification(host));
 			m_wss->next_layer().handshake(ssl::stream_base::client);
 			// Perform WebSocket handshake
 			m_wss->handshake(host, "/");
@@ -102,10 +101,11 @@ void WebsocketClient::readLoop(bool useTls)
 			std::string message = boost::beast::buffers_to_string(buffer.data());
 			try {
 				auto data = json::parse(message);
+				std::string user = data.value("user", "");
 				std::string action = data.value("action", "");
 				std::string effect = data.value("effect", "");
 				if (onMessage) {
-					onMessage(action, effect);
+					onMessage(user, action, effect);
 				}
 			}
 			catch (...) {
