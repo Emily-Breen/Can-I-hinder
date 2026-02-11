@@ -25,11 +25,14 @@ void WebsocketClient::close()
 	m_running = false;
 
 	boost::system::error_code ec;
-	if (m_wss) m_wss->close(websocket::close_code::normal, ec);
-	if (m_ws)  m_ws->close(websocket::close_code::normal, ec);
+	if (m_wss) 
+		m_wss->close(websocket::close_code::normal, ec);
+	if (m_ws)
+		m_ws->close(websocket::close_code::normal, ec);
 
-	if (m_thread.joinable())
+	if(m_thread.joinable()) {
 		m_thread.join();
+	}
 }
 
 void WebsocketClient::setOnMessage(std::function<void(const std::string& ,const std::string&,const std::string&)> callback)
