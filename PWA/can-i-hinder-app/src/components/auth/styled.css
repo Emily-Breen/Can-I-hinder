@@ -1,0 +1,170 @@
+/* ===== Page background ===== */
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+
+  background:
+    radial-gradient(1200px 700px at 20% 15%, rgba(47,230,214,0.12), transparent 55%),
+    radial-gradient(900px 600px at 80% 30%, rgba(20,184,166,0.10), transparent 55%),
+    linear-gradient(180deg, #060b14, #0b1324);
+}
+.login-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.login-brand {
+  margin: 0;
+  font-family: "Magical World", Comic Sans MS, system-ui, sans-serif;
+  font-size: clamp(4rem, 7vw, 3.4rem);
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.95);
+  text-shadow:
+    0 4px 18px rgba(47,230,214,0.25),
+    0 0 40px rgba(20,184,166,0.15);
+}
+.login-brand {
+  animation: floatIn 1000ms ease-out both;
+}
+.login-brand.wave {
+  margin: 0 0 8px 0;
+  font-family: "Magical World", Comic Sans MS, system-ui, sans-serif;
+  font-size: clamp(2.4rem, 7vw, 3.4rem);
+  letter-spacing: 0.10em;
+  color: rgba(255,255,255,0.95);
+  text-shadow:
+    0 4px 18px rgba(47,230,214,0.25),
+    0 0 40px rgba(20,184,166,0.15);
+}
+
+.wave-char {
+  display: inline-block;
+  animation: mexicanWave 1.25s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.06s);
+  will-change: transform;
+}
+@keyframes mexicanWave {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(-500px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Card ===== */
+.login-card {
+  width: min(420px, 100%);
+  padding: 24px;
+  border-radius: 18px;
+  background: rgba(14, 24, 45, 0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 18px 60px rgba(0,0,0,0.6);
+  backdrop-filter: blur(12px);
+  display: grid;
+  gap: 14px;
+}
+
+/* ===== Text ===== */
+.login-title {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 800;
+}
+
+.login-sub {
+  margin-top: -6px;
+  margin-bottom: 8px;
+  color: rgba(255,255,255,0.7);
+}
+
+/* ===== Inputs ===== */
+.login-label {
+  display: grid;
+  gap: 6px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.login-input {
+  padding: 11px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(10,18,34,0.7);
+  color: white;
+  font-size: 15px;
+}
+
+/* ===== Button ===== */
+.login-button {
+  margin-top: 6px;
+  padding: 12px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 15px;
+  color: #041016;
+
+  background: linear-gradient(90deg, rgba(47,230,214,1), rgba(20,184,166,1));
+  box-shadow: 0 12px 30px rgba(20,184,166,0.35);
+
+  transition: opacity 120ms ease;
+}
+
+.login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Errors ===== */
+.login-error {
+  background: rgba(255,80,80,0.12);
+  border: 1px solid rgba(255,80,80,0.28);
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 13px;
+}
+
+/* ===== Footer ===== */
+.login-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+}
+
+.login-remember {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.login-forgot {
+  color: rgba(47,230,214,0.95);
+  cursor: pointer;
+}
+
+/* ===== Note ===== */
+.login-note {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+  text-align: center;
+}
+/*mobile adjustments */
+@media (max-width: 480px) {
+  .login-brand {
+    margin-bottom: 4px;
+  }
+}
+/* Respect accessibility settings */
+@media (prefers-reduced-motion: reduce) {
+  .wave-char { animation: none; }
+}
