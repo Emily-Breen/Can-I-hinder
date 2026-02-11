@@ -1,0 +1,94 @@
+/* === Overlay === */
+.radial-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+}
+
+/* === Main circular container === */
+.radial-circle {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  width: var(--radial-size);
+  height: var(--radial-size);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(47,230,214,0.12), transparent 55%),
+    radial-gradient(circle at 70% 70%, rgba(20,184,166,0.10), transparent 55%),
+    rgba(14,24,45,0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 25px 80px rgba(0,0,0,0.7);
+  display: grid;
+  place-items: center;
+}
+
+/* === Radial action buttons === */
+.radial-item {
+  position: absolute;
+  width: var(--item-size);
+  height: var(--item-size);
+  border-radius: 50%;
+  background: rgba(10,18,34,0.85);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.92);
+  font-weight: 800;
+  font-size: 16px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  cursor: pointer;
+  padding: 18px;
+  user-select: none;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(47,230,214,0.08),
+    0 10px 28px rgba(0,0,0,0.45);
+
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+/* Hover / focus glow */
+.radial-item:hover {
+  transform:
+    translate(var(--tx), var(--ty))
+    translateY(-6px)
+    scale(1.05);
+
+  box-shadow:
+    0 0 0 3px rgba(47,230,214,0.35),
+    0 0 18px rgba(47,230,214,0.45),
+    0 18px 40px rgba(0,0,0,0.6);
+}
+
+.radial-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* === Center button === */
+.radial-center {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background:
+    linear-gradient(135deg, rgba(47,230,214,1), rgba(20,184,166,1));
+  box-shadow:
+    0 0 0 8px rgba(47,230,214,0.25),
+    0 18px 40px rgba(20,184,166,0.45);
+}
+/* mobile adjustments */ 
+@media (max-width: 768px) {
+  .radial-circle {
+    --radial-size: 420px;
+  }
+
+  .radial-item {
+    font-size: 14px;
+  }
+}
