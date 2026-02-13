@@ -56,10 +56,7 @@ Game::Game() :
 		);
 	}
 
-
-
-	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
-
+	m_mapRenderer.load("ASSETS/LEVELS/Map2.tmx");
 	std::cout << "player posX: " << m_player.getPosition().x << "player posY: " << m_player.getPosition().y;
 	std::cout << "Doors loaded: " << m_mapRenderer.getDoors().size() << "\n";
 		
@@ -109,8 +106,8 @@ void Game::run()
 			std::cout << "An enemy has spawned to hinder you!\n";
 			spawnEnemy = false;
 
-			sf::Vector2f spawnPos =
-				m_player.getPosition() + sf::Vector2f(200.f, 0.f);
+			sf::Vector2f enemySize = { 48.f, 48.f }; //match eney size
+			sf::Vector2f spawnPos = m_mapRenderer.getFloorSpawn(enemySize, m_player.getPosition(), 200.f); //200 is a nice sweet spot
 
 			EnemyType type =
 				(std::rand() % 2 == 0)

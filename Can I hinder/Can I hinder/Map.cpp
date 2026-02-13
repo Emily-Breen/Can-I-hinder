@@ -19,7 +19,11 @@ bool MapRenderer::load(const std::string& tmxFilePath)
     const auto tileSize = mapData.getTileSize();
     const auto mapSize = mapData.getTileCount();
 
+    m_tileSize = sf::Vector2u{ tileSize.x, tileSize.y };
+    m_mapSize = sf::Vector2u{ mapSize.x,  mapSize.y };
+    m_walkable.assign(m_mapSize.x * m_mapSize.y, 0);
     // Clear old data
+    m_floorSpawns.clear();
     m_layerGroups.clear();
     m_tilesetTextures.clear();
 	m_collisionRects.clear();
@@ -47,6 +51,30 @@ bool MapRenderer::load(const std::string& tmxFilePath)
 
         const auto& tileLayer = layer->getLayerAs<tmx::TileLayer>();
         const auto& tiles = tileLayer.getTiles();
+		// If this is the floor layer, mark walkable tiles and store floor spawn points
+        if (layer->getName() == "floor")
+        {
+            for (unsigned tileY = 0; tileY < mapSize.y; ++tileY)
+            {
+                for (unsigned tileX = 0; tileX < mapSize.x; ++tileX)
+                {
+                    const auto& tile = tiles[tileY * mapSize.x + tileX];
+
+                    // Walkable if this floor layer HAS a tile here
+                    if (tile.ID != 0)
+                    {
+                        m_walkable[tileY * mapSize.x + tileX] = 1;
+
+                        // only store floor tile centers
+                        sf::Vector2f tileCenter{
+                            (tileX + 0.5f) * tileSize.x * mapScale,
+                            (tileY + 0.5f) * tileSize.y * mapScale
+                        };
+                        m_floorSpawns.push_back(tileCenter);
+                    }
+                }
+            }
+        }
 
 		// Group tiles by texture for efficient rendering better than per-tile draw calls
         std::unordered_map<const sf::Texture*, sf::VertexArray> textureBatches;
@@ -191,7 +219,7 @@ bool MapRenderer::load(const std::string& tmxFilePath)
         }
 
     }
-    float mapScale = 3.f;
+    
 
     for (auto& rect : m_collisionRects)
     {
@@ -206,8 +234,31 @@ bool MapRenderer::load(const std::string& tmxFilePath)
    
        
     }
+	// Mark tiles as non-walkable if they intersect with any collision rectangle
+    const float worldTileWidth = static_cast<float>(m_tileSize.x) * mapScale;
+    const float worldTileHeight = static_cast<float>(m_tileSize.y) * mapScale;
+	// Iterate over each tile and check for intersection with collision rectangles
+    for (unsigned tileY = 0; tileY < m_mapSize.y; ++tileY)
+        for (unsigned tileX = 0; tileX < m_mapSize.x; ++tileX)
+        {
+            if (!m_walkable[tileY * m_mapSize.x + tileX]) 
+                continue;
 
-    return true;
+            sf::FloatRect tileRect(
+                sf::Vector2f(tileX * worldTileWidth, tileY * worldTileHeight),
+                sf::Vector2f(worldTileWidth, worldTileHeight)
+            );
+			// Check if this tile intersects with any collision rectangle
+            for (const auto& c : m_collisionRects)
+            {
+                if (tileRect.findIntersection(c).has_value())
+                {
+                    m_walkable[tileY * m_mapSize.x + tileX] = 0;
+                    break;
+                }
+            }
+        }
+	return true;
 }
 
 const std::string& MapRenderer::getMapPath() const
@@ -253,3 +304,103 @@ const std::vector<DoorData>& MapRenderer::getDoors() const
 {
     return m_doors;
 }
+// to help stop the enemy spawning on top of the player and outside the map will probably move this to another class later.
+sf::Vector2f MapRenderer::getFloorSpawn(const sf::Vector2f& entitySize, const sf::Vector2f& avoidPos, float avoidRadius) const
+{ 
+    // If no walkable tiles, just spawn to the right of avoidPos
+    if (m_walkable.empty())
+        return avoidPos + sf::Vector2f(avoidRadius, 0.f);
+	// Get map dimensions
+    const int mapWidth = static_cast<int>(m_mapSize.x);
+    const int mapHeight = static_cast<int>(m_mapSize.y);
+	// Convert avoidPos to tile coordinates
+    auto startTile = worldToTile(avoidPos);
+	// If the starting tile is out of bounds, just spawn to the right of avoidPos
+    if (startTile.x < 0 || startTile.y < 0 || startTile.x >= mapWidth || startTile.y >= mapHeight)
+        return avoidPos + sf::Vector2f(avoidRadius, 0.f);
+	// Lambda to check if a tile is walkable
+    auto isTileWalkable = [&](int x, int y) -> uint8_t {
+        return m_walkable[y * mapWidth + x];
+        };
+	// If the starting tile is not walkable, just spawn to the right of avoidPos
+    if (!isTileWalkable(startTile.x, startTile.y))
+    {
+        return avoidPos + sf::Vector2f(avoidRadius, 0.f);
+    }
+	// BFS to find all reachable tiles from the starting tile
+    std::vector<uint8_t> visitedTiles(mapWidth * mapHeight, 0);
+    std::vector<sf::Vector2i> reachableTilesQueue;
+    reachableTilesQueue.reserve(mapWidth * mapHeight);
+	// Lambda to add a tile to the BFS queue if it's valid
+    auto addTileToQueue = [&](int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= mapWidth || y >= mapHeight) 
+                return;
+            const int i = y * mapWidth + x;
+            if (visitedTiles[i]) 
+                return;
+            if (!isTileWalkable(x, y)) 
+                return;
+            visitedTiles[i] = 1;
+            reachableTilesQueue.push_back({ x, y });
+        };
+	// Start BFS from the tile under avoidPos
+    addTileToQueue(startTile.x, startTile.y);
+
+    // BFS fills only the player's connected area
+    for (std::size_t i = 0; i < reachableTilesQueue.size(); ++i)
+    {
+        auto [tileX, tileY] = reachableTilesQueue[i];
+        addTileToQueue(tileX + 1, tileY);
+        addTileToQueue(tileX - 1, tileY);
+        addTileToQueue(tileX, tileY + 1);
+        addTileToQueue(tileX, tileY - 1);
+    }
+
+    // Choose nearest reachable tile outside radius
+    float closestValidDistance = std::numeric_limits<float>::max();
+    sf::Vector2f bestSpawnPos = avoidPos + sf::Vector2f(avoidRadius, 0.f);
+	// Iterate over all reachable tiles and find the one closest to avoidPos but outside avoidRadius
+    for (auto [tileX, tileY] : reachableTilesQueue)
+    {
+        sf::Vector2f tileCenterPos = tileCenter(tileX, tileY);
+        float distanceFromCenter = MathUtils::vectorLength(tileCenterPos - avoidPos);
+
+        if (distanceFromCenter < avoidRadius) 
+            continue;
+
+        if (distanceFromCenter < closestValidDistance)
+        {
+            closestValidDistance = distanceFromCenter;
+            bestSpawnPos = tileCenterPos;
+        }
+    }
+
+    return bestSpawnPos;
+}
+
+bool MapRenderer::rectHitsCollision(const sf::FloatRect& test, const std::vector<sf::FloatRect>& colliders)
+{
+    for (const auto& c : colliders)
+    {
+        if (test.findIntersection(c).has_value())
+            return true;
+    }
+    return false;
+}
+// Convert world coordinates to tile coordinates
+sf::Vector2i MapRenderer::worldToTile(const sf::Vector2f& p) const
+{
+    const float worldTileWidth = static_cast<float>(m_tileSize.x) * mapScale;
+    const float worldTileHeight = static_cast<float>(m_tileSize.y) * mapScale;
+    return { static_cast<int>(p.x / worldTileWidth), static_cast<int>(p.y / worldTileHeight) };
+}
+// Get the world coordinates of the center of a tile given its tile coordinates
+sf::Vector2f MapRenderer::tileCenter(int tx, int ty) const
+{
+    const float worldTileWidth = static_cast<float>(m_tileSize.x) * mapScale;
+    const float worldTileHeight = static_cast<float>(m_tileSize.y) * mapScale;
+    return { (tx + 0.5f) * worldTileWidth, (ty + 0.5f) * worldTileHeight };
+}
+
+
