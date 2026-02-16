@@ -15,6 +15,7 @@ public:
 	void stopswordSlashSound();
 	void playInGameBackgroundMusic(const char* musicFilePath);
 	void playMenuBackgroundMusic(const char* musicFilePath);
+	void stopMenuBackgroundMusic(const char* musicFilePath);
 	void stopBackgroundMusic();
 
 private:

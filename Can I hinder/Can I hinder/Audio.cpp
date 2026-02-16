@@ -101,6 +101,11 @@ void Audio::playMenuBackgroundMusic(const char* musicFilePath)
 	}
 }
 
+void Audio::stopMenuBackgroundMusic(const char* musicFilePath)
+{
+	backgroundMenuMusic.stop();
+}
+
 void Audio::stopBackgroundMusic()
 {
 	backgroundMusic.stop();
