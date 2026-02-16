@@ -23,11 +23,7 @@ Game::Game() :
 			}
 			else if (action == "hinder" && effect == "steal_power")
 			{
-				m_playerDamageMultiplier = 0.2f; // 80% damage reduction from the player to enemies for 6 seconds
-				m_stealPowerDuration = 6.0f;
-				m_stealPowerClock.restart();
-				m_stealPowerActive = true;
-
+				weakenPlayer = true;
 				m_hud.pushChatMessage(user, "has weakened you!", sf::Color(255, 80, 80));
 			}
 			else if (action == "hinder" && effect == "drop_trap")
@@ -59,8 +55,32 @@ Game::Game() :
 	m_mapRenderer.load("ASSETS/LEVELS/Map2.tmx");
 	std::cout << "player posX: " << m_player.getPosition().x << "player posY: " << m_player.getPosition().y;
 	std::cout << "Doors loaded: " << m_mapRenderer.getDoors().size() << "\n";
-		
+	if (!m_mainMenuTexture.loadFromFile("ASSETS/LEVELS/PNG/MainMenu.png"))
+	{
+		std::cout << "Failed to load Main Menu PNG\n";
+	}
+	else
+	{
+		m_mainMenuSprite.setTexture(m_mainMenuTexture, true); // reset texture rect
+		m_mainMenuSprite.setPosition({ 0.f, 0.f });
 
+		float scaleX = VIRTUAL_WIDTH / m_mainMenuTexture.getSize().x;
+		float scaleY = VIRTUAL_HEIGHT / m_mainMenuTexture.getSize().y;
+
+		m_mainMenuSprite.setScale({ scaleX, scaleY });
+	}
+	if (!m_MagicalWorldFont.openFromFile("ASSETS/FONTS/MagicalWorld.ttf"))
+	{
+		std::cout << "Failed to load MagicalWorld font\n";
+	}
+	
+	if (!m_buttonTexture.loadFromFile("ASSETS/LEVELS/PNG/Button.png"))
+	{
+		std::cout << "Failed to load Button.png\n";
+	}
+	setupMenuView();
+	setupMainMenuButtons();
+	setupMainMenuTitle();
 	if (!m_hud.load())
 	{
 		std::cout << "Failed to load HUD\n";
@@ -73,6 +93,8 @@ Game::Game() :
 			}); // makes sure the hud elements are in the right place when loaded.
 	}
 	std::srand(static_cast<unsigned>(std::time(nullptr)));
+	;
+
 }
 
 
@@ -116,6 +138,23 @@ void Game::run()
 
 			spawnNPC(spawnPos, type);
 		}
+		if (healPlayer)
+		{
+			std::cout << "Healed by viewer!\n";
+			healPlayer = false;
+
+			m_testHealth += 0.25f;
+			if (m_testHealth > 1.f)
+				m_testHealth = 1.f;
+		}
+		if (weakenPlayer) {
+			std::cout << "power reduced by viewer!\n";
+			weakenPlayer = false;
+			m_playerDamageMultiplier = 0.2f; // 80% damage reduction from the player to enemies for 6 seconds
+			m_stealPowerDuration = 6.0f;
+			m_stealPowerClock.restart();
+			m_stealPowerActive = true;
+		}
 
 	}
 }
@@ -139,8 +178,53 @@ void Game::processEvents()
 			m_hud.layout({
 	                     static_cast<unsigned>(VIRTUAL_WIDTH),
 	                     static_cast<unsigned>(VIRTUAL_HEIGHT)
-				            }); //resizing to any screen (for mostly the 4k ones as my laptop is 1920x1080
+		    }); //resizing to any screen (for mostly the 4k ones as my laptop is 1920x1080
 		}
+		if (m_currentMenuState == menuState::MAIN_MENU)
+		{
+			m_inputHandler.handleEvent(*newEvent, m_window, m_menuView);
+
+			if (m_inputHandler.menuMouseMoved())
+			{
+				const sf::Vector2f mousePos = m_inputHandler.menuMousePosition();
+
+				for (auto& button : m_menuButtons)
+				{
+					const bool isHovering = button.bounds().contains(mousePos);
+
+					if (isHovering != button.hovered)
+					{
+						button.hovered = isHovering;
+
+						if (isHovering)
+						{
+							button.sprite.setScale({ 0.65f, 0.65f });
+							button.text.setFillColor(sf::Color::Yellow);
+						}
+						else
+						{
+							button.sprite.setScale({ 0.6f, 0.6f });
+							button.text.setFillColor(sf::Color::White);
+						}
+					}
+				}
+			}
+			if (m_inputHandler.menuMouseClickReleased())
+			{
+				const sf::Vector2f mousePos = m_inputHandler.menuMousePosition();
+
+				for (auto& button : m_menuButtons)
+				{
+					if (button.bounds().contains(mousePos))
+					{
+						if (button.onClick)
+							button.onClick();
+						break;
+					}
+				}
+			}
+		}
+		
 	}
 }
 
@@ -151,9 +235,28 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 	const sf::Event::KeyPressed *newKeypress = t_event->getIf<sf::Event::KeyPressed>();
 	if (sf::Keyboard::Key::Escape == newKeypress->code)
 	{
-		m_DELETEexitGame = true; 
-	}
+		if (m_currentMenuState == menuState::GAMEPLAY) {
+			m_DELETEexitGame = true;
+		}	
+		else if (m_currentMenuState == menuState::PAUSE) {
 
+		}
+		else if (m_currentMenuState == menuState::MAIN_MENU) {
+			m_DELETEexitGame = true;
+		}
+		else
+			m_currentMenuState = menuState::MAIN_MENU;
+
+		return;
+	}
+	if (m_currentMenuState == menuState::MAIN_MENU)
+	{
+		if (newKeypress->code == sf::Keyboard::Key::Enter)
+		{
+			m_currentMenuState = menuState::GAMEPLAY;
+		}
+		return;
+	}
 	//FUTURE EMILY REMEMBER TO REMOVE THESE TEST KEYS LATER!!!
 
 	if (sf::Keyboard::Key::Numpad1 == newKeypress->code || sf::Keyboard::Key::Num1 == newKeypress->code) //just for testing so I dont have to set up the PWA aswell will be removed later
@@ -205,32 +308,17 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 }
 
 
-void Game::checkKeyboardState()
-{
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
-	{
-		m_DELETEexitGame = true; 
-	}
-}
+
 
 
 void Game::update(sf::Time t_deltaTime)
 {
-	
-		checkKeyboardState();
 		if (m_DELETEexitGame)
 		{
 			m_window.close();
 			return;
 		}
-		if (m_stealPowerActive)
-		{
-			if (m_stealPowerClock.getElapsedTime().asSeconds() >= m_stealPowerDuration)
-			{
-				m_stealPowerActive = false;
-				m_playerDamageMultiplier = 1.0f;
-			}
-		}
+		m_inputHandler.update();
 		//handle menu state changes sound only right now
 		if (m_currentMenuState != m_prevState)
 		{
@@ -239,37 +327,89 @@ void Game::update(sf::Time t_deltaTime)
 			switch (m_currentMenuState)
 			{
 			case menuState::MAIN_MENU:
-				
-				m_audio.playMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main menu music.ogg");
+
+				m_audio.playMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main Menu music.ogg");
 
 
 				break;
 
 			case menuState::GAMEPLAY:
+				m_audio.stopMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main Menu music.ogg");
 				m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
 				break;
 
 			case menuState::GAME_OVER:
-				
-				break;
-
 			case menuState::PAUSE:
 				
-				break;
-
 			case menuState::SETTINGS:
-
-
+			default:
 				break;
 			}
 
 			m_prevState = m_currentMenuState;
 		}
+		switch (m_currentMenuState)
+		{
+		case menuState::MAIN_MENU: {
+			if (m_inputHandler.menuUpPressed())
+				moveMenuSelection(-1);
 
+			if (m_inputHandler.menuDownPressed())
+				moveMenuSelection(+1);
+
+			if (m_inputHandler.menuSelectPressed())
+				activateSelectedButton();
+
+			float menuTime = m_menuClock.getElapsedTime().asSeconds();
+			float glow = 200.f + std::sin(menuTime * 4.f) * 55.f;
+			float scale = 1.f + std::sin(menuTime * 2.f) * 0.05f;
+
+			m_mainMenuTitleText.setScale({ scale, scale });
+			m_mainMenuTitleHighlight.setScale({ scale, scale });
+			m_mainMenuTitleShadow.setScale({ scale, scale });
+			m_mainMenuTitleText.setFillColor(sf::Color(255, glow, 0));
+
+			break;
+		}
+
+		case menuState::SETTINGS:
+			
+			return;
+
+		case menuState::PAUSE:
+			
+			return;
+
+		case menuState::GAME_OVER:
+		
+			return;
+
+		case menuState::GAMEPLAY:
+			break; 
+		}
+		if (m_DELETEexitGame)
+		{
+			m_window.close();
+			return;
+		}
+		// steal power timer
+		if (m_stealPowerActive)
+		{
+			if (m_stealPowerClock.getElapsedTime().asSeconds() >= m_stealPowerDuration)
+			{
+				m_stealPowerActive = false;
+				m_playerDamageMultiplier = 1.0f;
+			}
+		}
+		
 		static bool attackWasHeld = false;
-		const bool attackHeld = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space); 
-		const bool attackJustPressed = attackHeld && !attackWasHeld;
-		attackWasHeld = attackHeld;
+		const bool spaceHeld = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
+		const bool spaceJustPressed = spaceHeld && !attackWasHeld;
+		attackWasHeld = spaceHeld;
+
+		const bool controllerJustPressed = m_inputHandler.controllerAttackJustPressed();
+
+		const bool attackJustPressed = spaceJustPressed || controllerJustPressed;
 		
 		m_player.update(t_deltaTime.asSeconds());
 
@@ -354,7 +494,6 @@ void Game::update(sf::Time t_deltaTime)
 		sf::Vector2f playerPos = m_player.getPosition();
 		sf::Vector2f playerVel = (playerPos - lastPlayerPos) / t_deltaTime.asSeconds();
 		lastPlayerPos = playerPos;
-
 		if (!m_player.isDead()&& attackJustPressed)
 		{
 			const sf::FloatRect atk = m_player.getAttackBounds();
@@ -496,18 +635,43 @@ void Game::update(sf::Time t_deltaTime)
 
 void Game::render()
 {
-	m_camera.applyCam(m_window);
-	m_window.clear(sf::Color::Black);
-	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
 	
+	m_window.clear(sf::Color::Black);
+	if (m_currentMenuState == menuState::MAIN_MENU)
+	{
+		sf::View uiView;
+		uiView.setSize({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
+		uiView.setCenter({ VIRTUAL_WIDTH * 0.5f, VIRTUAL_HEIGHT * 0.5f });
+		sf::FloatRect viewport;
+		viewport.position = { 0.f, 0.f };
+		viewport.size = { 1.f, 1.f };
+
+		uiView.setViewport(viewport);
+		m_window.setView(uiView);
+
+		m_window.draw(m_mainMenuSprite);
+		
+		m_window.draw(m_mainMenuTitleHighlight);
+		m_window.draw(m_mainMenuTitleText);
+		for (auto& b : m_menuButtons)
+		{
+			m_window.draw(b.sprite);
+			m_window.draw(b.text);
+		}
+		m_window.display();
+		return;
+	}
+	m_camera.applyCam(m_window);
+	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
+	for (auto& npc : m_npcs) {
+		npc.draw(m_window);
+	}
 	m_player.draw(m_window);
 	for (auto& item : m_items)
 	{
 		item.draw(m_window);
 	}
-	for (auto& npc : m_npcs) {
-		npc.draw(m_window);
-	}
+	
 	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, true);
 	
 	//DEBUG: Drawing Collision Rects
@@ -545,8 +709,138 @@ void Game::spawnNPC(sf::Vector2f position, EnemyType type)
 	m_npcs.back().setType(type);
 }
 
+void Game::setupMenuView()
+{
+	//sets up the view for the main menu to make usre it scales properly on different screen sizes and maintains a consistent layout
+	m_menuView.setSize({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
+	m_menuView.setCenter({ VIRTUAL_WIDTH * 0.5f, VIRTUAL_HEIGHT * 0.5f });
+	m_menuView.setViewport({ {0.f, 0.f}, {1.f, 1.f} });
+}
+
+void Game::setupMainMenuButtons()
+{
+	m_menuButtons.clear();
+
+	const float startY = 500.f;
+	const float gap = 200.f;
+	//creates the main menu buttons and sets their on click functions to change the menu state or exit the game
+	createMenuButton("PLAY", startY, [this]()
+		{
+			m_currentMenuState = menuState::GAMEPLAY;
+		});
+
+	createMenuButton("SETTINGS", startY + gap, [this]()
+		{
+			m_currentMenuState = menuState::SETTINGS;
+		});
+
+	createMenuButton("EXIT", startY + gap * 2.f, [this]()
+		{
+			m_DELETEexitGame = true;
+		});
+}
+
+void Game::createMenuButton(const std::string& label, float y, std::function<void()> onClick)
+{
+	m_menuButtons.emplace_back(m_buttonTexture, m_MagicalWorldFont);
+	Button& button = m_menuButtons.back();
+
+	// button sprite size / position
+	button.sprite.setScale({ 0.6f, 0.6f });
+
+	const auto spriteLocal = button.sprite.getLocalBounds();
+	button.sprite.setOrigin({
+		spriteLocal.position.x + spriteLocal.size.x * 0.5f,
+		spriteLocal.position.y + spriteLocal.size.y * 0.5f
+		});
+
+	button.sprite.setPosition({ VIRTUAL_WIDTH * 0.5f, y });
+
+	// text style and setup
+	button.text.setString(label);
+	button.text.setCharacterSize(72);
+	button.text.setFillColor(sf::Color::White);
 
 
+	// center text on sprite
+	const auto textBounds = button.text.getLocalBounds();
+	button.text.setOrigin({
+		textBounds.position.x + textBounds.size.x * 0.5f,
+		textBounds.position.y + textBounds.size.y * 0.5f
+		});
+	//postion text on sprite center
+	button.text.setPosition(button.sprite.getPosition());
+
+	button.onClick = std::move(onClick);
+}
+
+void Game::updateMenuHighlight()
+{
+
+	//updates the visual state of the menu buttons based on which one is currently selected
+	for (int i = 0; i < (int)m_menuButtons.size(); ++i)
+	{
+		const bool selected = (i == m_selectedButton);
+
+		m_menuButtons[i].hovered = selected;
+		m_menuButtons[i].sprite.setScale(selected ? sf::Vector2f{ 0.65f, 0.65f } : sf::Vector2f{ 0.6f, 0.6f });
+		m_menuButtons[i].text.setFillColor(selected ? sf::Color::Yellow : sf::Color::White);
+	}
+}
+
+void Game::moveMenuSelection(int direction)
+{
+	if (m_menuButtons.empty()) 
+		return;
+
+	m_selectedButton += direction;
+	//wrap around selection
+	if (m_selectedButton < 0) 
+		m_selectedButton = (int)m_menuButtons.size() - 1;
+	if (m_selectedButton >= (int)m_menuButtons.size())
+		m_selectedButton = 0;
+
+	updateMenuHighlight();
+}
+
+void Game::activateSelectedButton()
+{
+	if (m_menuButtons.empty()) 
+		return;
+
+	auto& button = m_menuButtons[m_selectedButton];
+	if (button.onClick) button.onClick();
+}
+
+void Game::setupMainMenuTitle()
+{
+	const sf::String title = "Can I Hinder?";
+	const int size = 120;
+
+	m_mainMenuTitleText.setFont(m_MagicalWorldFont);
+	m_mainMenuTitleText.setString(title);
+	m_mainMenuTitleText.setCharacterSize(size);
+	m_mainMenuTitleText.setFillColor(sf::Color(205, 198, 178));   // a warm off white color for the title
+	m_mainMenuTitleText.setOutlineColor(sf::Color(15, 10, 5)); // a dark brown outline for contrast
+	m_mainMenuTitleText.setOutlineThickness(3.f);
+
+	// center the text origin
+	auto bounds = m_mainMenuTitleText.getLocalBounds();
+	sf::Vector2f origin{
+		bounds.position.x + bounds.size.x * 0.5f,
+		bounds.position.y + bounds.size.y * 0.5f
+	};
+
+	m_mainMenuTitleText.setOrigin(origin);
+	//position the title near the top center of the screen
+	m_mainMenuTitleText.setPosition({ VIRTUAL_WIDTH * 0.5f, 180.f });
+
+	m_mainMenuTitleHighlight = m_mainMenuTitleText;
+	m_mainMenuTitleHighlight.setFillColor(sf::Color(255, 250, 235, 120));
+	m_mainMenuTitleHighlight.setOutlineColor(sf::Color(255, 255, 255, 80));
+	m_mainMenuTitleHighlight.setOutlineThickness(2.f);
+	m_mainMenuTitleHighlight.move({ -2.f, -2.f }); // slight offset for a subtle glow effect
+}
 
 
 std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type)
