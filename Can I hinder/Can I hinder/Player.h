@@ -31,23 +31,24 @@ public:
 	
 private:
 	void playerInit();
-	InputHandler m_inputHandler;
+	sf::Texture m_playerTexture;
 	AnimationHandler m_animationHandler;
 	PlayerState m_State{ PlayerState::IDLE };
 	Direction m_direction{ Direction::DOWN };
-	sf::FloatRect m_hitbox;
-	sf::Texture m_playerTexture;
-	
-	int attackPower{ 10 };
 	float m_speed{ 300.f };
+	InputHandler m_inputHandler;
+	int attackPower{ 10 };
+	sf::FloatRect m_hitbox;
+
 	float m_hurtTimer{ 0.f };
 	float m_invulnerabilityTimer{ 0.f };
+	bool m_isInvulnerable{ false };
+	bool m_isDead{ false };
 	float m_deathTimer{ 0.f };
 	float m_deathDuration{ 0.5f };
 	float m_attackTimer{ 0.f };
 	float m_attackDuration{ 0.60f };
 	bool  m_attackWasHeld{ false };
-	bool m_isInvulnerable{ false };
-	bool m_isDead{ false };
+
 
 };
