@@ -52,8 +52,9 @@ Can I hinder/
         │   ├── App.tsx             # Main app component
         │   ├── main.tsx            # Entry point
         │   ├── components/
+        │   
         │   │   ├── pwa-client.tsx  # WebSocket client logic
-        │   │   └── pwa-controls.tsx # Control components
+        │   │   └
         │   └── assets/             # Web assets
         ├── index.html              # HTML template
         ├── vite.config.ts          # Vite configuration

@@ -50,40 +50,41 @@ public:
 
 private:
 	void NPCInit();
-	std::shared_ptr<sf::Texture> m_texture;
+	
 	AnimationHandler m_animationHandler;
+	AIBehaviour m_aiBehaviour;
 	PlayerState m_State{ PlayerState::IDLE };
 	Direction m_direction{ Direction::DOWN };
+	sf::Vector2f m_healthBarOffset{ 0.f, -100.f };
+	sf::Vector2f m_velocity{ 0.f, 0.f };
+	std::shared_ptr<sf::Texture> m_texture;
 
 	float m_speed{ 150.f };
 	float m_detectionRadius{ 200.f };
 	float m_idleTime{ 0.f };
-	bool m_isMoving{ false };
-	bool m_attacking{ false };
-	bool m_inAttackZone{ false };
-	float m_attackRange{ 50.f }; //close but not too close so no overlap
+	float m_attackRange{ 50.f };
 	float m_attackCooldown{ 0.8f };
 	float m_attackTimer{ 0.f };
-	//Health and damage
 	float m_hpMax{ 1.0f };
 	float m_hp{ 1.0f };
 	float m_hurtTimer{ 0.f };
 	float m_invulnerabilityTimer{ 0.f };
-	bool m_dead{ false };
 	float m_deathTimer{ 0.f };
 	float m_deathDuration{ 0.64f };
-	bool m_droppedLoot{ false }; //this may or may not stay 
-	sf::Vector2f m_healthBarOffset{ 0.f, -100.f };
 	float m_healthBarWidth{ 40.f };
 	float m_healthBarHeight{ 6.f };
-
+	bool m_isMoving{ false };
+	bool m_attacking{ false };
+	bool m_inAttackZone{ false };
+	bool m_droppedLoot{ false }; //this may or may not stay 
+	bool m_dead{ false };
 	EnemyType m_type;
 
 
 
 
-	AIBehaviour m_aiBehaviour;
-	sf::Vector2f m_velocity{ 0.f, 0.f };
+	
+	
 
 
 };

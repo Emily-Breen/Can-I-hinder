@@ -52,14 +52,14 @@ private:
 	float m_healthPercentage = 1.0f; //health percentage
 	float m_hpTarget = 1.0f;
 	float m_hpShown = 1.0f;
-
+	float m_chatMessageLineSpacing = 18.f;
 
 	sf::Font m_font;
 	
 	std::deque<ChatMessage> m_chatMessages; 
 	std::size_t m_maxChatMessages = 10;
 	sf::Vector2f m_chatMessageTopLeft{ 0.f, 0.f };
-	float m_chatMessageLineSpacing = 18.f;
+	
 
 	std::array<sf::Vector2f, HOTBAR_SLOTS> m_slotPositions{}; 
 	sf::Vector2f m_leftCirclePos{};

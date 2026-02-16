@@ -7,20 +7,13 @@ class Camera
 {
 public:
 	Camera(float windowWidth, float windowHeight);
-
-	void follow(const sf::Vector2f& targetPosition);
-
-	void applyCam(sf::RenderWindow& m_window);
-
-	void onResize(const sf::Vector2u& newWindowSize);
-	
+    void follow(const sf::Vector2f& targetPosition);
+    void applyCam(sf::RenderWindow& m_window);
+    void onResize(const sf::Vector2u& newWindowSize);
 	void setSmoothness(float smoothness);
-
-	void setPixelSnap(bool enabled);
-
+    void setPixelSnap(bool enabled);
 	const sf::FloatRect& getViewport() const;
-
-	const sf::Vector2f& getVirtualSize() const;
+    const sf::Vector2f& getVirtualSize() const;
 
 
 private:
