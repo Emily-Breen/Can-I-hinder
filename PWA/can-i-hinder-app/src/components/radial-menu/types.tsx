@@ -1,8 +1,12 @@
+import type { HelpEffect, HinderEffect } from "../pwa/types";
+
 export type RadialItem = {
   id: string;
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  action?: "help" | "hinder"; 
+  effect?: HelpEffect | HinderEffect;
 };
 
  type Point = { 

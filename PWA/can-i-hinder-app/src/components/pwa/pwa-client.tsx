@@ -1,6 +1,8 @@
 import { WS_URL } from "../../config";
 import { getSession } from "../auth/auth";
 import type { GameAction, HelpEffect, HinderEffect } from "./types";
+import { canSend, recordSend } from "./rate-limit";
+
 // WebSocket connection using URL from config, which can be switched between local and prod servers
 const ws = new WebSocket(WS_URL);
 
@@ -41,6 +43,16 @@ function sendAction(action: GameAction) {
 export function sendHelp(effect: HelpEffect) {
   const session = getSession();
   const user = session?.username ?? "Guest";
+ // Check cooldown status before sending, and log a warning if the action is currently on cooldown with time left
+  const check = canSend("help", effect);
+  if (!check.ok) {
+  console.warn(
+    `On cooldown. Wait ${Math.ceil(check.waitMs / 1000)}s`
+  );
+  return;
+}
+ // Record the action in the rate limiter to start the cooldown, so that the UI can reflect the cooldown status immediately without waiting for server confirmation
+  recordSend("help", effect);
 
   sendAction({
     user,
@@ -52,6 +64,16 @@ export function sendHelp(effect: HelpEffect) {
 export function sendHinder(effect: HinderEffect) {
   const session = getSession();
   const user = session?.username ?? "Guest";
+// Check cooldown status before sending, and log a warning if the action is currently on cooldown with time left
+  const check = canSend("hinder", effect);
+ if (!check.ok) {
+  console.warn(
+    `On cooldown. Wait ${Math.ceil(check.waitMs / 1000)}s`
+  );
+  return;
+}
+// Record the action in the rate limiter to start the cooldown, so that the UI can reflect the cooldown status immediately without waiting for server confirmation
+  recordSend("hinder", effect);
 
   sendAction({
     user,

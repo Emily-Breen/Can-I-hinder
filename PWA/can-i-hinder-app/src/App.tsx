@@ -14,19 +14,19 @@ function App() {
   // define menu items using useMemo so the dont get recreated every render, which would break the menu’s open state
 const helpItems: RadialItem[] = useMemo(
     () => [
-      { id: "heal", label: "Heal player", onClick: () => sendHelp("heal_player") },
-      { id: "speed", label: "Speed up player", onClick: () => sendHelp("speed_up_player") },
-      { id: "power", label: "Power boost", onClick: () => sendHelp("power_boost") },
-      { id: "shield", label: "Shield player", onClick: () => sendHelp("shield_player") },
+      { id: "heal", label: "Heal player", action: "help", effect: "heal_player", onClick: () => sendHelp("heal_player") },
+      { id: "speed", label: "Speed up player", action: "help", effect: "speed_up_player", onClick: () => sendHelp("speed_up_player") },
+      { id: "power", label: "Power boost", action: "help", effect: "power_boost", onClick: () => sendHelp("power_boost") },
+      { id: "shield", label: "Shield player", action: "help", effect: "shield_player", onClick: () => sendHelp("shield_player") },
     ],
     []
   );
   const hinderItems: RadialItem[] = useMemo(
     () => [
-      { id: "spawn", label: "Spawn enemy", onClick: () => sendHinder("spawn_enemy") },
-      { id: "trap",  label: "Drop trap",   onClick: () => sendHinder("drop_trap") },
-      { id: "slow",  label: "Slow player", onClick: () => sendHinder("slow_player") },
-      { id: "steal", label: "Steal power", onClick: () => sendHinder("steal_power") },
+      { id: "spawn", label: "Spawn enemy", action: "hinder", effect: "spawn_enemy", onClick: () => sendHinder("spawn_enemy") },
+      { id: "trap",  label: "Drop trap", action: "hinder", effect: "drop_trap", onClick: () => sendHinder("drop_trap") },
+      { id: "slow",  label: "Slow player", action: "hinder", effect: "slow_player", onClick: () => sendHinder("slow_player") },
+      { id: "steal", label: "Steal power", action: "hinder", effect: "steal_power", onClick: () => sendHinder("steal_power") },
     ],
     []
   );
