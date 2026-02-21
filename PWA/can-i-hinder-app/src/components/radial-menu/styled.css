@@ -65,8 +65,9 @@
 }
 
 .radial-item:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  opacity: 0.5;
+  filter: grayscale(0.2);
+  box-shadow: none;
 }
 
 /* === Center button === */
@@ -76,11 +77,32 @@
   border-radius: 50%;
   border: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;  
+  user-select: none;
   background:
     linear-gradient(135deg, rgba(47,230,214,1), rgba(20,184,166,1));
   box-shadow:
     0 0 0 8px rgba(47,230,214,0.25),
     0 18px 40px rgba(20,184,166,0.45);
+
+  transition: transform 90ms ease, box-shadow 120ms ease, filter 120ms ease;
+  outline: none;  
+}
+/* for keyboard users */
+.radial-item:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(0, 255, 200, 0.55),
+    0 0 28px rgba(0, 255, 200, 0.35);
+}
+
+.radial-item:active,
+.radial-item.is-pressed {
+  transform: translate(var(--tx), var(--ty)) scale(0.97);
+  filter: brightness(1.05);
+  box-shadow:
+    0 0 0 3px rgba(0, 255, 200, 0.45),
+    0 0 24px rgba(0, 255, 200, 0.35);
 }
 /* mobile adjustments */ 
 @media (max-width: 768px) {

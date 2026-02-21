@@ -3,6 +3,10 @@ import "./styled.css";
 import type { RadialMenuProps } from "./types";
 import { getActionStatus } from "../pwa/rate-limit";
 
+function vibrate(ms: number= 20) {
+  //vibarte on some devices for feedback, IOS apparently ignores this so will test to see if it will work
+  if ("vibrate" in navigator) navigator.vibrate(ms);
+}
 export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuProps) {
   // Close the menu when user presses ESC
   useEffect(() => {
@@ -56,12 +60,12 @@ export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuP
   };
 
   return (
-    <div className="radial-overlay" onMouseDown={onClose}>
+    <div className="radial-overlay" onPointerDown={onClose}>
       <div
         className="radial-circle"
         // Position the menu based on the anchor (button center) for desktop, or screen center for mobile
         style={{ ...cssVars, left: centerX, top: centerY }}
-        onMouseDown={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         {placedItems.map(({ item, tx, ty }) => {
          
@@ -88,6 +92,9 @@ export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuP
                   transform: `translate(${tx}px, ${ty}px)`,
                 } as React.CSSProperties & Record<string, string>
               }
+              onPointerDown={() => {
+                      vibrate(20);
+                }}
               onClick={() => {
                 if (isDisabled) return;
                 item.onClick();
