@@ -91,7 +91,6 @@ export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuP
               onClick={() => {
                 if (isDisabled) return;
                 item.onClick();
-                onClose();
               }}
               title={blockedByCooldown ? `Wait ${secondsLeft}s` : undefined}
             >
