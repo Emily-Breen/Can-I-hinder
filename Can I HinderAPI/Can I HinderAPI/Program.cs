@@ -31,8 +31,14 @@ var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
 
 // Only enforce JWT config if present to allow flexibility in development without authentication if desired
-if (!string.IsNullOrWhiteSpace(jwtKey))
+if (string.IsNullOrWhiteSpace(jwtKey))
 {
+    if (builder.Environment.IsProduction())
+        throw new InvalidOperationException("JWT signing key not configured (Jwt:Key).");
+}
+else
+{
+    
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -40,10 +46,13 @@ if (!string.IsNullOrWhiteSpace(jwtKey))
             {
                 ValidateIssuer = true,
                 ValidIssuer = jwtIssuer,
+
                 ValidateAudience = true,
                 ValidAudience = jwtAudience,
+
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.FromMinutes(1)
             };
@@ -58,15 +67,16 @@ builder.Services.AddEndpointsApiExplorer();
 // Configure Swagger to include JWT authentication support in the UI, allowing users to enter a token for testing authenticated endpoints.
 builder.Services.AddSwaggerGen(c =>
 {
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Can I HinderAPI", Version = "v1" });
     //adds a security definition for JWT Bearer tokens, which tells Swagger how to include the token in API requests
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
         Name = "Authorization",
+        In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter: Bearer {your JWT token}"
+        BearerFormat = "JWT"
     });
     // Adds a global security requirement that applies the "Bearer" scheme to all API endpoints, meaning that by default all endpoints will require a valid JWT token unless explicitly overridden.
     c.AddSecurityRequirement(new OpenApiSecurityRequirement

@@ -1,0 +1,38 @@
+name: Deploy ASP.NET API to Azure Web App
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "Can I HinderAPI/Can I HinderAPI/**"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        working-directory: Can I HinderAPI/Can I HinderAPI
+        run: dotnet restore
+
+      - name: Build
+        working-directory: Can I HinderAPI/Can I HinderAPI
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish
+        working-directory: Can I HinderAPI/Can I HinderAPI
+        run: dotnet publish --configuration Release --no-build --output ./publish
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: "can-i-hinder-api" 
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISH_PROFILE_API }}
+          package: "Can I HinderAPI/Can I HinderAPI/publish"
