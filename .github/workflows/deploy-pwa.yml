@@ -22,7 +22,7 @@ jobs:
 
       - name: Install deps
         working-directory: PWA/can-i-hinder-app
-        run: npm install
+        run: npm ci
 
       - name: Build
         working-directory: PWA/can-i-hinder-app
