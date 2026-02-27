@@ -8,7 +8,7 @@ const HELP_COOLDOWN_MS: Record<HelpEffect, number> = {
 };
 // Cooldown durations for each effect, used by the limiter to determine how long to block an action after it’s used
 const HINDER_COOLDOWN_MS: Record<HinderEffect, number> = {
-  spawn_enemy: 15_000,
+  spawn_enemy: 5_000,
   drop_trap: 12_000,
   slow_player: 10_000,
   steal_power: 18_000,

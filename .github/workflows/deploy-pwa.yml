@@ -1,0 +1,37 @@
+name: Deploy PWA (Vite) to Azure Web App
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "PWA/can-i-hinder-app/**"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "PWA/can-i-hinder-app/package-lock.json"
+
+      - name: Install deps
+        working-directory: PWA/can-i-hinder-app
+        run: npm install
+
+      - name: Build
+        working-directory: PWA/can-i-hinder-app
+        run: npm run build
+
+      # Deploy ONLY the built static output
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: "can-i-hinder-pwa"
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISH_PROFILE_PWA }}
+          package: "PWA/can-i-hinder-app/dist"
