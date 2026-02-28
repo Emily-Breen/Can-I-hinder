@@ -60,7 +60,6 @@ export function sendHelp(effect: HelpEffect) {
     effect,
   });
 }
-
 export function sendHinder(effect: HinderEffect) {
   const session = getSession();
   const user = session?.username ?? "Guest";
