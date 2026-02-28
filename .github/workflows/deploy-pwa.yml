@@ -17,8 +17,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: "PWA/can-i-hinder-app/package-lock.json"
 
       - name: Install deps
         working-directory: PWA/can-i-hinder-app
@@ -28,10 +26,10 @@ jobs:
         working-directory: PWA/can-i-hinder-app
         run: npm run build
 
-    
       - name: Zip deployment package
-        working-directory: PWA/can-i-hinder-app
-        run: zip -r ../../pwa-deploy.zip .
+        run: |
+          cd PWA/can-i-hinder-app
+          zip -r ../../pwa-deploy.zip .
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
