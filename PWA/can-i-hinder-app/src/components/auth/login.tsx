@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signIn } from "./auth";
 import "./styled.css";
+import { API_BASE } from "../../config";
 //validation for login form, returns array of error messages (empty if no errors)
 function validate(username: string, password: string): string[] {
   const errors: string[] = [];
@@ -42,7 +43,7 @@ export default function Login() {
       setIsLoading(false);
     }
   }
-
+console.log("API_BASE:", API_BASE);
   return (
     <div className="login-page">
       <div className="login-wrapper">
