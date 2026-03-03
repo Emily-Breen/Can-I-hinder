@@ -1,5 +1,5 @@
 import { WS_URL } from "../../config";
-import { getSession } from "../auth/auth";
+import { getUsername } from "../auth/auth";
 import type { GameAction, HelpEffect, HinderEffect } from "./types";
 import { canSend, recordSend } from "./rate-limit";
 
@@ -41,8 +41,7 @@ function sendAction(action: GameAction) {
 }
 // Public functions to send help/hinder actions with user info from session
 export function sendHelp(effect: HelpEffect) {
-  const session = getSession();
-  const user = session?.username ?? "Guest";
+  const user = getUsername() ?? "Guest";
  // Check cooldown status before sending, and log a warning if the action is currently on cooldown with time left
   const check = canSend("help", effect);
   if (!check.ok) {
@@ -61,8 +60,7 @@ export function sendHelp(effect: HelpEffect) {
   });
 }
 export function sendHinder(effect: HinderEffect) {
-  const session = getSession();
-  const user = session?.username ?? "Guest";
+  const user = getUsername() ?? "Guest";
 // Check cooldown status before sending, and log a warning if the action is currently on cooldown with time left
   const check = canSend("hinder", effect);
  if (!check.ok) {
