@@ -25,11 +25,13 @@ export default function Login() {
 
   const errors = validate(username, password);
   const canSubmit = errors.length === 0 && !isLoading;
+
  // Handle form submission
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setShowErrors(true);
-
+    setApiError(null);
+    
     if (!canSubmit) return;
 
     setIsLoading(true);
