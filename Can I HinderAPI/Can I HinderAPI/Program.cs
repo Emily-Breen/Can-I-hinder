@@ -105,7 +105,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseRouting();
 app.UseCors(CorsPolicy);
 
 //its important that UseAuthentication comes before UseAuthorization, as the authentication middleware needs to run first to set the user context before authorization checks are performed.
