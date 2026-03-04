@@ -119,7 +119,7 @@
 
 .login-button:disabled {
   opacity: 0.6;
-  cursor: not-allowed;
+  cursor: pointer;
 }
 
 /* ===== Errors ===== */
@@ -133,11 +133,32 @@
 
 /* ===== Footer ===== */
 .login-footer {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+}
+
+.login-footer-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
-  color: rgba(255,255,255,0.7);
+}
+
+.login-footer-bottom {
+  text-align: center;
+}
+
+.login-footer-bottom a {
+  color: #3de1d1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-footer-bottom a:hover {
+  text-decoration: underline;
 }
 
 .login-remember {

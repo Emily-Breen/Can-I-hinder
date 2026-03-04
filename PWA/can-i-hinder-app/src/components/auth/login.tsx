@@ -98,17 +98,20 @@ console.log("API_BASE:", API_BASE);
             {isLoading ? "Signing in…" : "Sign in"}
           </button>
 
-          <div className="login-footer">
-            <label className="login-remember">
-              <input type="checkbox" defaultChecked />
-              Remember me
-            </label>
-            <span className="login-forgot">Forgot password?</span>
-            <span>
-                  Don't have an account?{" "}
-                 <Link to="/register">Create one</Link>
-            </span>
-          </div>-
+       <div className="login-footer">
+  <div className="login-footer-top">
+    <label className="login-remember">
+      <input type="checkbox" defaultChecked />
+      Remember me
+    </label>
+
+    <span className="login-forgot">Forgot password?</span>
+  </div>
+
+  <div className="login-footer-bottom">
+    Don't have an account? <Link to="/register">Create one</Link>
+  </div>
+</div>
         </form>
       </div>
     </div>
