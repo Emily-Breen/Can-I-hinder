@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { signIn } from "./auth";
 import "./styled.css";
 import { API_BASE } from "../../config";
+import { Link } from "react-router-dom";
+
 //validation for login form, returns array of error messages (empty if no errors)
 function validate(username: string, password: string): string[] {
   const errors: string[] = [];
@@ -102,9 +104,11 @@ console.log("API_BASE:", API_BASE);
               Remember me
             </label>
             <span className="login-forgot">Forgot password?</span>
-          </div>
-
-          <div className="login-note">JWT login</div>
+            <span>
+                  Don't have an account?{" "}
+                 <Link to="/register">Create one</Link>
+            </span>
+          </div>-
         </form>
       </div>
     </div>

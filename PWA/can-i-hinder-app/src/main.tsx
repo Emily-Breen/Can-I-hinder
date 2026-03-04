@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./App";
 import Login from "./components/auth/login";
+import Register from "./components/auth/register";
 import { ProtectedRoute } from "./components/auth/protected-route";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -10,6 +11,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/*"
           element={
