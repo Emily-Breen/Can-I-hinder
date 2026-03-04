@@ -105,9 +105,10 @@ console.log("API_BASE:", API_BASE);
       Remember me
     </label>
 
-    <span className="login-forgot">Forgot password?</span>
-  </div>
-
+    <Link to="/forgot-password" className="login-forgot">
+  Forgot password?
+</Link>
+</div> 
   <div className="login-footer-bottom">
     Don't have an account? <Link to="/register">Create one</Link>
   </div>

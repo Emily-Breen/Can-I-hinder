@@ -6,6 +6,7 @@ import Login from "./components/auth/login";
 import Register from "./components/auth/register";
 import ResetPassword from "./components/auth/reset-password";
 import { ProtectedRoute } from "./components/auth/protected-route";
+import ForgotPassword from "./components/auth/forgot-password";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -14,6 +15,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route
           path="/*"
           element={
