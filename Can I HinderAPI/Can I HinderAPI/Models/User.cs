@@ -9,8 +9,15 @@ public class User
     [Required, MaxLength(64)]
     public string Username { get; set; } = "";
 
+    [Required, MaxLength(128)]
+    public string Email { get; set; } = "";
+
     [Required]
     public string PasswordHash { get; set; } = "";
 
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+    
+    public string? PasswordResetToken { get; set; }
+    public DateTime? PasswordResetExpires { get; set; }
+
 }

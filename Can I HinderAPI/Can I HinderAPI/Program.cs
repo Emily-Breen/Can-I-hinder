@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using CanI_HinderAPI.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,6 +63,8 @@ else
 builder.Services.AddAuthorization();
 // Add controllers for API endpoints
 builder.Services.AddControllers();
+//Add 
+builder.Services.AddScoped<EmailService>();
 // Swagger setup for API documentation, including JWT support in the UI
 builder.Services.AddEndpointsApiExplorer();
 // Configure Swagger to include JWT authentication support in the UI, allowing users to enter a token for testing authenticated endpoints.
@@ -113,5 +116,21 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
+    try
+    {
+        logger.LogInformation("Applying database migrations...");
+        db.Database.Migrate();
+        logger.LogInformation("Database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Database migration failed.");
+        throw;
+    }
+}
 app.Run();

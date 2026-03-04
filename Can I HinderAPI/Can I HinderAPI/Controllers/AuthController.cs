@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using CanI_HinderAPI.Services;
 using System.Security.Claims;
 using System.Text;
 
@@ -18,14 +19,16 @@ public class AuthController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
     private readonly PasswordHasher<User> _hasher = new();
+    private readonly EmailService _emailService;
     // Constructor that takes the database context and configuration as dependencies, which are injected by the framework.
-    public AuthController(AppDbContext db, IConfiguration config)
+    public AuthController(AppDbContext db, IConfiguration config, EmailService emailService)
     {
         _db = db;
         _config = config;
+        _emailService = emailService;
     }
     // Records for the request and response payloads for registration and login endpoints.
-    public record RegisterRequest(string Username, string Password);
+    public record RegisterRequest(string Username, string Email, string Password);
     public record LoginRequest(string Username, string Password);
     public record AuthResponse(string Token);
     // Endpoint for user registration. Validates the input, checks for existing username, hashes the password, saves the user, and returns a JWT token.
@@ -40,7 +43,7 @@ public class AuthController : ControllerBase
         var exists = await _db.Users.AnyAsync(u => u.Username == username);
         if (exists) return Conflict("Username already exists.");
 
-        var user = new User { Username = username };
+        var user = new User { Username = username, Email = req.Email.Trim() };
         user.PasswordHash = _hasher.HashPassword(user, req.Password);
 
         _db.Users.Add(user);
@@ -64,6 +67,58 @@ public class AuthController : ControllerBase
 
         return Ok(new AuthResponse(CreateJwt(user)));
     }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] string email)
+    {
+        var normalized = email.Trim().ToLower();
+
+        var user = await _db.Users
+            .SingleOrDefaultAsync(u => u.Email.ToLower() == normalized);
+
+        if (user == null)
+            return Ok(); // prevent account enumeration
+
+        var token = Convert.ToBase64String(
+       System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)
+        );
+
+        user.PasswordResetToken = HashToken(token);
+        user.PasswordResetExpires = DateTime.UtcNow.AddHours(1);
+
+        await _db.SaveChangesAsync();
+
+        var resetLink = $"{_config["App:FrontendUrl"]}/reset-password?token={token}";
+
+        await _emailService.SendPasswordReset(user.Email, resetLink);
+
+        return Ok();
+    }
+    public record ResetPasswordRequest(string Token, string NewPassword);
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest req)
+    {
+        if (req.NewPassword.Length < 6)
+            return BadRequest("Password must be at least 6 characters.");
+        var hashed = HashToken(req.Token);
+
+        var user = await _db.Users
+            .SingleOrDefaultAsync(u => u.PasswordResetToken == hashed);
+
+        if (user == null || user.PasswordResetExpires < DateTime.UtcNow)
+            return BadRequest("Password reset failed.");
+
+        user.PasswordHash = _hasher.HashPassword(user, req.NewPassword);
+
+        user.PasswordResetToken = null;
+        user.PasswordResetExpires = null;
+
+        await _db.SaveChangesAsync();
+
+        return Ok();
+    }
+
     // Helper method to create a JWT token for a given user, using the configuration settings for issuer, audience, and signing key.
     private string CreateJwt(User user)
     {
@@ -89,5 +144,12 @@ public class AuthController : ControllerBase
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    private static string HashToken(string token)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var bytes = Encoding.UTF8.GetBytes(token);
+        var hash = sha.ComputeHash(bytes);
+        return Convert.ToBase64String(hash);
     }
 }
