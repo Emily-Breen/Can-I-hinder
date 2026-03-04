@@ -43,11 +43,11 @@ export async function signIn(username: string, password: string) {
 }
 
 // Perform registration by sending credentials to the API, and on success, save the returned token and username to localStorage for session persistence
-export async function register(username: string, password: string) {
+export async function register(username: string, email: string, password: string) {
   const res = await fetch(`${API_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, email, password }),
   });
 
   if (!res.ok) {
