@@ -2,15 +2,24 @@ import { useMemo, useState } from "react";
 import { sendHelp, sendHinder } from "./components/pwa/pwa-client";
 import RadialMenu from "./components/radial-menu/radial-menu";
 import type { RadialItem } from "./components/radial-menu/types";
+import { signOut } from "./components/auth/auth";
+import { useNavigate } from "react-router-dom";
 import "./global.css";
 import Boo from "./assets/Boo.png";
 import Bee from "./assets/Bee.png";
 const title = "Choose your path";
+
 function App() {
+  const navigate = useNavigate();
   //state for which menu is open and where it’s anchored (null if closed)
   const [hinderOpen, setHinderOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+
+  function handleLogout() {
+  signOut();
+  navigate("/login");
+}
   // define menu items using useMemo so the dont get recreated every render, which would break the menu’s open state
 const helpItems: RadialItem[] = useMemo(
     () => [
@@ -30,8 +39,12 @@ const helpItems: RadialItem[] = useMemo(
     ],
     []
   );
+  
   return (
     <div className="app">
+        <button className="logout-button" onClick={handleLogout}>
+                Logout
+        </button>
       <h1 className="wave-title" aria-label={title}>
              {title.split("").map((ch, i) => (
             <span

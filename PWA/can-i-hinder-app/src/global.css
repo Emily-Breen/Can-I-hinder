@@ -130,6 +130,26 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
+.logout-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+
+  background: rgba(255,255,255,0.08);
+  color: white;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.logout-button:hover {
+  background: rgba(255,255,255,0.2);
+}
 .help {
   background: linear-gradient(90deg, var(--teal), var(--teal2));
   box-shadow: 0 12px 30px rgba(20,184,166,0.25);
