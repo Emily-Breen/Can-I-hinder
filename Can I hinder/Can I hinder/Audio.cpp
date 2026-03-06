@@ -78,7 +78,7 @@ void Audio::playInGameBackgroundMusic(const char* musicFilePath)
 	if (backgroundMusic.openFromFile(musicFilePath))
 	{
 		backgroundMusic.setLooping(true);
-		backgroundMusic.setVolume(20.f); //set to 60% volume
+		backgroundMusic.setVolume(5.f); 
 		backgroundMusic.play();
 	}
 	else
@@ -92,7 +92,7 @@ void Audio::playMenuBackgroundMusic(const char* musicFilePath)
 	if (backgroundMenuMusic.openFromFile(musicFilePath))
 	{
 		backgroundMenuMusic.setLooping(true);
-		backgroundMenuMusic.setVolume(50.f); //set to 60% volume
+		backgroundMenuMusic.setVolume(5.f); //set to 60% volume
 		backgroundMenuMusic.play();
 	}
 	else

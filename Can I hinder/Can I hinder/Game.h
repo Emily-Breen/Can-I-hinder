@@ -55,7 +55,7 @@ struct Button
 const sf::Color ULTRAMARINE{ 5, 55,242,255 }; // const colour
 constexpr float VIRTUAL_WIDTH = 1920.f;
 constexpr float VIRTUAL_HEIGHT = 1080.f;
-constexpr bool USE_LOCAL_WS = true; //set this to true to do local testing ws and false for wss azure
+constexpr bool USE_LOCAL_WS = false; //set this to true to do local testing ws and false for wss azure
 class Game
 {
 public:
@@ -103,6 +103,14 @@ private:
 	float m_testHealth = 1.0f;
 	float m_playerDamageMultiplier = 1.0f;
 	float m_stealPowerDuration = 0.0f;
+	float m_powerMultiplier = 1.0f;
+	float m_powerBuffDuration = 0.0f;
+	const float m_baseMoveSpeed = 300.f;
+	const float m_baseDamage = 0.25f;
+	float m_speedMultiplier = 1.0f;
+	float m_speedBuffDuration = 0.0f;
+	float m_slowMultiplier = 1.0f;
+	float m_slowDuration = 0.0f;
 
 	//Networking events
 	WebsocketClient m_client; // websocket client
@@ -111,10 +119,19 @@ private:
 	bool slowPlayer{ false };
 	bool weakenPlayer{ false };
 	bool m_stealPowerActive{ false };
+	bool speedUpPlayer{ false };
+	bool powerBoostPlayer{ false };
+	bool  m_speedBuffActive = false;
+	bool  m_powerBuffActive = false;
+	bool m_slowActive = false;
+
 
 	//Timers and state flags
 	sf::Clock m_stealPowerClock;
 	sf::Clock m_menuClock;
+	sf::Clock m_speedBuffClock;
+	sf::Clock m_powerBuffClock;
+	sf::Clock m_slowClock;
 	bool m_DELETEexitGame; // control exiting game
 	bool isSpawnNPC{ false };
 
@@ -137,7 +154,6 @@ private:
 	//Audio
 	Audio m_audio;
 	
-
 	
 	
 	

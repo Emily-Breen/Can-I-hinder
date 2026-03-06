@@ -28,16 +28,33 @@ Game::Game() :
 			}
 			else if (action == "hinder" && effect == "drop_trap")
 			{
-				m_hud.pushChatMessage(user, "has blocked your path!", sf::Color(80, 255, 80));
+				
+					m_hud.pushChatMessage(user, "has blocked your path!", sf::Color(255, 80, 80));
 			}
 			else if (action == "hinder" && effect == "slow_player")
 			{
-				m_hud.pushChatMessage(user, "Has slowed your movements!", sf::Color(80, 255, 80));
+				slowPlayer = true;
+				m_hud.pushChatMessage(user, "Has slowed your movements!", sf::Color(255, 80, 80));
 			}
 			else if (action == "help" && effect == "heal_player")
 			{
 				healPlayer = true;
 				m_hud.pushChatMessage(user, "healed you!", sf::Color(80, 255, 80));
+			}
+			else if (action == "help" && effect == "speed_up_player")
+			{
+				speedUpPlayer = true;
+				m_hud.pushChatMessage(user, "has sped you up!", sf::Color(80, 255, 80));
+			}
+			else if(action == "help"&& effect =="power_boost")
+			{
+				powerBoostPlayer = true;
+				m_hud.pushChatMessage(user, "has given you a power boost!", sf::Color(80, 255, 80));
+			}
+			else if(action == "help" && effect == "shield_player")
+			{
+
+				m_hud.pushChatMessage(user, "has shielded you!", sf::Color(80, 255, 80));
 			}
 		});
 	
@@ -52,7 +69,7 @@ Game::Game() :
 		);
 	}
 
-	m_mapRenderer.load("ASSETS/LEVELS/Map2.tmx");
+	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
 	std::cout << "player posX: " << m_player.getPosition().x << "player posY: " << m_player.getPosition().y;
 	std::cout << "Doors loaded: " << m_mapRenderer.getDoors().size() << "\n";
 	if (!m_mainMenuTexture.loadFromFile("ASSETS/LEVELS/PNG/MainMenu.png"))
@@ -138,6 +155,16 @@ void Game::run()
 
 			spawnNPC(spawnPos, type);
 		}
+		if (slowPlayer)
+		{
+			std::cout << "Slowed by viewer!\n";
+			slowPlayer = false;
+
+			m_slowMultiplier = 0.6f;   
+			m_slowDuration = 6.0f;   
+			m_slowClock.restart();
+			m_slowActive = true;
+		}
 		if (healPlayer)
 		{
 			std::cout << "Healed by viewer!\n";
@@ -154,6 +181,27 @@ void Game::run()
 			m_stealPowerDuration = 6.0f;
 			m_stealPowerClock.restart();
 			m_stealPowerActive = true;
+		}
+		if (speedUpPlayer)
+		{
+			std::cout << "speed increased by viewer!\n";
+			speedUpPlayer = false;
+
+			m_speedMultiplier = 1.5f;  
+			m_speedBuffDuration = 6.0f;  
+			m_speedBuffClock.restart();
+			m_speedBuffActive = true;
+		}
+
+		if (powerBoostPlayer)
+		{
+			std::cout << "power boosted by viewer!\n";
+			powerBoostPlayer = false;
+
+			m_powerMultiplier = 1.75f; 
+			m_powerBuffDuration = 6.0f; 
+			m_powerBuffClock.restart();
+			m_powerBuffActive = true;
 		}
 
 	}
@@ -401,7 +449,34 @@ void Game::update(sf::Time t_deltaTime)
 				m_playerDamageMultiplier = 1.0f;
 			}
 		}
-		
+		// speed buff timer
+		if (m_speedBuffActive)
+		{
+			if (m_speedBuffClock.getElapsedTime().asSeconds() >= m_speedBuffDuration)
+			{
+				m_speedBuffActive = false;
+				m_speedMultiplier = 1.0f;
+			}
+		}
+
+		// power buff timer
+		if (m_powerBuffActive)
+		{
+			if (m_powerBuffClock.getElapsedTime().asSeconds() >= m_powerBuffDuration)
+			{
+				m_powerBuffActive = false;
+				m_powerMultiplier = 1.0f;
+			}
+		}
+		// slow debuff timer
+		if (m_slowActive)
+		{
+			if (m_slowClock.getElapsedTime().asSeconds() >= m_slowDuration)
+			{
+				m_slowActive = false;
+				m_slowMultiplier = 1.0f;
+			}
+		}
 		static bool attackWasHeld = false;
 		const bool spaceHeld = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
 		const bool spaceJustPressed = spaceHeld && !attackWasHeld;
@@ -416,7 +491,10 @@ void Game::update(sf::Time t_deltaTime)
 		//tracks direction of player movement
 		sf::Vector2f direction = m_player.getMovement(); 
 		
-		float speed = 300.f; 
+		float speedMult = m_speedMultiplier;
+		if (m_slowActive) speedMult = 1.0f;
+
+		float speed = m_baseMoveSpeed * speedMult * m_slowMultiplier;
 		sf::Vector2f movement = direction * speed * t_deltaTime.asSeconds();
 		bool blocked = false;
 		//for collision with walls 
@@ -499,8 +577,10 @@ void Game::update(sf::Time t_deltaTime)
 			const sf::FloatRect atk = m_player.getAttackBounds();
 			m_audio.startswordSlashSound();
 
-			const float baseDamage = 0.25f;
-			const float finalDamage = baseDamage * m_playerDamageMultiplier;
+			//debuff overwrites power buff but not the other way around, so if steal power is active ignore power buff multiplier
+			float damageMult = m_powerMultiplier;
+			if (m_stealPowerActive) damageMult = 1.0f;
+			const float finalDamage = m_baseDamage * m_playerDamageMultiplier * damageMult;
 			for (auto& npc : m_npcs)
 			{
 				if (npc.isDead()) 
@@ -626,6 +706,7 @@ void Game::update(sf::Time t_deltaTime)
 		{
 			item.update(t_deltaTime.asSeconds());
 		}
+		sf::View view = m_window.getView();
 		m_hud.update(m_testHealth,t_deltaTime.asSeconds());
 		//Camera follows player
 		m_camera.follow(m_player.getPosition());
