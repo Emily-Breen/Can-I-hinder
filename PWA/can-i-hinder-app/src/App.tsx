@@ -15,7 +15,7 @@ function App() {
   const [hinderOpen, setHinderOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
-
+  const radialMenuActive = helpOpen || hinderOpen;
   function handleLogout() {
   signOut();
   navigate("/login");
@@ -42,9 +42,13 @@ const helpItems: RadialItem[] = useMemo(
   
   return (
     <div className="app">
-        <button className="logout-button" onClick={handleLogout}>
-                Logout
-        </button>
+       <button
+            className="logout-button"
+            onClick={handleLogout}
+            disabled={radialMenuActive}
+           >
+           Logout
+       </button>
       <h1 className="wave-title" aria-label={title}>
              {title.split("").map((ch, i) => (
             <span
