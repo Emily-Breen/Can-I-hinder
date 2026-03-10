@@ -1,0 +1,29 @@
+name: Deploy Node Server to Azure Web App
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "can-i-hinder-server/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: can-i-hinder-server
+        run: npm ci
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: "Can-I-Hinder-ws"
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISH_PROFILE_SERVER }}
+          package: "can-i-hinder-server"
