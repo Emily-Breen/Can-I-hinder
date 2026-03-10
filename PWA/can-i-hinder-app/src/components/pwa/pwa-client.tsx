@@ -3,12 +3,22 @@ import { getUsername } from "../auth/auth";
 import type { GameAction, HelpEffect, HinderEffect } from "./types";
 import { canSend, recordSend } from "./rate-limit";
 
+const params = new URLSearchParams(window.location.search);
+
+let sessionId =
+  params.get("session") ||
+  localStorage.getItem("session") ||
+  "";
+
+if (sessionId) {
+  localStorage.setItem("session", sessionId);
+}
 // WebSocket connection using URL from config, which can be switched between local and prod servers
-const ws = new WebSocket(WS_URL);
+const ws = new WebSocket(`${WS_URL}?session=${sessionId}`);
 
 // WebSocket events
 ws.onopen = () => {
-  console.log("Connected to WebSocket server ");
+  console.log(`Connected to WebSocket session: ${sessionId}`);
 };
 
 ws.onmessage = (event: MessageEvent) => {
