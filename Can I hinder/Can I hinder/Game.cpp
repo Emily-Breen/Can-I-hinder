@@ -57,14 +57,16 @@ Game::Game() :
 				m_hud.pushChatMessage(user, "has shielded you!", sf::Color(80, 255, 80));
 			}
 		});
-	
+	std::string session = m_client.createSession();
+	setUpSessionCode(session);
 	if (USE_LOCAL_WS) {
-		m_client.connect("localhost", "8080", false); //localhost testing
+		m_client.connect("localhost", "8080", session, false); //localhost testing
 	}
 	else {
 		m_client.connect(
 			"can-i-hinder-ws-fkc5d6hwgdg0f0fp.germanywestcentral-01.azurewebsites.net",
 			"443",
+			session,
 			true //Azure tls 
 		);
 	}
@@ -734,6 +736,7 @@ void Game::render()
 		
 		m_window.draw(m_mainMenuTitleHighlight);
 		m_window.draw(m_mainMenuTitleText);
+		m_window.draw(m_sessionCodeText);
 		for (auto& b : m_menuButtons)
 		{
 			m_window.draw(b.sprite);
@@ -921,6 +924,21 @@ void Game::setupMainMenuTitle()
 	m_mainMenuTitleHighlight.setOutlineColor(sf::Color(255, 255, 255, 80));
 	m_mainMenuTitleHighlight.setOutlineThickness(2.f);
 	m_mainMenuTitleHighlight.move({ -2.f, -2.f }); // slight offset for a subtle glow effect
+}
+
+void Game::setUpSessionCode(const std::string& code)
+{
+	m_sessionCode = code;
+
+	m_sessionCodeText.setCharacterSize(48);
+	m_sessionCodeText.setFillColor(sf::Color::Yellow);
+
+	m_sessionCodeText.setString("Join Game Code: " + code);
+
+	auto bounds = m_sessionCodeText.getLocalBounds();
+
+	m_sessionCodeText.setOrigin({ bounds.position.x + bounds.size.x * 0.5f, bounds.position.y + bounds.size.y * 0.f });
+	m_sessionCodeText.setPosition({ VIRTUAL_WIDTH * 0.5f -200.f, 330.f});
 }
 
 

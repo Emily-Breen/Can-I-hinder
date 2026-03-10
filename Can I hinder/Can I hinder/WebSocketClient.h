@@ -4,6 +4,8 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/ssl.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/beast/http.hpp>
 #include <nlohmann/json.hpp>
 #include <openssl/ssl.h>
 
@@ -12,6 +14,7 @@
 #include <atomic>
 #include <iostream>
 namespace beast = boost::beast;
+namespace http = beast::http;
 using json = nlohmann::json; // for JSON parsing
 namespace net = boost::asio;
 namespace ssl = net::ssl;
@@ -23,13 +26,14 @@ class WebsocketClient {
        WebsocketClient();
 	   ~WebsocketClient();
 
-	   void connect(const std::string& host, const std::string& port, bool useTls);
+	   void connect(const std::string& host, const std::string& port, const std::string& session, bool useTls);
 	   void close();
 	   void setOnMessage(std::function<void(const std::string& ,const std::string&, const std::string&)> callback);
+	   std::string createSession();
 
    private:
 
-	   void run(const std::string& host, const std::string& port, bool useTls);
+	   void run(const std::string& host, const std::string& port, const std::string& session, bool useTls);
 	   void readLoop(bool useTls);
 	   // Callback function to handle incoming messages, takes action and effect as parameters
 	   std::function<void(const std::string& ,const std::string&, const std::string&)> onMessage;

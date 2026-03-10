@@ -13,11 +13,11 @@ WebsocketClient::~WebsocketClient()
 	close();
 }
 
-void WebsocketClient::connect(const std::string& host, const std::string& port, bool useTls)
+void WebsocketClient::connect(const std::string& host, const std::string& port, const std::string& session, bool useTls)
 {
 	m_running = true;
 	// start the background thread so not to interrupt game loop
-	m_thread = std::thread(&WebsocketClient::run, this, host, port, useTls);
+	m_thread = std::thread(&WebsocketClient::run, this, host, port, session, useTls);
 }
 // stops the background thread
 void WebsocketClient::close()
@@ -39,8 +39,53 @@ void WebsocketClient::setOnMessage(std::function<void(const std::string& ,const 
 {
 	onMessage = callback; // this is so it'll define what happens when a message is recieved (spawning an eneny)
 }
+std::string WebsocketClient::createSession()
+{
+	try
+	{
+		std::string host = "can-i-hinder-api-dkafh4amdxhxa4ha.germanywestcentral-01.azurewebsites.net";
+		std::string port = "443";
+		std::string target = "/api/game/create-session";
+
+		boost::asio::io_context ioc;
+		ssl::context ctx{ ssl::context::tlsv12_client };
+
+		tcp::resolver resolver{ ioc };
+		auto const results = resolver.resolve(host, port);
+
+		beast::ssl_stream<beast::tcp_stream> stream{ ioc, ctx };
+
+		boost::asio::connect(stream.next_layer().socket(), results.begin(), results.end());
+
+		stream.handshake(ssl::stream_base::client);
+
+		http::request<http::string_body> req{ http::verb::post, target, 11 };
+		req.set(http::field::host, host);
+		req.set(http::field::user_agent, "CanIhinderGame");
+
+		http::write(stream, req);
+
+		beast::flat_buffer buffer;
+		http::response<http::string_body> res;
+
+		http::read(stream, buffer, res);
+
+		auto json = nlohmann::json::parse(res.body());
+
+		std::string session = json["sessionId"];
+
+		std::cout << "Session created: " << session << std::endl;
+
+		return session;
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << "Failed to create session: " << e.what() << std::endl;
+		return "ERROR";
+	}
+}
 // runs in background thread
-void WebsocketClient::run(const std::string& host, const std::string& port, bool useTls)
+void WebsocketClient::run(const std::string& host, const std::string& port, const std::string& session, bool useTls)
 {
 	
 	try {
@@ -65,20 +110,29 @@ void WebsocketClient::run(const std::string& host, const std::string& port, bool
 			// Verify cert matches hostname
 			m_wss->next_layer().set_verify_callback(ssl::host_name_verification(host));
 			m_wss->next_layer().handshake(ssl::stream_base::client);
+			std::string path = "/?session=" + session;
 			// Perform WebSocket handshake
-			m_wss->handshake(host, "/");
+			std::cout << "Joining session: " << session << std::endl;
+			m_wss->handshake(host, path);
 
-			std::cout << "Connected to WSS: wss://" << host << ":" << port << "/\n";
+			std::cout << "Connected to WSS: wss://" 
+          << host << ":" << port 
+          << path << "\n";
 		}
 		else {
 			//for local testing 
 			m_ws = std::make_unique<websocket::stream<tcp::socket>>(m_ioc);
 			// Set a timeout on the underlying TCP socket
 			boost::asio::connect(m_ws->next_layer(), results.begin(), results.end());
+			std::string path = "/?session=" + session;
 			// Perform WebSocket handshake
-			m_ws->handshake(host, "/");
 
-			std::cout << "Connected to WS: ws://" << host << ":" << port << "/\n";
+			std::cout << "Joining session: " << session << std::endl;
+			m_ws->handshake(host, path);
+
+			std::cout << "Connected to WS: ws://"
+				<< host << ":" << port
+				<< path << "\n";
 		}
 
 		readLoop(useTls);

@@ -85,6 +85,7 @@ private:
 	void moveMenuSelection(int direction);
 	void activateSelectedButton();
 	void setupMainMenuTitle();
+	void setUpSessionCode(const std::string& code);
 
 	std::vector<Button> m_menuButtons;
 	sf::Texture m_mainMenuTexture;
@@ -145,6 +146,8 @@ private:
 	sf::Text m_mainMenuTitleText{m_MagicalWorldFont};
 	sf::Text m_mainMenuTitleShadow{ m_MagicalWorldFont };
 	sf::Text m_mainMenuTitleHighlight{ m_MagicalWorldFont };
+	sf::Text m_sessionCodeText{ m_MagicalWorldFont };
+	std::string m_sessionCode;
 	HUD m_hud;
 	
 	//Map and Camera
