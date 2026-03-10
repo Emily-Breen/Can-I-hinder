@@ -24,6 +24,8 @@ export default function Login() {
   const [showErrors, setShowErrors] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [sessionCode, setSessionCode] = useState("");
 
   const errors = validate(username, password);
   const canSubmit = errors.length === 0 && !isLoading;
@@ -40,13 +42,20 @@ export default function Login() {
 
     try {
       await signIn(username.trim(), password);
-      navigate("/", { replace: true });
+      setShowSessionModal(true);
     } catch (err: any) {
       setApiError(err?.message ?? "Login failed");
     } finally {
       setIsLoading(false);
     }
   }
+  //join game session 
+  function joinSession() {
+  if (!sessionCode.trim()) return;
+
+  localStorage.setItem("game_session", sessionCode.toUpperCase());
+  navigate("/", { replace: true });
+}
 console.log("API_BASE:", API_BASE);
   return (
     <div className="login-page">
@@ -116,5 +125,26 @@ console.log("API_BASE:", API_BASE);
         </form>
       </div>
     </div>
+
+    
   );
+  {showSessionModal && (
+  <div className="session-modal">
+    <div className="session-card">
+      <h2>Join Game</h2>
+      <p>Enter the code seen in game!</p>
+
+      <input
+        className="login-input"
+        value={sessionCode}
+        onChange={(e) => setSessionCode(e.target.value)}
+        placeholder="e.g. A7K9P2"
+      />
+
+      <button className="login-button" onClick={joinSession}>
+        Join Game
+      </button>
+    </div>
+  </div>
+)}
 }

@@ -2,16 +2,17 @@ import { WS_URL } from "../../config";
 import { getUsername } from "../auth/auth";
 import type { GameAction, HelpEffect, HinderEffect } from "./types";
 import { canSend, recordSend } from "./rate-limit";
+import { getSession, setSession } from "../auth/auth";
 
 const params = new URLSearchParams(window.location.search);
 
 let sessionId =
   params.get("session") ||
-  localStorage.getItem("session") ||
+  getSession() ||
   "";
 
 if (sessionId) {
-  localStorage.setItem("session", sessionId);
+  setSession(sessionId);
 }
 // WebSocket connection using URL from config, which can be switched between local and prod servers
 const ws = new WebSocket(`${WS_URL}?session=${sessionId}`);

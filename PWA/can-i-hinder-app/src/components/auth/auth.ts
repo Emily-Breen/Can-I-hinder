@@ -1,8 +1,23 @@
 import { API_BASE } from "../../config";
+
 const TOKEN_KEY = "auth_token_v1";
 const USER_KEY = "auth_user_v1";
 // API URL is derived from config, which can be switched between local and prod servers
 const API_URL = API_BASE;
+
+const SESSION_KEY = "game_session";
+//functions to manage sessions ids in local storage
+export function setSession(id: string) {
+  localStorage.setItem(SESSION_KEY, id);
+}
+
+export function getSession(): string | null {
+  return localStorage.getItem(SESSION_KEY);
+}
+
+export function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
 // Functions to manage auth token and user info in localStorage, and to perform login/register API calls
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
