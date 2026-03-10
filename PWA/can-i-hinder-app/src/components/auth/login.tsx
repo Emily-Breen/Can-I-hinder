@@ -124,27 +124,27 @@ console.log("API_BASE:", API_BASE);
 </div>
         </form>
       </div>
-    </div>
+   {showSessionModal && (
+      <div className="session-modal">
+        <div className="session-card">
+          <h2>Join Game</h2>
+          <p>Enter the code seen in game!</p>
 
+          <input
+            className="login-input"
+            value={sessionCode}
+            onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
+            placeholder="e.g. A7K9P2"
+          />
+
+          <button className="login-button" onClick={joinSession}>
+            Join Game
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
     
   );
-  {showSessionModal && (
-  <div className="session-modal">
-    <div className="session-card">
-      <h2>Join Game</h2>
-      <p>Enter the code seen in game!</p>
-
-      <input
-        className="login-input"
-        value={sessionCode}
-        onChange={(e) => setSessionCode(e.target.value)}
-        placeholder="e.g. A7K9P2"
-      />
-
-      <button className="login-button" onClick={joinSession}>
-        Join Game
-      </button>
-    </div>
-  </div>
-)}
+  
 }
