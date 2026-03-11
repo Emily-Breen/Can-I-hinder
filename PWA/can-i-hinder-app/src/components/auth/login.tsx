@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "./auth";
+import { clearSession } from "./auth";
 import "./styled.css";
 import { API_BASE } from "../../config";
 import { Link } from "react-router-dom";
@@ -13,7 +14,11 @@ function validate(username: string, password: string): string[] {
 }
 const title = "Can I Hinder?";
 export default function Login() {
+  
 
+   useEffect(() => {
+    clearSession();
+  }, []);
   // form fields
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
