@@ -14,6 +14,7 @@ let sessionId =
 if (sessionId) {
   setSession(sessionId);
 }
+console.log("Session from storage:", sessionId);
 // WebSocket connection using URL from config, which can be switched between local and prod servers
 const ws = new WebSocket(`${WS_URL}?session=${sessionId}`);
 

@@ -50,10 +50,15 @@ export default function Login() {
     }
   }
   //join game session 
-  function joinSession() {
-  if (!sessionCode.trim()) return;
+ function joinSession() {
+  const code = sessionCode.trim().toUpperCase();
 
-  localStorage.setItem("game_session", sessionCode.toUpperCase());
+  if (!code) return;
+
+  console.log("Joining session:", code);
+
+  localStorage.setItem("game_session", code);
+
   navigate("/", { replace: true });
 }
 console.log("API_BASE:", API_BASE);
