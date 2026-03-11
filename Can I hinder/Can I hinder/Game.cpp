@@ -148,7 +148,7 @@ void Game::run()
 			spawnEnemy = false;
 
 			sf::Vector2f enemySize = { 48.f, 48.f }; //match eney size
-			sf::Vector2f spawnPos = m_mapRenderer.getFloorSpawn(enemySize, m_player.getPosition(), 200.f); //200 is a nice sweet spot
+			sf::Vector2f spawnPos = m_mapRenderer.getFloorSpawn(enemySize, m_player.getPosition(), 100.f); //100 is a nice sweet spot
 
 			EnemyType type =
 				(std::rand() % 2 == 0)
@@ -737,6 +737,7 @@ void Game::render()
 		m_window.draw(m_mainMenuTitleHighlight);
 		m_window.draw(m_mainMenuTitleText);
 		m_window.draw(m_sessionCodeText);
+		
 		for (auto& b : m_menuButtons)
 		{
 			m_window.draw(b.sprite);
@@ -745,6 +746,7 @@ void Game::render()
 		m_window.display();
 		return;
 	}
+	
 	m_camera.applyCam(m_window);
 	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
 	for (auto& npc : m_npcs) {
@@ -777,6 +779,15 @@ void Game::render()
 
 	m_window.setView(uiView);
 	m_hud.draw(m_window);
+
+	if (m_currentMenuState == menuState::GAMEPLAY)
+	{
+		m_sessionCodeText.setCharacterSize(30);
+		m_sessionCodeText.setPosition({ VIRTUAL_WIDTH - 200.f, VIRTUAL_HEIGHT - 40.f });
+		m_sessionCodeText.setString("Code: " + m_sessionCode);
+		m_window.draw(m_sessionCodeText);
+	}
+
 
 	m_window.display();
 }
@@ -933,13 +944,18 @@ void Game::setUpSessionCode(const std::string& code)
 	m_sessionCodeText.setCharacterSize(48);
 	m_sessionCodeText.setFillColor(sf::Color::Yellow);
 
-	m_sessionCodeText.setString("Join Game Code: " + code);
+	m_sessionCodeText.setString("Join Game Code: " + m_sessionCode);
 
 	auto bounds = m_sessionCodeText.getLocalBounds();
 
-	m_sessionCodeText.setOrigin({ bounds.position.x + bounds.size.x * 0.5f, bounds.position.y + bounds.size.y * 0.f });
-	m_sessionCodeText.setPosition({ VIRTUAL_WIDTH * 0.5f -200.f, 330.f});
+	m_sessionCodeText.setOrigin({
+		bounds.position.x + bounds.size.x * 0.5f,
+		bounds.position.y + bounds.size.y * 0.5f
+		});
+	
+	m_sessionCodeText.setPosition({ VIRTUAL_WIDTH * 0.5f - 200.f, 330.f });
 }
+	
 
 
 std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type)
