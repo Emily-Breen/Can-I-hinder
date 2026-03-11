@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { signIn } from "./auth";
 import "./styled.css";
 import { API_BASE } from "../../config";
@@ -14,7 +13,6 @@ function validate(username: string, password: string): string[] {
 }
 const title = "Can I Hinder?";
 export default function Login() {
-  const navigate = useNavigate();
 
   // form fields
   const [username, setUsername] = useState("");
@@ -50,16 +48,14 @@ export default function Login() {
     }
   }
   //join game session 
- function joinSession() {
+function joinSession() {
   const code = sessionCode.trim().toUpperCase();
 
   if (!code) return;
 
-  console.log("Joining session:", code);
-
   localStorage.setItem("game_session", code);
 
-  navigate("/", { replace: true });
+  window.location.href = `/?session=${code}`;
 }
 console.log("API_BASE:", API_BASE);
   return (
