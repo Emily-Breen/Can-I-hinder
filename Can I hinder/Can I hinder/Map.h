@@ -4,7 +4,7 @@
 #include <tmxlite/Layer.hpp>
 #include <tmxlite/TileLayer.hpp>
 #include <unordered_map>
-
+#include <vector>
 #include "MathUtils.h"
 
 // One batch of tiles using a single texture
@@ -38,6 +38,7 @@ public:
     const std::vector<sf::FloatRect>& getCollisionRects() const;
     const std::vector<DoorData>& getDoors() const;
 	sf::Vector2f getFloorSpawn(const sf::Vector2f& entitySize,const sf::Vector2f& avoidPos, float avoidRadius) const;
+    const std::vector<sf::Vector2f>& getKeySpawns() const;
     static bool rectHitsCollision(const sf::FloatRect& test,const std::vector<sf::FloatRect>& colliders);
     sf::Vector2i worldToTile(const sf::Vector2f& p) const;
     sf::Vector2f tileCenter(int tx, int ty) const;
@@ -47,6 +48,7 @@ private:
     std::unordered_map<std::string, sf::Texture> m_tilesetTextures;
     std::vector<LayerGroup> m_layerGroups;
     std::vector<sf::FloatRect> m_collisionRects;
+    std::vector<sf::Vector2f> m_keySpawns;
     std::string m_mapPath;
     std::vector<DoorData> m_doors;
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

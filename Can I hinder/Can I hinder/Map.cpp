@@ -28,6 +28,7 @@ bool MapRenderer::load(const std::string& tmxFilePath)
     m_tilesetTextures.clear();
 	m_collisionRects.clear();
     m_doors.clear(); //this fecker I forgot to add it in when creating the door mechanic and caused me HOURS of debugging :'O
+    m_keySpawns.clear();
 
     // Load all tileset textures
     for (const auto& tileset : mapData.getTilesets())
@@ -217,6 +218,20 @@ bool MapRenderer::load(const std::string& tmxFilePath)
                 m_doors.push_back(door);
             }
         }
+        if (layer->getType() == tmx::Layer::Type::Object)
+        {
+            if (layer->getName() == "KeySpawns")
+            {
+                const auto& objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
+                for (const auto& obj : objects)
+                {
+                    sf::Vector2f pos(obj.getPosition().x, obj.getPosition().y);
+                    pos *= mapScale;
+
+                    m_keySpawns.push_back(pos);
+                }
+            }
+        }
 
     }
     
@@ -234,6 +249,7 @@ bool MapRenderer::load(const std::string& tmxFilePath)
    
        
     }
+
 	// Mark tiles as non-walkable if they intersect with any collision rectangle
     const float worldTileWidth = static_cast<float>(m_tileSize.x) * mapScale;
     const float worldTileHeight = static_cast<float>(m_tileSize.y) * mapScale;
@@ -377,6 +393,11 @@ sf::Vector2f MapRenderer::getFloorSpawn(const sf::Vector2f& entitySize, const sf
     }
 
     return bestSpawnPos;
+}
+
+const std::vector<sf::Vector2f>& MapRenderer::getKeySpawns() const
+{
+    return m_keySpawns;
 }
 
 bool MapRenderer::rectHitsCollision(const sf::FloatRect& test, const std::vector<sf::FloatRect>& colliders)

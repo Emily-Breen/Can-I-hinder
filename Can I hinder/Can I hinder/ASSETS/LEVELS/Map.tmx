@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="13" nextobjectid="167">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="14" nextobjectid="172">
  <tileset firstgid="1" source="Dungeon/Dungeon.tsx"/>
  <tileset firstgid="2561" source="Dungeon/decor.tsx"/>
  <layer id="1" name="floor" width="100" height="100">
@@ -841,6 +841,38 @@
     <property name="requiredKeys" type="int" value="3"/>
     <property name="spawnX" type="float" value="1590"/>
     <property name="spawnY" type="float" value="4621"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup id="13" name="KeySpawns">
+  <object id="167" name="Key" x="81" y="1279.5" width="13.5" height="15">
+   <properties>
+    <property name="Class" value="Key"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Name" value=""/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="88"/>
+    <property name="Y" type="float" value="1289"/>
+   </properties>
+  </object>
+  <object id="168" name="Key" x="879" y="1089" width="15.5" height="15">
+   <properties>
+    <property name="Class" value="Key"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Name" value=""/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="886"/>
+    <property name="Y" type="float" value="1097"/>
+   </properties>
+  </object>
+  <object id="170" name="Key" x="1121" y="1135" width="16.5" height="17.5">
+   <properties>
+    <property name="Class" value="Key"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Name" value=""/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="1128"/>
+    <property name="Y" type="float" value="1143"/>
    </properties>
   </object>
  </objectgroup>
