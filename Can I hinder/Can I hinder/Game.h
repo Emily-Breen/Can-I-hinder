@@ -96,7 +96,7 @@ private:
 
 	//Items
 	std::vector<Items> m_items;
-	int m_keyCount = 3; // for testing level progression
+	int m_keyCount = 0; // for testing level progression
 
 	//Player & gameplay
 	Player m_player; // player object

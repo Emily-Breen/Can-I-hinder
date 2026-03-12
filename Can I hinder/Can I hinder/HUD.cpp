@@ -16,6 +16,7 @@ HUD::HUD()
 	,m_weaponSprite(m_weaponTexture)
 	, m_hotBarSlotBackground(m_hotBarBackgroundTexture)
 	, m_hotBarCircleBackground(m_hotBarBackgroundTexture2)
+	, m_keySprite(m_keyTexture)
 {
 }
 
@@ -38,6 +39,8 @@ bool HUD::load()
         return false;
 	if (!m_weaponBgTexture2.loadFromFile("ASSETS/IMAGES/HUD/currentWeapon.png"))
 		return false;
+	if (!m_keyTexture.loadFromFile("ASSETS/IMAGES/ITEMS/key.png"))
+		return false;
 	if (!m_font.openFromFile("ASSETS/FONTS/Jersey20-Regular.ttf"))
 		return false;
 
@@ -50,6 +53,7 @@ bool HUD::load()
 	m_weaponBgSprite2 = sf::Sprite(m_weaponBgTexture2);
 	m_hotBarSlotBackground = sf::Sprite(m_hotBarBackgroundTexture);
 	m_hotBarCircleBackground = sf::Sprite(m_hotBarBackgroundTexture2);
+	m_keySprite = sf::Sprite(m_keyTexture);
 
 	// Scaling
 	m_healthBarDecorSprite.setScale({ 6.f,6.f });
@@ -59,6 +63,7 @@ bool HUD::load()
 	m_weaponBgSprite2.setScale({ 2.7f, 2.7f });
 	m_hotBarSlotBackground.setScale({ 3.f, 3.f });
 	m_hotBarCircleBackground.setScale({ 3.2f, 3.2f });
+	m_keySprite.setScale({ 2.f,2.f });
 
 	
 
@@ -208,7 +213,17 @@ void HUD::draw(sf::RenderWindow& window)
 		m_hotBarSlotBackground.setPosition(m_slotPositions[i]);
 		window.draw(m_hotBarSlotBackground);
 	}
+	for (int i = 0; i < std::min(m_keys, HOTBAR_SLOTS); i++)
+	{
+		sf::Sprite key = m_keySprite;
 
+		key.setPosition({
+			m_slotPositions[i].x + 12.f,
+			m_slotPositions[i].y + 10.f
+			});
+
+		window.draw(key);
+	}
 	//for the right circle
 	m_hotBarCircleBackground.setPosition(m_rightCirclePos);
 	window.draw(m_hotBarCircleBackground);
@@ -227,4 +242,14 @@ void HUD::pushChatMessage(const std::string& username, const std::string& messag
 	{
 		m_chatMessages.pop_front();
 	}
+}
+
+void HUD::addKey()
+{
+	m_keys++;
+}
+
+void HUD::clearKeys()
+{
+	m_keys = 0;
 }

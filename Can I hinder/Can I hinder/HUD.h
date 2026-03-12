@@ -22,6 +22,8 @@ public:
 	void update(float hp01,float dt);
 	void draw(sf::RenderWindow& window);
 	void pushChatMessage(const std::string& username, const std::string& message, const sf::Color& userColor, const sf::Color& messageColor = sf::Color::White, float timeToLive = 6.0f);
+	void addKey();
+	void clearKeys();
 
 private:
 	
@@ -35,6 +37,7 @@ private:
 	sf::Texture m_weaponBgTexture;
 	sf::Texture m_weaponBgTexture2;
 	sf::Texture m_weaponTexture;
+	sf::Texture m_keyTexture;
 
 	sf::Sprite m_chatBGSprite;
 	sf::Sprite m_hotBarSprite;
@@ -44,6 +47,7 @@ private:
 	sf::Sprite m_healthBarSprite;
 	sf::Sprite m_weaponBgSprite;
 	sf::Sprite m_weaponBgSprite2;
+	sf::Sprite m_keySprite;
 
 	
 
@@ -53,6 +57,9 @@ private:
 	float m_hpTarget = 1.0f;
 	float m_hpShown = 1.0f;
 	float m_chatMessageLineSpacing = 18.f;
+
+
+	int m_keys = 0;
 
 	sf::Font m_font;
 	

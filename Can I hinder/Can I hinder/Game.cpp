@@ -72,8 +72,19 @@ Game::Game() :
 	}
 
 	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
+
+	for (const auto& pos : m_mapRenderer.getKeySpawns())
+	{
+		m_items.emplace_back(
+			ItemEffect{ ItemType::Key, 0.f, 0.f, 1 },
+			pos
+		);
+	}
 	std::cout << "player posX: " << m_player.getPosition().x << "player posY: " << m_player.getPosition().y;
 	std::cout << "Doors loaded: " << m_mapRenderer.getDoors().size() << "\n";
+
+
+
 	if (!m_mainMenuTexture.loadFromFile("ASSETS/LEVELS/PNG/MainMenu.png"))
 	{
 		std::cout << "Failed to load Main Menu PNG\n";
@@ -512,6 +523,16 @@ void Game::update(sf::Time t_deltaTime)
 				{
 					if (m_keyCount >= doorRef.requiredKeys)
 					{
+						m_keyCount = 0;
+						m_hud.clearKeys();
+						m_items.clear();
+						for (const auto& pos : m_mapRenderer.getKeySpawns())
+						{
+							m_items.emplace_back(
+								ItemEffect{ ItemType::Key, 0.f, 0.f, 1 },
+								pos
+							);
+						}
 						std::cout << "Door spawn read: " << doorRef.spawn.x << ", " << doorRef.spawn.y << "\n";
 						m_mapRenderer.load(doorRef.nextMap);
 
@@ -700,6 +721,11 @@ void Game::update(sf::Time t_deltaTime)
 					m_testHealth += effect.amount;
 					if (m_testHealth > 1.f)
 						m_testHealth = 1.f;
+				}
+				else if (effect.type == ItemType::Key)
+				{
+					m_keyCount++;
+					m_hud.addKey();
 				}
 			}
 		}
@@ -948,16 +974,11 @@ void Game::setUpSessionCode(const std::string& code)
 
 	auto bounds = m_sessionCodeText.getLocalBounds();
 
-	m_sessionCodeText.setOrigin({
-		bounds.position.x + bounds.size.x * 0.5f,
-		bounds.position.y + bounds.size.y * 0.5f
-		});
+	m_sessionCodeText.setOrigin({bounds.position.x + bounds.size.x * 0.5f,bounds.position.y + bounds.size.y * 0.5f});
 	
 	m_sessionCodeText.setPosition({ VIRTUAL_WIDTH * 0.5f - 200.f, 330.f });
 }
 	
-
-
 std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type)
 {
 	//uses a cache to avoid reloading same texture multiple times to save memory

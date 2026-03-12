@@ -25,8 +25,13 @@ Animation::Animation(sf::Texture& texture, int startFrame, int frameCount,
 
 void Animation::update(float dt)
 {
+	if (m_frames.empty())
+		return;
+
 	currentTime += dt;
-	if (currentTime >= frameTime) {
+
+	if (currentTime >= frameTime)
+	{
 		currentTime = 0.f;
 		currentFrame = (currentFrame + 1) % m_frames.size();
 	}
@@ -34,6 +39,8 @@ void Animation::update(float dt)
 
 void Animation::applyToSprite(sf::Sprite& sprite) const
 {
+	if (m_frames.empty())
+		return;
 	sprite.setTextureRect(m_frames[currentFrame]);
 }
 
