@@ -25,6 +25,7 @@
 #include "Items.h"
 #include "Audio.h"
 #include "Input Handler.h"
+#include "FinalLevel.h"
 
 //enum for menu states
 enum class menuState
@@ -32,6 +33,7 @@ enum class menuState
 	MAIN_MENU,
 	SETTINGS,
 	GAMEPLAY,
+	BOSS_BATTLE,
 	PAUSE,
 	GAME_OVER
 };
@@ -101,6 +103,7 @@ private:
 	//Player & gameplay
 	Player m_player; // player object
 	InputHandler m_inputHandler;
+	FinalLevel m_finalLevel;
 	float m_testHealth = 1.0f;
 	float m_playerDamageMultiplier = 1.0f;
 	float m_stealPowerDuration = 0.0f;

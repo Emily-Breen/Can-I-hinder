@@ -398,8 +398,11 @@ void Game::update(sf::Time t_deltaTime)
 				m_audio.stopMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main Menu music.ogg");
 				m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
 				break;
-
+			case menuState::BOSS_BATTLE:
+				m_finalLevel.updateTB(t_deltaTime.asSeconds());
+				return;
 			case menuState::GAME_OVER:
+
 			case menuState::PAUSE:
 				
 			case menuState::SETTINGS:
@@ -772,7 +775,21 @@ void Game::render()
 		m_window.display();
 		return;
 	}
-	
+	if (m_currentMenuState == menuState::BOSS_BATTLE)
+	{
+		// Use UI view (no camera)
+		sf::View uiView;
+		uiView.setSize({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
+		uiView.setCenter({ VIRTUAL_WIDTH * 0.5f, VIRTUAL_HEIGHT * 0.5f });
+		uiView.setViewport({ {0.f, 0.f}, {1.f, 1.f} });
+
+		m_window.setView(uiView);
+
+		m_finalLevel.drawTB(m_window);
+
+		m_window.display();
+		return;
+	}
 	m_camera.applyCam(m_window);
 	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
 	for (auto& npc : m_npcs) {
