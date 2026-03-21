@@ -41,45 +41,50 @@ void WebsocketClient::setOnMessage(std::function<void(const std::string& ,const 
 }
 std::string WebsocketClient::createSession()
 {
+	//using try catch to handle any errors to stop from crashing if the session creation fails
 	try
 	{
+		// Create a session by sending a POST request to the API endpoint and parsing the response to get the session ID
 		std::string host = "can-i-hinder-api-dkafh4amdxhxa4ha.germanywestcentral-01.azurewebsites.net";
 		std::string port = "443";
 		std::string target = "/api/game/create-session";
-
+		//create objects needed to to run the network connection
 		boost::asio::io_context ioc;
+		//set up the SSL so we can make a secure HTTPS request
 		ssl::context ctx{ ssl::context::tlsv12_client };
-
+		//look uo tge server UO address frin the host nname and port
 		tcp::resolver resolver{ ioc };
 		auto const results = resolver.resolve(host, port);
-
+		//use TCP and ssl to create a secure connection to the server
 		beast::ssl_stream<beast::tcp_stream> stream{ ioc, ctx };
-
+		//connect to server using  the resolved address
 		boost::asio::connect(stream.next_layer().socket(), results.begin(), results.end());
-
+		//start secure communication with SSL handshake
 		stream.handshake(ssl::stream_base::client);
-
+		//create the HTTP post to get the API endpoint
 		http::request<http::string_body> req{ http::verb::post, target, 11 };
+		//adn the headers needed for the request
 		req.set(http::field::host, host);
 		req.set(http::field::user_agent, "CanIhinderGame");
-
+		//send the HTTP request to the server
 		http::write(stream, req);
-
+		//prepare to read the response from the server
 		beast::flat_buffer buffer;
 		http::response<http::string_body> res;
-
+		//read the response and store it in the res object
 		http::read(stream, buffer, res);
-
+		//convert the string into JSON to be parsed 
 		auto json = nlohmann::json::parse(res.body());
-
+		//get the session ID from the JSON response
 		std::string session = json["sessionId"];
-
+		//output to confirm the session was created
 		std::cout << "Session created: " << session << std::endl;
 
 		return session;
 	}
 	catch (const std::exception& e)
 	{
+		//print the error if the session creation fails and return an error string
 		std::cout << "Failed to create session: " << e.what() << std::endl;
 		return "ERROR";
 	}

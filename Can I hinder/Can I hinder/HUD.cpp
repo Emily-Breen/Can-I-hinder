@@ -213,6 +213,7 @@ void HUD::draw(sf::RenderWindow& window)
 		m_hotBarSlotBackground.setPosition(m_slotPositions[i]);
 		window.draw(m_hotBarSlotBackground);
 	}
+	//keys in hotbar 
 	for (int i = 0; i < std::min(m_keys, HOTBAR_SLOTS); i++)
 	{
 		sf::Sprite key = m_keySprite;
