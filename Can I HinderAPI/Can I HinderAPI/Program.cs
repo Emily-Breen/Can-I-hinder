@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using CanI_HinderAPI.Services;
 using System.Text;
 
+//builder = initialises the application and sets up the services and middleware that use incoming requests to the API from Pwa and game clients.
 var builder = WebApplication.CreateBuilder(args);
 
 //Database setup using SQL Server , with connection string from appsettings.json
@@ -15,7 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // CORS setup, allowing origins specified in appsettings.json under "AllowedOrigins" (as an array of strings)
 const string CorsPolicy = "PwaCors";
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
-
+// if no allowed origins are specified, it can default to allowing all origins for development purposes but prod for explicit config 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(CorsPolicy, policy =>
@@ -39,7 +40,8 @@ if (string.IsNullOrWhiteSpace(jwtKey))
 }
 else
 {
-    
+    // config for JWT auth that validates the tokens based on jwtKey, jwtIssuer, and jwtAudiencw with a clock to allow for
+    // one minute of skew to account for time differences between token issed and validation.
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -106,16 +108,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+//https redirection to make sure traffic is secure
 app.UseHttpsRedirection();
+//enable routing to map incoming requests from controllers
 app.UseRouting();
+//Enable cors with a policy that allows requests from allowed origins from appsettings,json
 app.UseCors(CorsPolicy);
 
 //its important that UseAuthentication comes before UseAuthorization, as the authentication middleware needs to run first to set the user context before authorization checks are performed.
 app.UseAuthentication();
 app.UseAuthorization();
-
+// Map controller endpoints to handle incoming API requests based on the defined routes in the controllers.
 app.MapControllers();
+//this is for applying any pending database migrations at startip so that the azure sql database is always up to date.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

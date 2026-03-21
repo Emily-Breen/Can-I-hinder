@@ -7,13 +7,15 @@ namespace Can_I_HinderAPI.Controllers
     [Route("api/game")]
     public class GameController : ControllerBase
     {
+        //endpoint to create a new game session which generates a 6 digit code and returns to the game.
         [HttpPost("create-session")]
         public ActionResult<object> CreateSession()
         {
             var sessionId = GenerateCode(6);
             return Ok(new { sessionId });
         }
-        
+        //generates a session code for the game using a specified alphanumeric code which doesnt use confusing charactoers
+        //like 0, O ,1 and l to make it easier for players to see
         private static string GenerateCode(int length)
         {
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

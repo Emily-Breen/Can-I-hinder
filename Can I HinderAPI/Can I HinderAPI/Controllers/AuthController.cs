@@ -16,6 +16,8 @@ namespace CanI_HinderAPI.Controllers;
 // Controller for handling user authentication, including registration and login, using JWT tokens.
 public class AuthController : ControllerBase
 {
+    // Private fields for the database context, configuration, password hasher, and email service,
+    // which are used throughout the controller methods.
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
     private readonly PasswordHasher<User> _hasher = new();
@@ -23,6 +25,7 @@ public class AuthController : ControllerBase
     // Constructor that takes the database context and configuration as dependencies, which are injected by the framework.
     public AuthController(AppDbContext db, IConfiguration config, EmailService emailService)
     {
+        // Initialize the private fields with the injected dependencies.
         _db = db;
         _config = config;
         _emailService = emailService;
@@ -67,7 +70,7 @@ public class AuthController : ControllerBase
 
         return Ok(new AuthResponse(CreateJwt(user)));
     }
-
+    //endpoint for forgot pass validates the email and generates a new token and sends the reset link to the stored email.
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] string email)
     {
@@ -95,7 +98,7 @@ public class AuthController : ControllerBase
         return Ok();
     }
     public record ResetPasswordRequest(string Token, string NewPassword);
-
+    // Endpoint for restting the users password. Validates the new pasword and checks the reset tocken then updates the passwotd hash and cleaes the reset token and expiration
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest req)
     {
@@ -145,6 +148,8 @@ public class AuthController : ControllerBase
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+    //helper to hash  the pass token for password reset using SHA256 for this as we only need to check the token for validity 
+    // and dont need to retrieve the original token we cna store the hash of the token in the db for secrutity so if compromisied the token isnt exposed in plain text.
     private static string HashToken(string token)
     {
         using var sha = System.Security.Cryptography.SHA256.Create();
