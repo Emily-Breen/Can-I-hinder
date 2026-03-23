@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import "./global.css";
 import Boo from "./assets/Boo.png";
 import Bee from "./assets/Bee.png";
+
 const title = "Choose your path";
 
 function App() {
@@ -17,6 +18,8 @@ function App() {
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
   const radialMenuActive = helpOpen || hinderOpen;
   function handleLogout() {
+  if (radialMenuActive) 
+    return;
   signOut();
   navigate("/login");
 }
