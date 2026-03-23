@@ -12,11 +12,11 @@ Game::Game() :
 
 	if (fullscreen)
 	{
-		m_window.create(desktopMode, "SFML Game 3.0", sf::Style::None);
+		m_window.create(desktopMode, "Can I Hinder?", sf::Style::None);
 	}
 	else
 	{
-		m_window.create(sf::VideoMode({ 1280u, 720u }), "SFML Game 3.0", sf::Style::Default);
+		m_window.create(sf::VideoMode({ 1280u, 720u }), "Can I Hinder?", sf::Style::Default);
 	}
 
 	m_camera.onResize(m_window.getSize());
