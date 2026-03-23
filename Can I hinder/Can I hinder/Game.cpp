@@ -3,13 +3,22 @@
 
 #include <iostream>
 
-
-
-auto desktopMode = sf::VideoMode::getDesktopMode(); 
 Game::Game() :
-	m_window{ desktopMode,"SFML Game 3.0",sf::State::Fullscreen },
 	m_DELETEexitGame{ false }, m_camera(VIRTUAL_WIDTH,VIRTUAL_HEIGHT) //when true game will exit
 {
+	bool fullscreen = true;
+
+	auto desktopMode = sf::VideoMode::getDesktopMode();
+
+	if (fullscreen)
+	{
+		m_window.create(desktopMode, "SFML Game 3.0", sf::Style::None);
+	}
+	else
+	{
+		m_window.create(sf::VideoMode({ 1280u, 720u }), "SFML Game 3.0", sf::Style::Default);
+	}
+
 	m_camera.onResize(m_window.getSize());
 	m_window.setVerticalSyncEnabled(true);
 	m_client.setOnMessage([this](const std::string& user,const std::string& action, const std::string& effect)
