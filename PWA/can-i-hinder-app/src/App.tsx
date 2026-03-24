@@ -16,10 +16,14 @@ function App() {
   const [hinderOpen, setHinderOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
-  const radialMenuActive = helpOpen || hinderOpen;
-  function handleLogout() {
-  if (radialMenuActive) 
-    return;
+
+ function handleLogout() {
+  // Always close menus immediately
+  setHelpOpen(false);
+  setHinderOpen(false);
+  setAnchor(null);
+
+  // Then logout immediately
   signOut();
   navigate("/login");
 }
@@ -48,7 +52,6 @@ const helpItems: RadialItem[] = useMemo(
        <button
             className="logout-button"
             onClick={handleLogout}
-            disabled={radialMenuActive}
            >
            Logout
        </button>

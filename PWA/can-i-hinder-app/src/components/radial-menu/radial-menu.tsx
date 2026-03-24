@@ -102,11 +102,13 @@ export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuP
             </button>
           );
         })}
-        <button
-            className="radial-center"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={onClose}
-        />
+            <button
+              className="radial-center"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={onClose}
+              >
+              Close
+            </button>
       </div>
     </div>
   );

@@ -80,14 +80,22 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;  
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  color: #000;
   background:
     linear-gradient(135deg, rgba(47,230,214,1), rgba(20,184,166,1));
   box-shadow:
     0 0 0 8px rgba(47,230,214,0.25),
     0 18px 40px rgba(20,184,166,0.45);
-
   transition: transform 90ms ease, box-shadow 120ms ease, filter 120ms ease;
   outline: none;  
+}
+.radial-center:active {
+  transform: scale(0.96);
 }
 /* for keyboard users */
 .radial-item:focus-visible {
@@ -105,9 +113,6 @@
     0 0 24px rgba(0, 255, 200, 0.35);
 }
 
-.radial-center::after {
-  content: "Close";
-}
 /* mobile adjustments */ 
 @media (max-width: 768px) {
   .radial-circle {
