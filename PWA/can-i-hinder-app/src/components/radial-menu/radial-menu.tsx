@@ -8,17 +8,7 @@ function vibrate(ms: number= 20) {
   if ("vibrate" in navigator) navigator.vibrate(ms);
 }
 export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuProps) {
-  // Close the menu when user presses ESC
-  useEffect(() => {
-    if (!open) return;
 
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
  //Ticker to update buttons during cooldown without closing the menu
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -60,7 +50,7 @@ export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuP
   };
 
   return (
-    <div className="radial-overlay" onPointerDown={onClose}>
+    <div className="radial-overlay">
       <div
         className="radial-circle"
         // Position the menu based on the anchor (button center) for desktop, or screen center for mobile
@@ -112,8 +102,11 @@ export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuP
             </button>
           );
         })}
-
-        <button className="radial-center" onClick={onClose} />
+        <button
+            className="radial-center"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={onClose}
+        />
       </div>
     </div>
   );
