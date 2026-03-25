@@ -553,9 +553,9 @@
     <property name="Y" type="float" value="1320"/>
    </properties>
   </object>
-  <object id="346" name="Key" x="1167.5" y="525.5" width="15" height="17.5">
+  <object id="346" name="Key" x="1163.5" y="545.5" width="15" height="17.5">
    <properties>
-    <property name="Class" value=""/>
+    <property name="Class" value="Key"/>
     <property name="Height" type="float" value="160"/>
     <property name="Name" value=""/>
     <property name="Width" type="float" value="16"/>
@@ -563,7 +563,6 @@
     <property name="Y" type="float" value="538"/>
    </properties>
   </object>
-  <object id="347" x="1242.5" y="396" height="0.5"/>
  </objectgroup>
  <objectgroup id="16" name="Collision">
   <object id="147" x="487.5" y="1584.5" width="129.5" height="7"/>
