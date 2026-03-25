@@ -1,10 +1,20 @@
 import { WS_URL } from "../../config";
 import { getUsername } from "../auth/auth";
-import type { GameAction, HelpEffect, HinderEffect } from "./types";
+import type { GameAction, HelpEffect, HinderEffect, IncomingGameAction } from "./types";
 import { canSend, recordSend } from "./rate-limit";
 import { getSession, setSession } from "../auth/auth";
 
+
 const params = new URLSearchParams(window.location.search);
+// Callback to handle progress updates from the server, such as hinder count and unlocks, which can be set by the UI to update the display accordingly
+let onProgressCallback: ((data: IncomingGameAction) => void) | null = null;
+
+// Helper function to set the progress callback, which allows the UI to react to progress updates from the server such as hinder count and unlocks
+export function setOnProgressCallback(
+  cb: (data: IncomingGameAction) => void
+) {
+  onProgressCallback = cb;
+}
 
 let sessionId =
   params.get("session") ||
@@ -27,23 +37,34 @@ if (ws) {
   };
 
   ws.onmessage = (event: MessageEvent) => {
-    console.log("Message from server:", event.data);
+  console.log("Message from server:", event.data);
 
-    try {
-      const data: GameAction = JSON.parse(event.data);
+  try {
+    const data: IncomingGameAction = JSON.parse(event.data);
+
+    // Handle normal action messages
+    if (data.type === "action") {
       console.log(`Server event: ${data.user} ${data.action} ${data.effect}`);
-    } catch (err) {
-      console.error("Failed to parse message:", err);
     }
-  };
 
-  ws.onclose = () => {
-    console.log("Disconnected from WebSocket server");
-  };
+    // Handle progress messages
+    if (data.type === "progress") {
+      console.log(`Hinder count: ${data.hinderCount}`);
+      // Log any unlocks that come in the progress updates for debugging
+      if (data.unlock) {
+        console.log(`Unlocked: ${data.unlock}`);
+      }
 
-  ws.onerror = (err) => {
-    console.error("WebSocket error:", err);
-  };
+      // Call the progress callback if it’s set, so that the UI can update with the new progress information
+      if (onProgressCallback) {
+        onProgressCallback(data);
+      }
+    }
+
+  } catch (err) {
+    console.error("Failed to parse message:", err);
+  }
+};
 }
 
 // Send a game action to the server

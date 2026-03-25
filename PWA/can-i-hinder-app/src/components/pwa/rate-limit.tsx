@@ -12,6 +12,7 @@ const HINDER_COOLDOWN_MS: Record<HinderEffect, number> = {
   drop_trap: 12_000,
   slow_player: 10_000,
   steal_power: 18_000,
+  spawn_brute: 20_000,
 };
 //client side rate limiter to prevent spamming and overwhelming the server
 const STORAGE_KEY = "pwa_rate_limit_state";

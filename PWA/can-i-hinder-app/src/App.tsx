@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { sendHelp, sendHinder } from "./components/pwa/pwa-client";
+import { useMemo, useState, useEffect } from "react";
+import { sendHelp, sendHinder, setOnProgressCallback } from "./components/pwa/pwa-client";
 import RadialMenu from "./components/radial-menu/radial-menu";
 import type { RadialItem } from "./components/radial-menu/types";
 import { signOut } from "./components/auth/auth";
@@ -16,6 +16,26 @@ function App() {
   const [hinderOpen, setHinderOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+  const [unlocks, setUnlocks] = useState<string[]>([]);
+  const [hinderCount, setHinderCount] = useState(0);
+
+  // Set up the progress callback once on mount to receive updates from the server about hinder count and unlocks, which will update the UI as needs be.
+  useEffect(() => {
+  setOnProgressCallback((data) => {
+  if (data.type === "progress") {
+  setHinderCount(data.hinderCount);
+  const unlock = data.unlock;
+  if (unlock) {
+  setUnlocks(prev =>
+    prev.includes(unlock)
+      ? prev
+      : [...prev, unlock]
+     );
+    }
+  }
+  });
+}, 
+[]);
 
  function handleLogout() {
   // Always close menus immediately
@@ -38,14 +58,25 @@ const helpItems: RadialItem[] = useMemo(
     []
   );
   const hinderItems: RadialItem[] = useMemo(
-    () => [
-      { id: "spawn", label: "Spawn enemy", action: "hinder", effect: "spawn_enemy", onClick: () => sendHinder("spawn_enemy") },
-      { id: "trap",  label: "Drop trap", action: "hinder", effect: "drop_trap", onClick: () => sendHinder("drop_trap") },
-      { id: "slow",  label: "Slow player", action: "hinder", effect: "slow_player", onClick: () => sendHinder("slow_player") },
-      { id: "steal", label: "Steal power", action: "hinder", effect: "steal_power", onClick: () => sendHinder("steal_power") },
-    ],
-    []
-  );
+  () => [
+    { id: "spawn", label: "Spawn enemy", action: "hinder", effect: "spawn_enemy", onClick: () => sendHinder("spawn_enemy") },
+    { id: "trap",  label: "Drop trap", action: "hinder", effect: "drop_trap", onClick: () => sendHinder("drop_trap") },
+    { id: "slow",  label: "Slow player", action: "hinder", effect: "slow_player", onClick: () => sendHinder("slow_player") },
+    { id: "steal", label: "Steal power", action: "hinder", effect: "steal_power", onClick: () => sendHinder("steal_power") },
+
+      // Unlock spawn brute hinder if it’s in the unlocks array from progress updates coming from the gameclient, which means required hinder amount has been reached 
+    ...(unlocks.includes("spawn_brute")
+      ? [{
+          id: "brute",
+          label: "Spawn Brute",
+          action: "hinder" as const,
+          effect: "spawn_brute" as const,
+          onClick: () => sendHinder("spawn_brute")
+        }]
+      : [])
+  ],
+  [unlocks]
+);
   
   return (
     <div className="app">
@@ -67,7 +98,7 @@ const helpItems: RadialItem[] = useMemo(
            </span>
           ))}
       </h1>
-
+       <p>Hinders used: {hinderCount}</p>
       <div className="button-group">
         <div className="action">
           <img src={Bee} alt="Bee" className="character bee" />
