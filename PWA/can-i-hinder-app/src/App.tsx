@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { sendHelp, sendHinder, setOnProgressCallback } from "./components/pwa/pwa-client";
 import RadialMenu from "./components/radial-menu/radial-menu";
 import type { RadialItem } from "./components/radial-menu/types";
-import { signOut } from "./components/auth/auth";
+import { signOut, getUsername } from "./components/auth/auth";
 import { useNavigate } from "react-router-dom";
 import "./global.css";
 import Boo from "./assets/Boo.png";
@@ -17,23 +17,29 @@ function App() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
   const [unlocks, setUnlocks] = useState<string[]>([]);
-  const [hinderCount, setHinderCount] = useState(0);
+ const [hinderCounts, setHinderCounts] = useState<Record<string, number>>({});
 
+
+ const username = getUsername() ?? "Guest";
+ const myCount = hinderCounts[username] ?? 0;
   // Set up the progress callback once on mount to receive updates from the server about hinder count and unlocks, which will update the UI as needs be.
   useEffect(() => {
-  setOnProgressCallback((data) => {
+ setOnProgressCallback((data) => {
   if (data.type === "progress") {
-  setHinderCount(data.hinderCount);
-  const unlock = data.unlock;
-  if (unlock) {
-  setUnlocks(prev =>
-    prev.includes(unlock)
-      ? prev
-      : [...prev, unlock]
-     );
+
+    setHinderCounts(prev => ({
+      ...prev,
+      [data.user]: data.hinderCount
+    }));
+
+    const unlock = data.unlock;
+    if (unlock) {
+      setUnlocks(prev =>
+        prev.includes(unlock) ? prev : [...prev, unlock]
+      );
     }
   }
-  });
+});
 }, 
 []);
 
@@ -98,7 +104,7 @@ const helpItems: RadialItem[] = useMemo(
            </span>
           ))}
       </h1>
-       <p>Hinders used: {hinderCount}</p>
+       <p>Hinders used: {myCount}</p>
       <div className="button-group">
         <div className="action">
           <img src={Bee} alt="Bee" className="character bee" />
