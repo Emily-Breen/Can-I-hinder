@@ -2,22 +2,11 @@
 #include "Game.h"
 
 #include <iostream>
-
+auto desktopMode = sf::VideoMode::getDesktopMode();
 Game::Game() :
-	m_DELETEexitGame{ false }, m_camera(VIRTUAL_WIDTH,VIRTUAL_HEIGHT) //when true game will exit
+	m_window{ desktopMode,"SFML Game 3.0",sf::State::Fullscreen },m_DELETEexitGame{ false }, m_camera(VIRTUAL_WIDTH,VIRTUAL_HEIGHT) //when true game will exit
 {
-	bool fullscreen = true;
-
-	auto desktopMode = sf::VideoMode::getDesktopMode();
-
-	if (fullscreen)
-	{
-		m_window.create(desktopMode, "Can I Hinder?", sf::Style::None);
-	}
-	else
-	{
-		m_window.create(sf::VideoMode({ 1280u, 720u }), "Can I Hinder?", sf::Style::Default);
-	}
+	
 
 	m_camera.onResize(m_window.getSize());
 	m_window.setVerticalSyncEnabled(true);
@@ -168,8 +157,8 @@ void Game::run()
 			spawnEnemy = false;
 
 			sf::Vector2f enemySize = { 48.f, 48.f }; //match eney size
-			sf::Vector2f spawnPos = m_mapRenderer.getFloorSpawn(enemySize, m_player.getPosition(), 100.f); //100 is a nice sweet spot
-
+			sf::Vector2f spawnPos = m_mapRenderer.getFloorSpawn(enemySize, m_player.getPosition(), 60.f); //60 is a nice sweet spot
+			
 			EnemyType type =
 				(std::rand() % 2 == 0)
 				? EnemyType::Skeleton
@@ -538,17 +527,21 @@ void Game::update(sf::Time t_deltaTime)
 						m_keyCount = 0;
 						m_hud.clearKeys();
 						m_items.clear();
+
+						m_mapRenderer.load(doorRef.nextMap);
+						std::cout << "Loaded map: " << doorRef.nextMap << "\n";
+						std::cout << "Key spawns: " << m_mapRenderer.getKeySpawns().size() << "\n";
+						
 						for (const auto& pos : m_mapRenderer.getKeySpawns())
 						{
 							m_items.emplace_back(
 								ItemEffect{ ItemType::Key, 0.f, 0.f, 1 },
 								pos
 							);
-						}
-						std::cout << "Door spawn read: " << doorRef.spawn.x << ", " << doorRef.spawn.y << "\n";
-						m_mapRenderer.load(doorRef.nextMap);
 
-						
+
+							
+						}
 						m_player.setPosition(doorRef.spawn);
 						m_camera.follow(m_player.getPosition());
 						return;
@@ -1022,6 +1015,12 @@ std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type)
 		break;
 	case EnemyType::Goblin:   
 		filePath = "ASSETS/IMAGES/Goblin.png";   
+		break;
+    case EnemyType::Brute:
+		filePath = "ASSETS/IMAGES/Goblin Brute.png";
+		break;
+    case EnemyType::Boss:
+		filePath = "ASSETS/IMAGES/Boss.png";
 		break;
 	}
 

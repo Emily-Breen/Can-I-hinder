@@ -104,12 +104,12 @@ void WebsocketClient::run(const std::string& host, const std::string& port, cons
 			m_ssl_ctx.set_verify_mode(ssl::verify_peer);
 			// Load the CA certificate to verify the server's certificate against trusted CAs... this broke the connection until this was added!!!!
 			m_ssl_ctx.load_verify_file("ASSETS/certs/cacert.pem");
-			// Create the WebSocket stream with SSL
+			// Create the WebSocket stream with SSL (ssl = secure socket layer)
 			m_wss = std::make_unique<websocket::stream<beast::ssl_stream<tcp::socket>>>(m_ioc, m_ssl_ctx);
 			// Set a timeout on the underlying TCP socket
 			boost::asio::connect(beast::get_lowest_layer(*m_wss), results.begin(), results.end());
 
-			// SNI for Azure/custom domains
+			// SNI (Server Name Indication) for Azure/custom domains
 			if (!SSL_set_tlsext_host_name(m_wss->next_layer().native_handle(), host.c_str()))
 				throw std::runtime_error("Failed to set SNI hostname");
 			// Verify cert matches hostname
@@ -153,21 +153,55 @@ void WebsocketClient::run(const std::string& host, const std::string& port, cons
 void WebsocketClient::readLoop(bool useTls)
 {
 	try {
-		boost::beast::flat_buffer buffer; // for saving until all data has been read
+		boost::beast::flat_buffer buffer;
 		while (m_running) {
 			buffer.clear();
-			if (useTls) 
+
+			if (useTls)
 				m_wss->read(buffer);
-            else       
+			else
 				m_ws->read(buffer);
 			std::string message = boost::beast::buffers_to_string(buffer.data());
 			try {
 				auto data = json::parse(message);
+				std::string type = data.value("type", "action");
+				if (type == "progress") {
+					int count = data.value("hinderCount", 0);
+					std::string unlock = data.value("unlock", "");
+
+					std::cout << "Hinder count: " << count << std::endl;
+
+					if (!unlock.empty()) {
+						std::cout << "Unlocked: " << unlock << std::endl;
+					}
+					continue;
+				}
 				std::string user = data.value("user", "");
 				std::string action = data.value("action", "");
 				std::string effect = data.value("effect", "");
+
 				if (onMessage) {
 					onMessage(user, action, effect);
+				}
+
+				if (action == "hinder") {
+					hinderCount[user]++;
+
+					int count = hinderCount[user];
+
+					json response;
+					response["type"] = "progress";
+					response["user"] = user;
+					response["hinderCount"] = count;
+
+					if (count == 5) {
+						response["unlock"] = "spawn_brute"; 
+					}
+					std::string out = response.dump();
+					if (useTls)
+						m_wss->write(boost::asio::buffer(out));
+					else
+						m_ws->write(boost::asio::buffer(out));
 				}
 			}
 			catch (...) {

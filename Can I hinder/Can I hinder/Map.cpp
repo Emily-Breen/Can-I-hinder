@@ -225,10 +225,17 @@ bool MapRenderer::load(const std::string& tmxFilePath)
                 const auto& objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
                 for (const auto& obj : objects)
                 {
-                    sf::Vector2f pos(obj.getPosition().x, obj.getPosition().y);
-                    pos *= mapScale;
+                    auto pos = obj.getPosition();
+                    auto size = obj.getAABB();
 
-                    m_keySpawns.push_back(pos);
+                    sf::Vector2f correctedPos(
+                        pos.x,
+                        pos.y - size.height
+                    );
+
+                    correctedPos *= mapScale;
+
+                    m_keySpawns.push_back(correctedPos);
                 }
             }
         }

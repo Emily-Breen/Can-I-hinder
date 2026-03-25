@@ -8,7 +8,9 @@
 enum class EnemyType
 {
 	Skeleton,
-	Goblin
+	Goblin,
+	Brute,
+	Boss
 };
 class NPC : public Entity
 {
