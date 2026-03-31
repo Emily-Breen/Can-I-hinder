@@ -37,6 +37,13 @@ enum class menuState
 	PAUSE,
 	GAME_OVER
 };
+
+struct GameStats {
+	int enemiesDefeated;
+	int helpsReceived;
+	int hindersReceived;
+};
+
 //Button struct for menu buttons
 struct Button
 {
@@ -71,6 +78,7 @@ private:
 	void processKeys(const std::optional<sf::Event> t_event);
 	void update(sf::Time t_deltaTime);
 	void render();
+	void resetGame();
 
 	//Enemy system
 	void spawnNPC(sf::Vector2f position, EnemyType type);
@@ -82,29 +90,34 @@ private:
 	//Menu system
 	void setupMenuView();
 	void setupMainMenuButtons();
+	void setupGameOverButtons();
 	void createMenuButton(const std::string& label, float y, std::function<void()> onClick);
 	void updateMenuHighlight();
 	void moveMenuSelection(int direction);
 	void activateSelectedButton();
 	void setupMainMenuTitle();
+	void setupPauseMenu();
 	void setUpSessionCode(const std::string& code);
 
 	std::vector<Button> m_menuButtons;
 	sf::Texture m_mainMenuTexture;
 	sf::Sprite  m_mainMenuSprite{ m_mainMenuTexture };
+	sf::Texture m_gameOverTexture;
+	sf::Sprite  m_gameOverSprite{ m_gameOverTexture };
 	sf::Texture m_buttonTexture;
 	sf::View m_menuView;
 	int m_selectedButton = 0;
 
 	//Items
 	std::vector<Items> m_items;
-	int m_keyCount = 0; // for testing level progression
+	int m_keyCount = 3; // for testing level progression
 
 	//Player & gameplay
 	Player m_player; // player object
 	InputHandler m_inputHandler;
 	FinalLevel m_finalLevel;
-	float m_testHealth = 1.0f;
+	GameStats m_stats;
+	float m_playerHealth = 1.0f;
 	float m_playerDamageMultiplier = 1.0f;
 	float m_stealPowerDuration = 0.0f;
 	float m_powerMultiplier = 1.0f;
@@ -115,6 +128,8 @@ private:
 	float m_speedBuffDuration = 0.0f;
 	float m_slowMultiplier = 1.0f;
 	float m_slowDuration = 0.0f;
+	sf::RectangleShape m_pauseOverlay;
+	
 
 	//Networking events
 	WebsocketClient m_client; // websocket client
@@ -129,7 +144,7 @@ private:
 	bool  m_speedBuffActive = false;
 	bool  m_powerBuffActive = false;
 	bool m_slowActive = false;
-
+	std::string session;
 
 	//Timers and state flags
 	sf::Clock m_stealPowerClock;
@@ -151,6 +166,8 @@ private:
 	sf::Text m_mainMenuTitleShadow{ m_MagicalWorldFont };
 	sf::Text m_mainMenuTitleHighlight{ m_MagicalWorldFont };
 	sf::Text m_sessionCodeText{ m_MagicalWorldFont };
+	sf::Text gameOverText{ m_MagicalWorldFont };
+	sf::Text m_pauseText{ m_MagicalWorldFont };
 	std::string m_sessionCode;
 	HUD m_hud;
 	

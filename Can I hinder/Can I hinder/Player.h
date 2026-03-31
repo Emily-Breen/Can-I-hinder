@@ -28,6 +28,8 @@ public:
 	bool isHurt() const;
 	void dead();
 	bool isDead() const;
+	void resetPlayer();
+
 	
 private:
 	void playerInit();

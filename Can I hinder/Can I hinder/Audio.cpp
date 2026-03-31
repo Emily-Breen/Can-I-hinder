@@ -75,10 +75,13 @@ void Audio::stopswordSlashSound()
 
 void Audio::playInGameBackgroundMusic(const char* musicFilePath)
 {
+	if (backgroundMusic.getStatus() == sf::Music::Status::Playing)
+		return;
+
 	if (backgroundMusic.openFromFile(musicFilePath))
 	{
 		backgroundMusic.setLooping(true);
-		backgroundMusic.setVolume(5.f); 
+		backgroundMusic.setVolume(30.f); 
 		backgroundMusic.play();
 	}
 	else
@@ -87,12 +90,22 @@ void Audio::playInGameBackgroundMusic(const char* musicFilePath)
 	}
 }
 
+void Audio::setInGameBackgroundMusicVolume(float amount)
+{
+	backgroundMusic.setVolume(amount);
+}
+
+void Audio::stopInGameBackgroundMusic(const char* musicFilePath)
+{
+	backgroundMusic.stop();
+}
+
 void Audio::playMenuBackgroundMusic(const char* musicFilePath)
 {
 	if (backgroundMenuMusic.openFromFile(musicFilePath))
 	{
 		backgroundMenuMusic.setLooping(true);
-		backgroundMenuMusic.setVolume(5.f); //set to 60% volume
+		backgroundMenuMusic.setVolume(30.f); 
 		backgroundMenuMusic.play();
 	}
 	else
@@ -106,7 +119,21 @@ void Audio::stopMenuBackgroundMusic(const char* musicFilePath)
 	backgroundMenuMusic.stop();
 }
 
-void Audio::stopBackgroundMusic()
+void Audio::playGameOverBackgroundMusic(const char* musicFilePath)
 {
-	backgroundMusic.stop();
+	if (backgroundGameOverMusic.openFromFile(musicFilePath))
+	{
+		backgroundGameOverMusic.setLooping(true);
+		backgroundGameOverMusic.setVolume(30.f); 
+		backgroundGameOverMusic.play();
+	}
+	else
+	{
+		std::cout << "Failed to load game over music: " << musicFilePath << std::endl;
+	}
+}
+
+void Audio::stopGameOverBackgroundMusic(const char* musicFilePath)
+{
+	backgroundGameOverMusic.stop();
 }

@@ -14,9 +14,12 @@ public:
 	void startswordSlashSound();
 	void stopswordSlashSound();
 	void playInGameBackgroundMusic(const char* musicFilePath);
+	void setInGameBackgroundMusicVolume(float amount);
+	void stopInGameBackgroundMusic(const char* musicFilePath);
 	void playMenuBackgroundMusic(const char* musicFilePath);
 	void stopMenuBackgroundMusic(const char* musicFilePath);
-	void stopBackgroundMusic();
+	void playGameOverBackgroundMusic(const char* musicFilePath);
+	void stopGameOverBackgroundMusic(const char* musicFilePath);
 
 private:
 	sf::SoundBuffer soundBuffer;
@@ -33,6 +36,9 @@ private:
 
 	sf::Music backgroundMusic;
 	sf::Music backgroundMenuMusic;
+    sf::Music backgroundGameOverMusic;
+
+	bool m_inGameMusicLoaded;
 
 };
 

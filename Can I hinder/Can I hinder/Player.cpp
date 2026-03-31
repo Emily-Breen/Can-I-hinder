@@ -153,6 +153,17 @@ bool Player::isDead() const
 	return m_isDead;
 }
 
+void Player::resetPlayer()
+{
+	m_isDead = false;
+	m_hurtTimer = 0.f;
+	m_invulnerabilityTimer = 0.f;
+	m_deathTimer = 0.f;
+	m_State = PlayerState::IDLE;
+	m_direction = Direction::DOWN;
+	m_sprite.setPosition(sf::Vector2f(1590, 4621.f));
+}
+
 
 void Player::playerInit()
 {

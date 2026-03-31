@@ -18,49 +18,58 @@ Game::Game() :
 			{
 				spawnEnemy = true;
 				m_hud.pushChatMessage(user, "sent an enemy!", sf::Color(255, 80, 80));
+				m_stats.hindersReceived++;
 			}
 			else if (action == "hinder" && effect == "steal_power")
 			{
 				weakenPlayer = true;
 				m_hud.pushChatMessage(user, "has weakened you!", sf::Color(255, 80, 80));
+				m_stats.hindersReceived++;
 			}
 			else if (action == "hinder" && effect == "drop_trap")
 			{
 				
 					m_hud.pushChatMessage(user, "has blocked your path!", sf::Color(255, 80, 80));
+					m_stats.hindersReceived++;
 			}
 			else if (action == "hinder" && effect == "slow_player")
 			{
 				slowPlayer = true;
 				m_hud.pushChatMessage(user, "Has slowed your movements!", sf::Color(255, 80, 80));
+				m_stats.hindersReceived++;
 			}
 			else if (action == "help" && effect == "heal_player")
 			{
 				healPlayer = true;
 				m_hud.pushChatMessage(user, "healed you!", sf::Color(80, 255, 80));
+				m_stats.helpsReceived++;
 			}
 			else if (action == "help" && effect == "speed_up_player")
 			{
 				speedUpPlayer = true;
 				m_hud.pushChatMessage(user, "has sped you up!", sf::Color(80, 255, 80));
+				m_stats.helpsReceived++;
 			}
 			else if(action == "help"&& effect =="power_boost")
 			{
 				powerBoostPlayer = true;
 				m_hud.pushChatMessage(user, "has given you a power boost!", sf::Color(80, 255, 80));
+				m_stats.helpsReceived++;
 			}
 			else if(action == "help" && effect == "shield_player")
 			{
 
 				m_hud.pushChatMessage(user, "has shielded you!", sf::Color(80, 255, 80));
+				m_stats.helpsReceived++;
 			}
 			else if (action == "hinder" && effect == "spawn_brute")
 			{
 				spawnBrute = true;
 				m_hud.pushChatMessage(user, "summoned a BRUTE!", sf::Color(255, 0, 0));
+				m_stats.hindersReceived++;
 			}
 		});
-	std::string session = m_client.createSession();
+	session = m_client.createSession();
 	setUpSessionCode(session);
 	if (USE_LOCAL_WS) {
 		m_client.connect("localhost", "8080", session, false); //localhost testing
@@ -87,7 +96,7 @@ Game::Game() :
 	std::cout << "Doors loaded: " << m_mapRenderer.getDoors().size() << "\n";
 
 
-
+	//MAIN MENU SCREEN
 	if (!m_mainMenuTexture.loadFromFile("ASSETS/LEVELS/PNG/MainMenu.png"))
 	{
 		std::cout << "Failed to load Main Menu PNG\n";
@@ -102,6 +111,21 @@ Game::Game() :
 
 		m_mainMenuSprite.setScale({ scaleX, scaleY });
 	}
+	//GAME OVER SCREEN
+	if (!m_gameOverTexture.loadFromFile("ASSETS/LEVELS/PNG/Game Over.png"))
+	{
+		std::cout << "Failed to load Game Over PNG\n";
+	}
+	else
+	{
+		m_gameOverSprite.setTexture(m_gameOverTexture, true); // reset texture rect
+		m_gameOverSprite.setPosition({ 0.f, 0.f });
+
+		float scaleX = VIRTUAL_WIDTH / m_gameOverTexture.getSize().x;
+		float scaleY = VIRTUAL_HEIGHT / m_gameOverTexture.getSize().y;
+		m_gameOverSprite.setScale({ scaleX, scaleY });
+	}
+
 	if (!m_MagicalWorldFont.openFromFile("ASSETS/FONTS/MagicalWorld.ttf"))
 	{
 		std::cout << "Failed to load MagicalWorld font\n";
@@ -114,6 +138,7 @@ Game::Game() :
 	setupMenuView();
 	setupMainMenuButtons();
 	setupMainMenuTitle();
+	setupPauseMenu();
 	if (!m_hud.load())
 	{
 		std::cout << "Failed to load HUD\n";
@@ -186,9 +211,9 @@ void Game::run()
 			std::cout << "Healed by viewer!\n";
 			healPlayer = false;
 
-			m_testHealth += 0.25f;
-			if (m_testHealth > 1.f)
-				m_testHealth = 1.f;
+			m_playerHealth += 0.25f;
+			if (m_playerHealth > 1.f)
+				m_playerHealth = 1.f;
 		}
 		if (weakenPlayer) {
 			std::cout << "power reduced by viewer!\n";
@@ -254,7 +279,7 @@ void Game::processEvents()
 	                     static_cast<unsigned>(VIRTUAL_HEIGHT)
 		    }); //resizing to any screen (for mostly the 4k ones as my laptop is 1920x1080
 		}
-		if (m_currentMenuState == menuState::MAIN_MENU)
+		if (m_currentMenuState == menuState::MAIN_MENU || m_currentMenuState == menuState::GAME_OVER)
 		{
 			m_inputHandler.handleEvent(*newEvent, m_window, m_menuView);
 
@@ -309,18 +334,22 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 	const sf::Event::KeyPressed *newKeypress = t_event->getIf<sf::Event::KeyPressed>();
 	if (sf::Keyboard::Key::Escape == newKeypress->code)
 	{
-		if (m_currentMenuState == menuState::GAMEPLAY) {
-			m_DELETEexitGame = true;
-		}	
-		else if (m_currentMenuState == menuState::PAUSE) {
-
+		if (m_currentMenuState == menuState::GAMEPLAY)
+		{
+			m_currentMenuState = menuState::PAUSE;
 		}
-		else if (m_currentMenuState == menuState::MAIN_MENU) {
+		else if (m_currentMenuState == menuState::PAUSE)
+		{
+			m_currentMenuState = menuState::GAMEPLAY;
+		}
+		else if (m_currentMenuState == menuState::MAIN_MENU)
+		{
 			m_DELETEexitGame = true;
 		}
 		else
+		{
 			m_currentMenuState = menuState::MAIN_MENU;
-
+		}
 		return;
 	}
 	if (m_currentMenuState == menuState::MAIN_MENU)
@@ -340,17 +369,17 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 	}
 	if (sf::Keyboard::Key::Numpad2 == newKeypress->code || sf::Keyboard::Key::Num2 == newKeypress->code) //just for testing to see if the health is being updated will be removed later
 	{
-		m_testHealth -= 0.1f;
-		if (m_testHealth < 0.f) 
-			m_testHealth = 0.f;
+		m_playerHealth -= 0.1f;
+		if (m_playerHealth < 0.f) 
+			m_playerHealth = 0.f;
 
 		
 	}
 	if (sf::Keyboard::Key::Numpad3 == newKeypress->code || sf::Keyboard::Key::Num3 == newKeypress->code) //testing healing player will be removed later
 	{
-		m_testHealth += 0.1f;
-		if (m_testHealth > 1.f) 
-			m_testHealth = 1.f;
+		m_playerHealth += 0.1f;
+		if (m_playerHealth > 1.f) 
+			m_playerHealth = 1.f;
 	}
 	if (sf::Keyboard::Key::Numpad4 == newKeypress->code || sf::Keyboard::Key::Num4 == newKeypress->code)
 	{
@@ -398,32 +427,50 @@ void Game::update(sf::Time t_deltaTime)
 			return;
 		}
 		m_inputHandler.update();
+		
 		//handle menu state changes sound only right now
 		if (m_currentMenuState != m_prevState)
 		{
-			m_audio.stopBackgroundMusic();
 
 			switch (m_currentMenuState)
 			{
 			case menuState::MAIN_MENU:
-
+			{
+				m_audio.stopGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over music.ogg");
 				m_audio.playMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main Menu music.ogg");
-
+				setupMainMenuButtons();
+				m_selectedButton = 0;
+				updateMenuHighlight();
+				m_menuClock.restart(); 
+				setUpSessionCode(session);
 
 				break;
-
+			}
 			case menuState::GAMEPLAY:
+			{
 				m_audio.stopMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main Menu music.ogg");
+				m_audio.stopGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over music.ogg");
 				m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+				m_audio.setInGameBackgroundMusicVolume(30.f);
 				break;
-			case menuState::BOSS_BATTLE:
-				m_finalLevel.updateTB(t_deltaTime.asSeconds());
-				return;
-			case menuState::GAME_OVER:
-
+			}
 			case menuState::PAUSE:
-				
-			case menuState::SETTINGS:
+			{
+				m_audio.stopWalkingSound();
+				m_audio.stopNpcWalkingSound();
+				m_audio.setInGameBackgroundMusicVolume(15.f);
+				break;
+			}
+			case menuState::GAME_OVER:
+			{
+				m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+
+				m_audio.stopWalkingSound();
+				m_audio.stopNpcWalkingSound();
+				m_audio.playGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over music.ogg");
+				break;
+			}
+
 			default:
 				break;
 			}
@@ -432,7 +479,8 @@ void Game::update(sf::Time t_deltaTime)
 		}
 		switch (m_currentMenuState)
 		{
-		case menuState::MAIN_MENU: {
+		case menuState::MAIN_MENU:
+		{
 			if (m_inputHandler.menuUpPressed())
 				moveMenuSelection(-1);
 
@@ -448,32 +496,28 @@ void Game::update(sf::Time t_deltaTime)
 
 			m_mainMenuTitleText.setScale({ scale, scale });
 			m_mainMenuTitleHighlight.setScale({ scale, scale });
-			m_mainMenuTitleShadow.setScale({ scale, scale });
 			m_mainMenuTitleText.setFillColor(sf::Color(255, glow, 0));
 
 			break;
 		}
 
 		case menuState::SETTINGS:
-			
-			return;
-
 		case menuState::PAUSE:
-			
-			return;
-
 		case menuState::GAME_OVER:
-		
+		{
+			// stop looping gameplay sounds
+			m_audio.stopWalkingSound();
+			m_audio.stopNpcWalkingSound();
 			return;
+		}
 
 		case menuState::GAMEPLAY:
-			break; 
+			break;
 		}
-		if (m_DELETEexitGame)
-		{
-			m_window.close();
+
+		if (m_currentMenuState != menuState::GAMEPLAY)
 			return;
-		}
+
 		// steal power timer
 		if (m_stealPowerActive)
 		{
@@ -509,6 +553,7 @@ void Game::update(sf::Time t_deltaTime)
 			{
 				m_slowActive = false;
 				m_slowMultiplier = 1.0f;
+
 			}
 		}
 		static bool attackWasHeld = false;
@@ -546,6 +591,7 @@ void Game::update(sf::Time t_deltaTime)
 					{
 						m_keyCount = 0;
 						m_hud.clearKeys();
+						m_npcs.clear();
 						m_items.clear();
 
 						m_mapRenderer.load(doorRef.nextMap);
@@ -559,8 +605,6 @@ void Game::update(sf::Time t_deltaTime)
 								pos
 							);
 
-
-							
 						}
 						m_player.setPosition(doorRef.spawn);
 						m_camera.follow(m_player.getPosition());
@@ -652,6 +696,7 @@ void Game::update(sf::Time t_deltaTime)
 				npc.update(dt);    
 				if (!npc.hasDroppedLoot())
 				{
+					m_stats.enemiesDefeated++;
 					npc.markDroppedLoot();
 					m_items.emplace_back(ItemEffect{ ItemType::healthPotion, 0.25f }, npc.getPosition());
 				}
@@ -681,11 +726,13 @@ void Game::update(sf::Time t_deltaTime)
 						damage = 0.4f;
 					}
 
-					m_testHealth -= damage;
+					m_playerHealth -= damage;
 
-					if (m_testHealth < 0.f) {
-						m_testHealth = 0.f;
+					if (m_playerHealth < 0.f) {
+						m_playerHealth = 0.f;
 						m_player.dead();
+						m_currentMenuState = menuState::GAME_OVER;
+						setupGameOverButtons();
 					}
 
 					m_player.takeDamage(damage);
@@ -751,9 +798,9 @@ void Game::update(sf::Time t_deltaTime)
 
 				if (effect.type == ItemType::healthPotion)
 				{
-					m_testHealth += effect.amount;
-					if (m_testHealth > 1.f)
-						m_testHealth = 1.f;
+					m_playerHealth += effect.amount;
+					if (m_playerHealth > 1.f)
+						m_playerHealth = 1.f;
 				}
 				else if (effect.type == ItemType::Key)
 				{
@@ -768,7 +815,7 @@ void Game::update(sf::Time t_deltaTime)
 			item.update(t_deltaTime.asSeconds());
 		}
 		sf::View view = m_window.getView();
-		m_hud.update(m_testHealth,t_deltaTime.asSeconds());
+		m_hud.update(m_playerHealth,t_deltaTime.asSeconds());
 		//Camera follows player
 		m_camera.follow(m_player.getPosition());
 
@@ -805,6 +852,41 @@ void Game::render()
 		m_window.display();
 		return;
 	}
+	if (m_currentMenuState == menuState::PAUSE)
+	{
+		
+		m_camera.applyCam(m_window);
+
+		m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
+
+		for (auto& npc : m_npcs)
+			npc.draw(m_window);
+
+		m_player.draw(m_window);
+
+		for (auto& item : m_items)
+			item.draw(m_window);
+
+		m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, true);
+
+		
+		sf::View uiView;
+		uiView.setSize({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
+		uiView.setCenter({ VIRTUAL_WIDTH * 0.5f, VIRTUAL_HEIGHT * 0.5f });
+		uiView.setViewport({ {0.f, 0.f}, {1.f, 1.f} });
+
+		m_window.setView(uiView);
+
+		
+		m_hud.draw(m_window);
+
+		
+		m_window.draw(m_pauseOverlay);
+		m_window.draw(m_pauseText);
+
+		m_window.display();
+		return;
+	}
 	if (m_currentMenuState == menuState::BOSS_BATTLE)
 	{
 		// Use UI view (no camera)
@@ -830,7 +912,47 @@ void Game::render()
 	{
 		item.draw(m_window);
 	}
-	
+	if (m_currentMenuState == menuState::GAME_OVER)
+	{
+		sf::View uiView;
+		uiView.setSize({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
+		uiView.setCenter({ VIRTUAL_WIDTH * 0.5f, VIRTUAL_HEIGHT * 0.5f });
+		uiView.setViewport({ {0.f, 0.f}, {1.f, 1.f} });
+
+		m_window.setView(uiView);
+		m_window.draw(m_gameOverSprite);
+		
+		gameOverText.setCharacterSize(60);
+		gameOverText.setFillColor(sf::Color::White);
+
+		gameOverText.setString(
+			"GAME OVER\n\n"
+			"Enemies defeated: " + std::to_string(m_stats.enemiesDefeated) + "\n" +
+			"Helps received: " + std::to_string(m_stats.helpsReceived) + "\n" +
+			"Hinders received: " + std::to_string(m_stats.hindersReceived)
+		);
+		for (auto& b : m_menuButtons)
+		{
+			m_window.draw(b.sprite);
+			m_window.draw(b.text);
+		}
+		auto bounds = gameOverText.getLocalBounds();
+
+		gameOverText.setOrigin({
+			bounds.position.x + bounds.size.x * 0.5f,
+			bounds.position.y + bounds.size.y * 0.5f
+			});
+
+		gameOverText.setPosition({
+			VIRTUAL_WIDTH * 0.5f,
+			VIRTUAL_HEIGHT * 0.35f
+			});
+
+		m_window.draw(gameOverText);
+		m_window.display();
+		return;
+	}
+
 	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, true);
 	
 	//DEBUG: Drawing Collision Rects
@@ -856,13 +978,34 @@ void Game::render()
 	if (m_currentMenuState == menuState::GAMEPLAY)
 	{
 		m_sessionCodeText.setCharacterSize(30);
-		m_sessionCodeText.setPosition({ VIRTUAL_WIDTH - 200.f, VIRTUAL_HEIGHT - 40.f });
+		m_sessionCodeText.setPosition({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT - 40.f });
 		m_sessionCodeText.setString("Code: " + m_sessionCode);
 		m_window.draw(m_sessionCodeText);
 	}
 
 
 	m_window.display();
+}
+
+void Game::resetGame()
+{
+	m_npcs.clear();
+	m_items.clear();
+
+	m_stats = {}; 
+
+	m_playerHealth = 1.f;
+	m_player.resetPlayer();
+
+	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
+
+	for (const auto& pos : m_mapRenderer.getKeySpawns())
+	{
+		m_items.emplace_back(
+			ItemEffect{ ItemType::Key, 0.f, 0.f, 1 },
+			pos
+		);
+	}
 }
 
 void Game::spawnNPC(sf::Vector2f position, EnemyType type)
@@ -894,6 +1037,7 @@ void Game::setupMainMenuButtons()
 	//creates the main menu buttons and sets their on click functions to change the menu state or exit the game
 	createMenuButton("PLAY", startY, [this]()
 		{
+			
 			m_currentMenuState = menuState::GAMEPLAY;
 		});
 
@@ -905,6 +1049,26 @@ void Game::setupMainMenuButtons()
 	createMenuButton("EXIT", startY + gap * 2.f, [this]()
 		{
 			m_DELETEexitGame = true;
+		});
+}
+
+void Game::setupGameOverButtons()
+{
+	m_menuButtons.clear();
+
+	const float centerY = VIRTUAL_HEIGHT * 0.7f;
+	const float gap = 120.f;
+
+	createMenuButton("RESTART", centerY, [this]()
+		{
+			resetGame();
+			m_currentMenuState = menuState::GAMEPLAY;
+		});
+
+	createMenuButton("EXIT", centerY + gap, [this]()
+		{
+			resetGame();
+			m_currentMenuState = menuState::MAIN_MENU;
 		});
 }
 
@@ -1010,6 +1174,29 @@ void Game::setupMainMenuTitle()
 	m_mainMenuTitleHighlight.move({ -2.f, -2.f }); // slight offset for a subtle glow effect
 }
 
+void Game::setupPauseMenu()
+{
+	// Overlay
+	m_pauseOverlay.setSize({ (float)VIRTUAL_WIDTH, (float)VIRTUAL_HEIGHT });
+	m_pauseOverlay.setFillColor(sf::Color(0, 0, 0, 150)); 
+
+	
+	m_pauseText.setString("PAUSED");
+	m_pauseText.setCharacterSize(100);
+	m_pauseText.setFillColor(sf::Color::White);
+
+	
+	auto bounds = m_pauseText.getLocalBounds();
+	m_pauseText.setOrigin({
+		bounds.position.x + bounds.size.x * 0.5f,
+		bounds.position.y + bounds.size.y * 0.5f
+		});
+	m_pauseText.setPosition({
+		VIRTUAL_WIDTH * 0.5f,
+		VIRTUAL_HEIGHT * 0.5f
+		});
+}
+
 void Game::setUpSessionCode(const std::string& code)
 {
 	m_sessionCode = code;
@@ -1023,7 +1210,7 @@ void Game::setUpSessionCode(const std::string& code)
 
 	m_sessionCodeText.setOrigin({bounds.position.x + bounds.size.x * 0.5f,bounds.position.y + bounds.size.y * 0.5f});
 	
-	m_sessionCodeText.setPosition({ VIRTUAL_WIDTH * 0.5f - 200.f, 330.f });
+	m_sessionCodeText.setPosition({ VIRTUAL_WIDTH * 0.5f, 330.f });
 }
 	
 std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type)
