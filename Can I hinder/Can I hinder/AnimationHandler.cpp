@@ -91,3 +91,8 @@ void AnimationHandler::applyToSprite(sf::Sprite& sprite)
 {
 	m_animations[{m_currentState, m_currentDirection}].applyToSprite(sprite);
 }
+
+void AnimationHandler::clearAnimations()
+{
+	m_animations.clear();
+}

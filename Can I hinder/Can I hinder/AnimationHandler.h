@@ -26,6 +26,7 @@ class Animation
 	void update(float dt);
 	void applyToSprite(sf::Sprite& sprite) const;
     void reset();
+    
 
   private:
       std::vector<sf::IntRect> m_frames;
@@ -42,6 +43,7 @@ class AnimationHandler
 	   void changeDirection(Direction newDirection);
        void update(float dt);
 	   void applyToSprite(sf::Sprite& sprite);
+       void clearAnimations();
    private:
 	   sf::Texture& m_texture;
 	   std::map<std::pair<PlayerState, Direction>, Animation> m_animations; 

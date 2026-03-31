@@ -119,6 +119,7 @@ private:
 	//Networking events
 	WebsocketClient m_client; // websocket client
 	bool spawnEnemy{ false };
+	bool spawnBrute{ false };
 	bool healPlayer{ false };
 	bool slowPlayer{ false };
 	bool weakenPlayer{ false };

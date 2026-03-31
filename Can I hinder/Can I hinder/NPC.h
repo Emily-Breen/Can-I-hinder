@@ -49,6 +49,9 @@ public:
 	void markDroppedLoot();
 	EnemyType getType() const;
 	void setType(EnemyType type);
+	void setupAnimations();
+	void setupDefaultAnimations();
+	void setupBruteAnimations();
 
 private:
 	void NPCInit();

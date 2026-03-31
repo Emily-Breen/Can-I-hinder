@@ -138,7 +138,7 @@ void NPC::update(float dt)
                     m_direction = (m_velocity.y >= 0.f) ? Direction::DOWN : Direction::UP;
             }
         }
-
+  
     
     // Animation updates
     m_animationHandler.changeState(m_State);
@@ -400,35 +400,16 @@ void NPC::NPCInit()
     m_sprite.setTexture(*m_texture);
     m_sprite.setPosition(sf::Vector2f(1000, 3000.f));
     m_sprite.setScale(sf::Vector2f(2.5f, 2.5f));
-    m_sprite.setOrigin(sf::Vector2f(24.f, 48.f));
-	//addAnimation(PlayerState m_state, Direction m_direction, int startFrame, int frameCount, float frameDuration, int offsetX, int offsetY, int frameWidth) just to remind of params
-	// IDLE Animations
-	m_animationHandler.addAnimation(PlayerState::IDLE, Direction::DOWN, 0, 5, 0.08f, 0, 150, 48,48);
-	m_animationHandler.addAnimation(PlayerState::IDLE, Direction::LEFT, 0, 5, 0.08f, 0, 400, 48, 48);
-	m_animationHandler.addAnimation(PlayerState::IDLE, Direction::RIGHT, 0, 5, 0.08f, 0, 650, 48, 48);
-	m_animationHandler.addAnimation(PlayerState::IDLE, Direction::UP, 0, 5, 0.08f, 0, 900, 48, 48);
-	// WALK Animations
-	m_animationHandler.addAnimation(PlayerState::WALK, Direction::DOWN, 0, 6, 0.08f, 0, 200, 48, 48);
-	m_animationHandler.addAnimation(PlayerState::WALK, Direction::LEFT, 0, 6, 0.08f, 0, 450, 48, 48);
-	m_animationHandler.addAnimation(PlayerState::WALK, Direction::RIGHT, 0, 6, 0.08f, 0, 700, 48, 48);
-	m_animationHandler.addAnimation(PlayerState::WALK, Direction::UP, 0, 6, 0.08f, 0, 950, 48, 48);
-    //ATTACK Animations
-    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::DOWN, 0, 8, 0.08f, 0, 0, 48, 48);
-    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::LEFT, 0, 8, 0.08f, 0, 250, 48, 48);
-    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::RIGHT, 0, 8, 0.08f, 0, 500, 48, 48);
-    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::UP, 0, 8, 0.08f, 0, 750, 48, 48);
-    //HURT ANIMATIONS
-    m_animationHandler.addAnimation(PlayerState::HURT, Direction::DOWN, 0, 4, 0.08f, 0, 100, 48, 48);
-    m_animationHandler.addAnimation(PlayerState::HURT, Direction::LEFT, 0, 4, 0.08f, 0, 350, 48, 48);
-    m_animationHandler.addAnimation(PlayerState::HURT, Direction::RIGHT, 0, 4, 0.08f, 0, 600, 48, 48);
-    m_animationHandler.addAnimation(PlayerState::HURT, Direction::UP, 0, 4, 0.08f, 0, 850, 48, 48);
-    //DEATH ANIMATIONS
-    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::DOWN, 0, 8, 0.08f, 0, 48, 48, 48);
-    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::LEFT, 0, 8, 0.08f, 0, 303, 48, 48);
-    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::RIGHT, 0, 8, 0.08f, 0, 549, 48, 48);
-    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::UP, 0, 8, 0.08f, 0, 800, 48, 48);
+   
+    m_State = PlayerState::IDLE;
+    m_direction = Direction::DOWN;
+    m_hurtTimer = 0.f;
+    m_invulnerabilityTimer = 0.f;
+    m_attacking = false;
+    m_dead = false;
 
-
+      
+    setupAnimations();
 
 
 }
@@ -450,6 +431,103 @@ EnemyType NPC::getType() const
 
 void NPC::setType(EnemyType type)
 {
+    m_type = type;
 
-  m_type = type;
+    m_animationHandler.clearAnimations();
+
+    if (m_type == EnemyType::Brute)
+    {
+        m_hpMax = 3.f;
+        m_hp = m_hpMax;
+        m_sprite.setScale({ 3.f, 3.f });
+    }
+    else
+    {
+        m_hpMax = 1.f;
+        m_hp = m_hpMax;
+        m_sprite.setScale({ 2.5f, 2.5f });
+    }
+
+    setupAnimations();
+
+   
+    m_animationHandler.changeState(m_State);
+    m_animationHandler.changeDirection(m_direction);
+    m_animationHandler.applyToSprite(m_sprite);
+}
+
+void NPC::setupAnimations()
+{
+    if (m_type == EnemyType::Brute)
+    {
+		setupBruteAnimations(); // as brutes frame sizes are different loads different animations.
+    }
+    else
+    {
+        setupDefaultAnimations(); //for normal enemies.
+    }
+}
+
+void NPC::setupDefaultAnimations()
+{
+    m_sprite.setOrigin({24.f, 48.f});
+    //addAnimation(PlayerState m_state, Direction m_direction, int startFrame, int frameCount, float frameDuration, int offsetX, int offsetY, int frameWidt, int frameHeight) just to remind of params
+    // IDLE Animations
+    m_animationHandler.addAnimation(PlayerState::IDLE, Direction::DOWN, 0, 5, 0.08f, 0, 150, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::IDLE, Direction::LEFT, 0, 5, 0.08f, 0, 400, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::IDLE, Direction::RIGHT, 0, 5, 0.08f, 0, 650, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::IDLE, Direction::UP, 0, 5, 0.08f, 0, 900, 48, 48);
+    // WALK Animations
+    m_animationHandler.addAnimation(PlayerState::WALK, Direction::DOWN, 0, 6, 0.08f, 0, 200, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::WALK, Direction::LEFT, 0, 6, 0.08f, 0, 450, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::WALK, Direction::RIGHT, 0, 6, 0.08f, 0, 700, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::WALK, Direction::UP, 0, 6, 0.08f, 0, 950, 48, 48);
+    //ATTACK Animations
+    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::DOWN, 0, 8, 0.08f, 0, 0, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::LEFT, 0, 8, 0.08f, 0, 250, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::RIGHT, 0, 8, 0.08f, 0, 500, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::UP, 0, 8, 0.08f, 0, 750, 48, 48);
+    //HURT ANIMATIONS
+    m_animationHandler.addAnimation(PlayerState::HURT, Direction::DOWN, 0, 4, 0.08f, 0, 100, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::HURT, Direction::LEFT, 0, 4, 0.08f, 0, 350, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::HURT, Direction::RIGHT, 0, 4, 0.08f, 0, 600, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::HURT, Direction::UP, 0, 4, 0.08f, 0, 850, 48, 48);
+    //DEATH ANIMATIONS
+    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::DOWN, 0, 8, 0.08f, 0, 48, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::LEFT, 0, 8, 0.08f, 0, 303, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::RIGHT, 0, 8, 0.08f, 0, 549, 48, 48);
+    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::UP, 0, 8, 0.08f, 0, 800, 48, 48);
+}
+
+void NPC::setupBruteAnimations()
+{
+    int frameW = 48;
+
+    m_sprite.setOrigin({ 24.f, 48.f });
+    //PAIN IN THE BUM AS THE SPRITES WERE ALL OVER THE SHOP
+    // IDLE Animations
+    m_animationHandler.addAnimation(PlayerState::IDLE, Direction::DOWN, 0, 6, 0.08f, 0, 286, frameW, 48);
+    m_animationHandler.addAnimation(PlayerState::IDLE, Direction::LEFT, 0, 6, 0.08f, 0, 640, frameW, 48);
+    m_animationHandler.addAnimation(PlayerState::IDLE, Direction::RIGHT, 0, 6, 0.08f, 0, 1007, frameW, 48);
+    m_animationHandler.addAnimation(PlayerState::IDLE, Direction::UP, 0, 6, 0.08f, 0, 1392, frameW, 48);
+    // WALK Animations
+    m_animationHandler.addAnimation(PlayerState::WALK, Direction::DOWN, 0, 6, 0.1f, 0, 321, frameW, 52);
+    m_animationHandler.addAnimation(PlayerState::WALK, Direction::LEFT, 0, 6, 0.1f, 0, 688, frameW, 52);
+    m_animationHandler.addAnimation(PlayerState::WALK, Direction::RIGHT, 0, 6, 0.1f, 0, 1056, frameW, 50);
+    m_animationHandler.addAnimation(PlayerState::WALK, Direction::UP, 0, 6, 0.1f, 0, 1441, frameW, 54);
+    //ATTACK Animations
+    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::DOWN, 0, 8, 0.08f, 0, 0, 64, 64);
+    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::LEFT, 0, 8, 0.08f, 0, 383, 64, 51);
+    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::RIGHT, 0, 8, 0.08f, 0, 753, 64, 52);
+    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::UP, 0, 8, 0.08f, 0, 1108, 64, 64);
+    //HURT ANIMATIONS
+    m_animationHandler.addAnimation(PlayerState::HURT, Direction::DOWN, 0, 4, 0.08f, 0, 223, frameW, 48);
+    m_animationHandler.addAnimation(PlayerState::HURT, Direction::LEFT, 0, 4, 0.08f, 0, 590, frameW, 48);
+    m_animationHandler.addAnimation(PlayerState::HURT, Direction::RIGHT, 0, 4, 0.08f, 0, 959, frameW, 48);
+    m_animationHandler.addAnimation(PlayerState::HURT, Direction::UP, 0, 4, 0.08f, 0, 1327, frameW, 48);
+    //DEATH ANIMATIONS
+    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::DOWN, 0, 10, 0.08f, 0, 160, frameW, 48);
+    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::LEFT, 0, 10, 0.08f, 0, 543, frameW, 48);
+    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::RIGHT, 0, 10, 0.08f, 0, 912, frameW, 48);
+    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::UP, 0, 10, 0.08f, 0, 1279, frameW, 48);
 }

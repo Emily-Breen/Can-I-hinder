@@ -54,6 +54,11 @@ Game::Game() :
 
 				m_hud.pushChatMessage(user, "has shielded you!", sf::Color(80, 255, 80));
 			}
+			else if (action == "hinder" && effect == "spawn_brute")
+			{
+				spawnBrute = true;
+				m_hud.pushChatMessage(user, "summoned a BRUTE!", sf::Color(255, 0, 0));
+			}
 		});
 	std::string session = m_client.createSession();
 	setUpSessionCode(session);
@@ -214,6 +219,16 @@ void Game::run()
 			m_powerBuffClock.restart();
 			m_powerBuffActive = true;
 		}
+		if (spawnBrute)
+		{
+			std::cout << "A BRUTE has spawned!\n";
+			spawnBrute = false;
+
+			sf::Vector2f enemySize = { 48.f, 64.0f }; // bigger than normal enemies
+			sf::Vector2f spawnPos = m_mapRenderer.getFloorSpawn(enemySize, m_player.getPosition(), 80.f);
+
+			spawnNPC(spawnPos, EnemyType::Brute);
+		}
 
 	}
 }
@@ -321,6 +336,7 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 	if (sf::Keyboard::Key::Numpad1 == newKeypress->code || sf::Keyboard::Key::Num1 == newKeypress->code) //just for testing so I dont have to set up the PWA aswell will be removed later
 	{
 		spawnEnemy = true;
+		
 	}
 	if (sf::Keyboard::Key::Numpad2 == newKeypress->code || sf::Keyboard::Key::Num2 == newKeypress->code) //just for testing to see if the health is being updated will be removed later
 	{
@@ -362,6 +378,10 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 			ItemEffect{ ItemType::healthPotion, 0.25f, 0.f, 1 },
 			sf::Vector2f(1500.f, 1500.f)
 		);
+	}
+	if(sf::Keyboard::Key::Numpad7 == newKeypress->code || sf::Keyboard::Key::Num7 == newKeypress->code)
+	{
+		spawnBrute = true;
 	}
 
 }
@@ -654,13 +674,21 @@ void Game::update(sf::Time t_deltaTime)
 
 				if (npc.attackTimer(dt))
 				{
-					m_testHealth -= 0.1f;
+					float damage = 0.2f;
+
+					if (npc.getType() == EnemyType::Brute)
+					{
+						damage = 0.4f;
+					}
+
+					m_testHealth -= damage;
+
 					if (m_testHealth < 0.f) {
 						m_testHealth = 0.f;
 						m_player.dead();
 					}
 
-					m_player.takeDamage(0.4f);
+					m_player.takeDamage(damage);
 				}
 			}
 			else
