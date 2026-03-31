@@ -24,12 +24,9 @@ private:
 	int m_enemyHealth{ 100 };
 
 	sf::Texture m_backgroundTexture;
-	sf::Sprite m_backgroundSprite;
-
-	sf::Texture m_playerTexture;
-	sf::Sprite m_playerSprite;
+	sf::Sprite m_backgroundSprite{ m_backgroundTexture };
 
 	sf::Texture m_bossTexture;
-	sf::Sprite m_bossSprite;
+	sf::Sprite m_bossSprite{ m_bossTexture };
 };
 

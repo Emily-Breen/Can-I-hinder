@@ -1,6 +1,10 @@
 #include "FinalLevel.h"
 //this is for the super secret ending :D
 
+FinalLevel::FinalLevel()
+{
+}
+
 void FinalLevel::start()
 {
     m_playerHealth = 100;
