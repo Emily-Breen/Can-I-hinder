@@ -25,6 +25,7 @@
 #include "Items.h"
 #include "Audio.h"
 #include "Input Handler.h"
+#include "Effects.h"
 #include "FinalLevel.h"
 
 //enum for menu states
@@ -37,7 +38,12 @@ enum class menuState
 	PAUSE,
 	GAME_OVER
 };
+//struct for spawn delay to hold position and type of enemy to spawn after a delay
+struct SpawnDelay {
+	sf::Vector2f position;
+	EnemyType type;
 
+};
 struct GameStats {
 	int enemiesDefeated;
 	int helpsReceived;
@@ -117,6 +123,7 @@ private:
 	InputHandler m_inputHandler;
 	FinalLevel m_finalLevel;
 	GameStats m_stats;
+	std::vector<std::unique_ptr<Effects>> m_effects;
 	float m_playerHealth = 1.0f;
 	float m_playerDamageMultiplier = 1.0f;
 	float m_stealPowerDuration = 0.0f;
@@ -129,6 +136,8 @@ private:
 	float m_slowMultiplier = 1.0f;
 	float m_slowDuration = 0.0f;
 	sf::RectangleShape m_pauseOverlay;
+	std::shared_ptr<sf::Texture> m_poofTexture;
+	std::vector<SpawnDelay> m_spawnDelay;
 	
 
 	//Networking events

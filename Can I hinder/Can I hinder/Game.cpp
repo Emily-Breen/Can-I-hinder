@@ -152,7 +152,9 @@ Game::Game() :
 	}
 	std::srand(static_cast<unsigned>(std::time(nullptr)));
 	;
-
+	// load the poof texture for the enemy spawn effect
+	m_poofTexture = std::make_shared<sf::Texture>();
+	m_poofTexture->loadFromFile("ASSETS/IMAGES/Destroy Effect.png");
 }
 
 
@@ -809,7 +811,32 @@ void Game::update(sf::Time t_deltaTime)
 				}
 			}
 		}
+		//update effects and spawn npcs applying the ai behaviour this helps keep the poof spawn effect to where the npc spawns.
+		for (auto& effectPtr : m_effects)
+		{
+			effectPtr->updateEffects(t_deltaTime.asSeconds());
 
+			if (effectPtr->shouldSpawn())
+			{
+				//spawn the npc
+				auto tex = getEnemyTexture(effectPtr->getSpawnType());
+				if (!tex) continue;
+				//spawn npc at the same time as the poof effect finishes
+				m_npcs.emplace_back(tex);
+				m_npcs.back().setAIMode(AIBehaviour::Mode::Pursue);
+				m_npcs.back().setPosition(
+					effectPtr->getSpawnPosition().x,
+					effectPtr->getSpawnPosition().y
+				);
+				m_npcs.back().setType(effectPtr->getSpawnType());
+			}
+		}
+		//remove finished effects
+		m_effects.erase(
+			std::remove_if(m_effects.begin(), m_effects.end(),
+				[](const std::unique_ptr<Effects>& e) { return e->isFinished(); }),
+			m_effects.end()
+		);
 		for (auto& item : m_items)
 		{
 			item.update(t_deltaTime.asSeconds());
@@ -826,6 +853,7 @@ void Game::render()
 {
 	
 	m_window.clear(sf::Color::Black);
+	// MAIN MENU RENDERING
 	if (m_currentMenuState == menuState::MAIN_MENU)
 	{
 		sf::View uiView;
@@ -852,6 +880,7 @@ void Game::render()
 		m_window.display();
 		return;
 	}
+	//PAUSE MENU RENDERING
 	if (m_currentMenuState == menuState::PAUSE)
 	{
 		
@@ -887,6 +916,7 @@ void Game::render()
 		m_window.display();
 		return;
 	}
+	//BOSS BATTLE RENDERING
 	if (m_currentMenuState == menuState::BOSS_BATTLE)
 	{
 		// Use UI view (no camera)
@@ -907,11 +937,14 @@ void Game::render()
 	for (auto& npc : m_npcs) {
 		npc.draw(m_window);
 	}
+	for (auto& e : m_effects)
+		e->drawEffects(m_window);
 	m_player.draw(m_window);
 	for (auto& item : m_items)
 	{
 		item.draw(m_window);
 	}
+	//GAME OVER SCREEN RENDERING
 	if (m_currentMenuState == menuState::GAME_OVER)
 	{
 		sf::View uiView;
@@ -1010,14 +1043,11 @@ void Game::resetGame()
 
 void Game::spawnNPC(sf::Vector2f position, EnemyType type)
 {
-	auto tex = getEnemyTexture(type);
-	if (!tex) return;
-
-	//create and add NPC to vector and gives it the pursue behavuior alos sets its position
-	m_npcs.emplace_back(tex);
-	m_npcs.back().setAIMode(AIBehaviour::Mode::Pursue);
-	m_npcs.back().setPosition(position.x, position.y);
-	m_npcs.back().setType(type);
+	//spawn a poof effect at the spawn position and when the effect finishes it will spawn the npc 
+	// just to add a bit of visual flair to the npc spawning in
+	m_effects.emplace_back(
+		std::make_unique<Effects>(m_poofTexture, position, type)
+	);
 }
 
 void Game::setupMenuView()

@@ -23,6 +23,7 @@
     <ClCompile Include="AnimationHandler.cpp" />
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Effects.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="FinalLevel.cpp" />
     <ClCompile Include="Game.cpp" />
@@ -42,6 +43,7 @@
     <ClInclude Include="AnimationHandler.h" />
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Effects.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="FinalLevel.h" />
     <ClInclude Include="Game.h" />
