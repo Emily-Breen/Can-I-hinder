@@ -12,6 +12,11 @@ enum class EnemyType
 	Brute,
 	Boss
 };
+enum class BossMode
+{
+	MapIdle,
+	Battle
+};
 class NPC : public Entity
 {
 public:
@@ -24,6 +29,7 @@ public:
 	sf::FloatRect getBounds();
 	static sf::Vector2f rectCenter(const sf::FloatRect& rect);
 	sf::Vector2f getDirection() const;
+	void setNPCDirection(Direction direction);
 	void movement(sf::Vector2f t_movement);;
 	void moveWithCollision(const sf::Vector2f& delta, const std::vector<sf::FloatRect>& walls);
 	sf::Vector2f setPosition(float x, float y);
@@ -52,6 +58,9 @@ public:
 	void setupAnimations();
 	void setupDefaultAnimations();
 	void setupBruteAnimations();
+	void setupBossAnimations();
+	void setBossMode(BossMode mode);
+	void startAttack();
 
 private:
 	void NPCInit();
@@ -63,7 +72,7 @@ private:
 	sf::Vector2f m_healthBarOffset{ 0.f, -100.f };
 	sf::Vector2f m_velocity{ 0.f, 0.f };
 	std::shared_ptr<sf::Texture> m_texture;
-
+	BossMode m_bossMode = BossMode::MapIdle;
 	float m_speed{ 150.f };
 	float m_detectionRadius{ 200.f };
 	float m_idleTime{ 0.f };
@@ -78,6 +87,7 @@ private:
 	float m_deathDuration{ 0.64f };
 	float m_healthBarWidth{ 40.f };
 	float m_healthBarHeight{ 6.f };
+	float m_attackDuration{ 0.60f };
 	bool m_isMoving{ false };
 	bool m_attacking{ false };
 	bool m_inAttackZone{ false };

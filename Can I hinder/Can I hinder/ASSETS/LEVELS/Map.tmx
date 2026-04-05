@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="14" nextobjectid="172">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="17" nextobjectid="190">
  <tileset firstgid="1" source="Dungeon/Dungeon.tsx"/>
  <tileset firstgid="2561" source="Dungeon/decor.tsx"/>
  <layer id="1" name="floor" width="100" height="100">
@@ -106,6 +106,21 @@
 129,130,131,132,129,130,131,132,129,130,131,132,129,130,131,132,129,130,131,132,129,130,131,132,129,130,131,132,129,130,879,879,879,879,879,879,879,879,879,1,2,3,4,1,2,3,4,1,2,3,4,2,3,4,1,2,3,4,1,2,3,4,1,2,3,129,130,131,132,129,130,131,132,129,130,131,132,129,130,131,132,129,66,67,68,65,66,67,68,65,66,67,68,65,66,67,68,65,66,67
 </data>
  </layer>
+ <objectgroup id="14" name="HealthPotion">
+  <object id="181" x="111.5" y="639" width="16" height="16.5"/>
+  <object id="182" x="79" y="1055" width="16.5" height="15"/>
+  <object id="183" x="895" y="1136" width="16" height="16"/>
+  <object id="184" x="1169" y="1375.5" width="15" height="16"/>
+ </objectgroup>
+ <objectgroup id="15" name="SpeedPotion">
+  <object id="185" x="47" y="1247.5" width="17" height="14.5"/>
+  <object id="186" x="271" y="1057" width="14.5" height="15"/>
+ </objectgroup>
+ <objectgroup id="16" name="PowerPotion">
+  <object id="187" x="897" y="1055" width="14.5" height="16.5"/>
+  <object id="188" x="688.5" y="719" width="14" height="16.5"/>
+  <object id="189" x="303" y="416.5" width="16.5" height="15.5"/>
+ </objectgroup>
  <layer id="2" name="Walls" width="100" height="100">
   <data encoding="csv">
 3,4,68,132,68,1,1,65,129,130,129,129,65,65,1,2,3,4,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,132,4,4,1,65,1,2,65,129,130,1,2,3,4,1,2,3,1,0,65,1,1,2,3,67,67,67,67,3,3,3,0,3,3,3,3,3,3,1,1,1,2,3,4,4,4,4,68,68,68,68,68,68,68,68,68,4,4,4,1,65,66,65,1,2,1,

@@ -14,23 +14,31 @@ public:
 	Player();
 	~Player();
 
-	void update(float dt)override;
+	void update(float dt) override;
 	void draw(sf::RenderWindow& window) override;
 	void movePlayer(sf::Vector2f direction);
 	void movement(sf::Vector2f t_movement);
 	sf::Vector2f getInputDirection();
+	void setDirection(Direction dir);
 	sf::Vector2f getMovement();
 	sf::Vector2f getPosition();
 	void setPosition(sf::Vector2f position);
+	void setPlayerScale(float scaleX, float scaleY);
+	void setInputEnabled(bool enabled);
 	sf::FloatRect getBounds() const;
 	sf::FloatRect getAttackBounds() const;
+	void forceAttack();
 	void takeDamage(float duration = 0.35f);
+	void setBattleMode(bool enabled);
+	void playerSetIdleAnimation();
 	bool isHurt() const;
 	void dead();
 	bool isDead() const;
 	void resetPlayer();
 
-	
+	InputHandler& getInputHandler();
+
+
 private:
 	void playerInit();
 	InputHandler m_inputHandler;
@@ -39,7 +47,7 @@ private:
 	Direction m_direction{ Direction::DOWN };
 	sf::FloatRect m_hitbox;
 	sf::Texture m_playerTexture;
-	
+
 	int attackPower{ 10 };
 	float m_speed{ 300.f };
 	float m_hurtTimer{ 0.f };
@@ -51,5 +59,7 @@ private:
 	bool  m_attackWasHeld{ false };
 	bool m_isInvulnerable{ false };
 	bool m_isDead{ false };
+	bool m_inputEnabled{ true };
+	bool m_inBattle = false;
 
 };

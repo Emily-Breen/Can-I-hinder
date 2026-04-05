@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="24" nextobjectid="363">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="27" nextobjectid="378">
  <tileset firstgid="1" source="Dungeon/Dungeon.tsx"/>
  <tileset firstgid="2561" source="Dungeon/decor.tsx"/>
  <layer id="15" name="floor" width="100" height="100">
@@ -563,6 +563,27 @@
     <property name="Y" type="float" value="182"/>
    </properties>
   </object>
+ </objectgroup>
+ <objectgroup id="24" name="HealthPotion">
+  <object id="363" x="302" y="1295" width="20" height="20"/>
+  <object id="364" x="772" y="614" width="20" height="22"/>
+  <object id="365" x="785" y="1060" width="19" height="21"/>
+  <object id="366" x="1326" y="1427" width="22" height="20"/>
+  <object id="367" x="1125" y="632" width="23" height="26"/>
+  <object id="368" x="1130" y="212" width="23" height="22"/>
+ </objectgroup>
+ <objectgroup id="25" name="SpeedPotion">
+  <object id="369" x="75" y="1249" width="22" height="19"/>
+  <object id="370" x="310" y="835" width="16" height="19"/>
+  <object id="371" x="159" y="233" width="23" height="21"/>
+  <object id="372" x="798" y="334" width="21" height="23"/>
+  <object id="373" x="977" y="751" width="20" height="20"/>
+ </objectgroup>
+ <objectgroup id="26" name="PowerPotion">
+  <object id="374" x="1421" y="902" width="23" height="24"/>
+  <object id="375" x="952" y="1260" width="19" height="17"/>
+  <object id="376" x="70" y="444" width="23" height="20"/>
+  <object id="377" x="567" y="180" width="19" height="21"/>
  </objectgroup>
  <objectgroup id="22" name="Collision" visible="0">
   <object id="147" x="472" y="1370" width="13.6667" height="220.333"/>

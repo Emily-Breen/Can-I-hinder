@@ -46,46 +46,50 @@ void NPC::draw(sf::RenderWindow& window)
 
 void NPC::update(float dt)
 {
-    if (m_invulnerabilityTimer > 0.f) {
+    
+    if (m_invulnerabilityTimer > 0.f)
+    {
         m_invulnerabilityTimer -= dt;
-		if (m_invulnerabilityTimer < 0.f)
-			m_invulnerabilityTimer = 0.f;
+        if (m_invulnerabilityTimer < 0.f)
+            m_invulnerabilityTimer = 0.f;
     }
-    if (m_dead) {
-		m_State = PlayerState::DEATH;
-        if (m_deathTimer > 0.f) {
+    if (m_dead)
+    {
+        if (m_deathTimer > 0.f)
+        {
+            m_deathTimer -= dt;
+            if (m_deathTimer < 0.f)
+                m_deathTimer = 0.f;
 
-			m_deathTimer -= dt;
-			if (m_deathTimer < 0.f)
-				m_deathTimer = 0.f;
-			m_animationHandler.changeState(m_State);
-			m_animationHandler.changeDirection(m_direction);
             m_animationHandler.update(dt);
-			m_animationHandler.applyToSprite(m_sprite);
         }
-        else {
-            m_animationHandler.changeState(m_State);
-            m_animationHandler.changeDirection(m_direction);
-            m_animationHandler.applyToSprite(m_sprite);
-        }
+
+        m_State = PlayerState::DEATH;
+        m_animationHandler.changeState(m_State);
+        m_animationHandler.changeDirection(m_direction);
+        m_animationHandler.applyToSprite(m_sprite);
         return;
     }
-	if (m_hurtTimer > 0.f) {
-		m_hurtTimer -= dt;
-		if (m_hurtTimer < 0.f)
-			m_hurtTimer = 0.f;
 
-		m_State = PlayerState::HURT;
-		m_animationHandler.changeState(m_State);
-		m_animationHandler.changeDirection(m_direction);
-		m_animationHandler.update(dt);
-		m_animationHandler.applyToSprite(m_sprite);
-		return;
-	}
-    if (m_attacking)
+    if (m_hurtTimer > 0.f)
     {
-        m_idleTime = 0.f;
-        m_isMoving = false;
+        m_hurtTimer -= dt;
+        if (m_hurtTimer < 0.f)
+            m_hurtTimer = 0.f;
+
+        m_State = PlayerState::HURT;
+        m_animationHandler.changeState(m_State);
+        m_animationHandler.changeDirection(m_direction);
+        m_animationHandler.update(dt);
+        m_animationHandler.applyToSprite(m_sprite);
+        return;
+    }
+    if (m_attackTimer > 0.f)
+    {
+        m_attackTimer -= dt;
+        if (m_attackTimer < 0.f)
+            m_attackTimer = 0.f;
+
         m_State = PlayerState::ATTACK;
 
         m_animationHandler.changeState(m_State);
@@ -94,7 +98,26 @@ void NPC::update(float dt)
         m_animationHandler.applyToSprite(m_sprite);
         return;
     }
-  
+    if (m_type == EnemyType::Boss)
+    {
+        m_State = PlayerState::IDLE;
+
+        if (m_bossMode == BossMode::MapIdle)
+            m_direction = Direction::DOWN;
+        else
+            m_direction = Direction::RIGHT;
+
+        m_animationHandler.changeState(m_State);
+        m_animationHandler.changeDirection(m_direction);
+        m_animationHandler.update(dt);
+        m_animationHandler.applyToSprite(m_sprite);
+        return;
+    }
+    if (m_attacking && m_attackTimer <= 0.f)
+    {
+        m_attackTimer = m_attackDuration;
+        return;
+    }
     if (m_aiBehaviour.getMode() == AIBehaviour::Mode::Wander)
     {
         m_idleTime += dt;
@@ -106,8 +129,8 @@ void NPC::update(float dt)
 
             if (m_isMoving)
             {
-                int m_npcdirection = rand() % 4;
-                switch (m_npcdirection)
+                int dir = rand() % 4;
+                switch (dir)
                 {
                 case 0: m_direction = Direction::DOWN; break;
                 case 1: m_direction = Direction::LEFT; break;
@@ -122,30 +145,25 @@ void NPC::update(float dt)
             }
         }
     }
-    
-        else {
-            m_idleTime = 0.f;
+    else
+    {
+        m_idleTime = 0.f;
 
-            m_isMoving = (std::abs(m_velocity.x) + std::abs(m_velocity.y)) > 0.01f;
-            m_State = m_isMoving ? PlayerState::WALK : PlayerState::IDLE;
+        m_isMoving = (std::abs(m_velocity.x) + std::abs(m_velocity.y)) > 0.01f;
+        m_State = m_isMoving ? PlayerState::WALK : PlayerState::IDLE;
 
-            //facing direction based on velocity
-            if (m_isMoving)
-            {
-                if (std::abs(m_velocity.x) > std::abs(m_velocity.y))
-                    m_direction = (m_velocity.x >= 0.f) ? Direction::RIGHT : Direction::LEFT;
-                else
-                    m_direction = (m_velocity.y >= 0.f) ? Direction::DOWN : Direction::UP;
-            }
+        if (m_isMoving)
+        {
+            if (std::abs(m_velocity.x) > std::abs(m_velocity.y))
+                m_direction = (m_velocity.x >= 0.f) ? Direction::RIGHT : Direction::LEFT;
+            else
+                m_direction = (m_velocity.y >= 0.f) ? Direction::DOWN : Direction::UP;
         }
-  
-    
-    // Animation updates
+    }
     m_animationHandler.changeState(m_State);
     m_animationHandler.changeDirection(m_direction);
     m_animationHandler.update(dt);
     m_animationHandler.applyToSprite(m_sprite);
-
 }
 
 sf::FloatRect NPC::getBounds()
@@ -182,6 +200,11 @@ sf::Vector2f NPC::getDirection() const
     case Direction::UP:    return { 0.f, -1.f };
     }
     return { 0.f, 0.f };
+}
+
+void NPC::setNPCDirection(Direction direction)
+{
+	m_direction = direction;
 }
 
 void NPC::movement(sf::Vector2f t_movement)
@@ -441,6 +464,12 @@ void NPC::setType(EnemyType type)
         m_hp = m_hpMax;
         m_sprite.setScale({ 3.f, 3.f });
     }
+    else if(m_type == EnemyType::Boss)
+    {
+        m_hpMax = 120.f;
+        m_hp = m_hpMax;
+        m_sprite.setScale({ 6.f, 6.f });
+	}
     else
     {
         m_hpMax = 1.f;
@@ -462,6 +491,10 @@ void NPC::setupAnimations()
     {
 		setupBruteAnimations(); // as brutes frame sizes are different loads different animations.
     }
+    else if(m_type == EnemyType::Boss)
+    {
+        setupBossAnimations(); 
+	}
     else
     {
         setupDefaultAnimations(); //for normal enemies.
@@ -531,3 +564,42 @@ void NPC::setupBruteAnimations()
     m_animationHandler.addAnimation(PlayerState::DEATH, Direction::RIGHT, 0, 10, 0.08f, 0, 912, frameW, 48);
     m_animationHandler.addAnimation(PlayerState::DEATH, Direction::UP, 0, 10, 0.08f, 0, 1279, frameW, 48);
 }
+
+void NPC::setupBossAnimations()
+{
+    //boss has only idle down for dialogue purposes, and rest are for the turn based system
+    int frameW = 80;
+    m_sprite.setOrigin({ 40.f, 80.f });
+
+    m_animationHandler.addAnimation(PlayerState::IDLE, Direction::DOWN, 0, 7, 0.08f, 0, 482, frameW, 80);
+    m_animationHandler.addAnimation(PlayerState::IDLE, Direction::RIGHT, 0, 7, 0.08f, 0, 386, frameW, 80);
+
+    m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::RIGHT, 0, 7, 0.08f, 0, 0, 80, 80);
+
+    m_animationHandler.addAnimation(PlayerState::DEATH, Direction::RIGHT, 0, 9, 0.08f, 0, 286, frameW, 80);
+}
+
+void NPC::setBossMode(BossMode mode)
+{
+    m_bossMode = mode;
+
+    if (mode == BossMode::MapIdle)
+    {
+        m_sprite.setScale({ 2.5f, 2.5f }); 
+        m_direction = Direction::DOWN;
+    }
+    else
+    {
+        m_sprite.setScale({ 6.f, 6.f });
+        m_direction = Direction::RIGHT;
+    }
+}
+
+void NPC::startAttack()
+{
+    if (m_dead)
+        return;
+
+    m_attackTimer = m_attackDuration;
+}
+

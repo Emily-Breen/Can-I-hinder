@@ -18,6 +18,8 @@ void InputHandler::update()
     m_controllerAttackJustPressed = false;
      m_menuUpPressed = false;
      m_menuDownPressed = false;
+	 m_menuLeftPressed = false;
+	 m_menuRightPressed = false;
      m_menuSelectPressed = false;
      m_controllerConnected = sf::Joystick::isConnected(m_controllerId);
      m_movement = { 0.f, 0.f };
@@ -34,11 +36,19 @@ void InputHandler::update()
        
          const bool upNow = (y < -50.f);
          const bool downNow = (y > 50.f);
+         const bool leftNow = (x < -50.f);
+         const bool rightNow = (x > 50.f);
+         
+         m_menuLeftPressed = leftNow && !m_prevLeft;
+         m_menuRightPressed = rightNow && !m_prevRight;
+         m_prevLeft = leftNow;
+         m_prevRight = rightNow;
 
          m_menuUpPressed = upNow && !m_prevUp;
          m_menuDownPressed = downNow && !m_prevDown;
          m_prevUp = upNow;
          m_prevDown = downNow;
+
 
          m_menuSelectPressed = aNow && !m_prevSelect;
          m_prevSelect = aNow;
@@ -63,14 +73,20 @@ void InputHandler::update()
          m_prevControllerAttack = false;
          const bool upNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Up);
          const bool downNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Down);
+		 const bool leftNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Left);
+		 const bool rightNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Right);
          const bool selectNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Enter);
 
          m_menuUpPressed = upNow && !m_prevUp;
          m_menuDownPressed = downNow && !m_prevDown;
+         m_menuLeftPressed = leftNow && !m_prevLeft;
+         m_menuRightPressed = rightNow && !m_prevRight;
          m_menuSelectPressed = selectNow && !m_prevSelect;
 
          m_prevUp = upNow;
          m_prevDown = downNow;
+         m_prevLeft = leftNow;
+         m_prevRight = rightNow;
          m_prevSelect = selectNow;
 
          // gameplay movement
@@ -117,6 +133,16 @@ bool InputHandler::menuUpPressed() const
 bool InputHandler::menuDownPressed() const
 {
    return m_menuDownPressed;
+}
+
+bool InputHandler::menuLeftPressed() const
+{
+    return m_menuLeftPressed;
+}
+
+bool InputHandler::menuRightPressed() const
+{
+	return m_menuRightPressed;
 }
 
 bool InputHandler::menuSelectPressed() const
@@ -174,4 +200,9 @@ sf::Vector2f InputHandler::menuMousePosition() const
 void InputHandler::setDeadZone(float deadZone)
 {
 	m_deadZone = deadZone;
+}
+
+void InputHandler::clearMovement()
+{
+	m_movement = { 0.f, 0.f };
 }

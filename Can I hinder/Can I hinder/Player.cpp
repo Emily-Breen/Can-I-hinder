@@ -46,6 +46,10 @@ sf::Vector2f Player::getInputDirection()
 {
 	return m_inputHandler.getMovement();
 }
+void Player::setDirection(Direction dir)
+{
+	m_direction = dir;
+}
 sf::Vector2f Player::getMovement()
 {
 	return m_inputHandler.getMovement();
@@ -59,6 +63,16 @@ sf::Vector2f Player::getPosition()
 void Player::setPosition(sf::Vector2f position)
 {
 	m_sprite.setPosition(position);
+}
+
+void Player::setPlayerScale(float scaleX, float scaleY)
+{
+	m_sprite.setScale(sf::Vector2f(scaleX, scaleY));
+}
+
+void Player::setInputEnabled(bool enabled)
+{
+	m_inputEnabled = enabled;
 }
 
 sf::FloatRect Player::getBounds() const
@@ -117,6 +131,11 @@ sf::FloatRect Player::getAttackBounds() const
 	
 }
 
+void Player::forceAttack()
+{
+	m_attackTimer = m_attackDuration;
+}
+
 void Player::takeDamage(float duration)
 {
 	
@@ -129,6 +148,20 @@ void Player::takeDamage(float duration)
 	m_isInvulnerable = true;
 	m_hurtTimer = duration;
 }
+
+void Player::setBattleMode(bool enabled)
+{
+	m_inBattle = enabled;
+}
+
+void Player::playerSetIdleAnimation()
+{
+	if (m_State != PlayerState::IDLE)
+	{
+		m_State = PlayerState::IDLE;
+	}
+}
+
 
 bool Player::isHurt() const
 {
@@ -162,6 +195,11 @@ void Player::resetPlayer()
 	m_State = PlayerState::IDLE;
 	m_direction = Direction::DOWN;
 	m_sprite.setPosition(sf::Vector2f(1590, 4621.f));
+}
+
+InputHandler& Player::getInputHandler()
+{
+	return m_inputHandler;
 }
 
 
@@ -209,23 +247,24 @@ void Player::update(float dt)
 {
 	if (m_isDead)
 	{
-		
 		if (m_deathTimer > 0.f)
 		{
 			m_deathTimer -= dt;
 			if (m_deathTimer < 0.f) m_deathTimer = 0.f;
+
 			m_animationHandler.update(dt);
 		}
+
 		m_animationHandler.changeState(PlayerState::DEATH);
 		m_animationHandler.changeDirection(m_direction);
 		m_animationHandler.applyToSprite(m_sprite);
 		return;
 	}
+
 	if (m_hurtTimer > 0.f)
 	{
 		m_hurtTimer -= dt;
-		if (m_hurtTimer < 0.f) 
-			m_hurtTimer = 0.f;
+		if (m_hurtTimer < 0.f) m_hurtTimer = 0.f;
 	}
 
 	if (m_invulnerabilityTimer > 0.f)
@@ -237,37 +276,55 @@ void Player::update(float dt)
 			m_isInvulnerable = false;
 		}
 	}
-	
-	m_inputHandler.update();
-	movePlayer(m_inputHandler.getMovement());
-	const bool attackHeld = m_inputHandler.isAttackPressed();
-	const bool attackJustPressed = attackHeld && !m_attackWasHeld;
-	m_attackWasHeld = attackHeld;
 
-	// Start attack on press (only if not hurt/dead)
-	if (attackJustPressed && m_attackTimer <= 0.f && m_hurtTimer <= 0.f)
-	{
-		m_attackTimer = m_attackDuration;
-	}
 	if (m_attackTimer > 0.f)
 	{
 		m_attackTimer -= dt;
 		if (m_attackTimer < 0.f) m_attackTimer = 0.f;
+
+		m_State = PlayerState::ATTACK;
+
+		m_animationHandler.changeState(m_State);
+		m_animationHandler.changeDirection(m_direction);
+		m_animationHandler.update(dt);
+		m_animationHandler.applyToSprite(m_sprite);
+
+		return; 
 	}
-	PlayerState baseState = m_State;
+	
+	if (!m_inBattle && m_inputEnabled)
+	{
+		m_inputHandler.update();
+		movePlayer(m_inputHandler.getMovement());
+	}
 
-	if (m_attackTimer > 0.f)
-		baseState = PlayerState::ATTACK;
+	bool attackJustPressed = false;
 
-	PlayerState animState = (m_hurtTimer > 0.f) ? PlayerState::HURT : baseState;
+	if (!m_inBattle && m_inputEnabled)
+	{
+		const bool attackHeld = m_inputHandler.isAttackPressed();
+		attackJustPressed = attackHeld && !m_attackWasHeld;
+		m_attackWasHeld = attackHeld;
+	}
 
-	m_State = baseState;
+	
+	if (attackJustPressed && m_attackTimer == 0.f && m_hurtTimer == 0.f)
+	{
+		m_attackTimer = m_attackDuration;
+	}
 
-	m_animationHandler.changeState(animState);
+	if (m_hurtTimer > 0.f)
+	{
+		m_State = PlayerState::HURT;
+	}
+	else if (m_inBattle)
+	{
+		// turn-based idle fallback
+		m_State = PlayerState::IDLE;
+	}
+	m_animationHandler.changeState(m_State);
 	m_animationHandler.changeDirection(m_direction);
 	m_animationHandler.update(dt);
 	m_animationHandler.applyToSprite(m_sprite);
+
 }
-
-
-

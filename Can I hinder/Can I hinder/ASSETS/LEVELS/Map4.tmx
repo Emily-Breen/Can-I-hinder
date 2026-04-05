@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="20" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="25" nextobjectid="182">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="20" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="28" nextobjectid="191">
  <tileset firstgid="1" source="Dungeon/Dungeon.tsx"/>
  <tileset firstgid="2561" source="Dungeon/decor.tsx"/>
  <layer id="20" name="floor" width="20" height="50">
@@ -56,6 +56,20 @@
 66,67,3,66,67,329,1007,1008,1008,1008,1008,1008,1008,329,66,1,2,3,66,67
 </data>
  </layer>
+ <objectgroup id="25" name="HealthPotion">
+  <object id="183" x="114" y="750" width="15.3333" height="16"/>
+  <object id="184" x="114" y="720" width="15.3333" height="16"/>
+  <object id="189" x="145.333" y="698" width="16" height="20"/>
+ </objectgroup>
+ <objectgroup id="26" name="PowerPotion">
+  <object id="185" x="132" y="720.667" width="14.6667" height="16.6667"/>
+  <object id="186" x="176" y="752" width="14.6667" height="15.3333"/>
+  <object id="190" x="116.667" y="694.667" width="18.6667" height="15.3333"/>
+ </objectgroup>
+ <objectgroup id="27" name="SpeedPotion">
+  <object id="187" x="166" y="722" width="16" height="16"/>
+  <object id="188" x="142" y="752" width="14" height="15.3333"/>
+ </objectgroup>
  <layer id="21" name="Walls" width="20" height="50">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
