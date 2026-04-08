@@ -10,7 +10,8 @@ enum class EnemyType
 	Skeleton,
 	Goblin,
 	Brute,
-	Boss
+	Boss,
+	None
 };
 enum class BossMode
 {
@@ -61,6 +62,7 @@ public:
 	void setupBossAnimations();
 	void setBossMode(BossMode mode);
 	void startAttack();
+	void useBossAttack2(bool use);
 
 private:
 	void NPCInit();
@@ -93,6 +95,10 @@ private:
 	bool m_inAttackZone{ false };
 	bool m_droppedLoot{ false }; //this may or may not stay 
 	bool m_dead{ false };
+	bool m_isCasting = false;
+	bool m_isUsingBossAttack2 = false;
+	float m_castCooldown = 3.0f;
+	float m_castTimer = 0.f;
 	EnemyType m_type;
 
 

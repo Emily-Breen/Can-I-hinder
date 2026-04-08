@@ -20,6 +20,7 @@ public:
 	void movement(sf::Vector2f t_movement);
 	sf::Vector2f getInputDirection();
 	void setDirection(Direction dir);
+	Direction getPlayerDirection() const;
 	sf::Vector2f getMovement();
 	sf::Vector2f getPosition();
 	void setPosition(sf::Vector2f position);
@@ -30,11 +31,14 @@ public:
 	void forceAttack();
 	void takeDamage(float duration = 0.35f);
 	void setBattleMode(bool enabled);
+	void setColor(const sf::Color& color);
 	void playerSetIdleAnimation();
 	bool isHurt() const;
 	void dead();
 	bool isDead() const;
 	void resetPlayer();
+	void useAttack2(bool use);
+	void setVictoryPose(bool victory);
 
 	InputHandler& getInputHandler();
 
@@ -61,5 +65,7 @@ private:
 	bool m_isDead{ false };
 	bool m_inputEnabled{ true };
 	bool m_inBattle = false;
+	bool m_useAttack2 = false;
+	bool m_victoryPose = false;
 
 };

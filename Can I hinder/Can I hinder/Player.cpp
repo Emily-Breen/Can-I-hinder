@@ -50,14 +50,17 @@ void Player::setDirection(Direction dir)
 {
 	m_direction = dir;
 }
+Direction Player::getPlayerDirection() const
+{
+	return m_direction;
+}
 sf::Vector2f Player::getMovement()
 {
 	return m_inputHandler.getMovement();
 }
 sf::Vector2f Player::getPosition()
 {
-	sf::Vector2f pos = m_sprite.getPosition();
-	return pos;
+	return m_sprite.getPosition();
 }
 
 void Player::setPosition(sf::Vector2f position)
@@ -154,6 +157,11 @@ void Player::setBattleMode(bool enabled)
 	m_inBattle = enabled;
 }
 
+void Player::setColor(const sf::Color& color)
+{
+	m_sprite.setColor(color);
+}
+
 void Player::playerSetIdleAnimation()
 {
 	if (m_State != PlayerState::IDLE)
@@ -195,6 +203,18 @@ void Player::resetPlayer()
 	m_State = PlayerState::IDLE;
 	m_direction = Direction::DOWN;
 	m_sprite.setPosition(sf::Vector2f(1590, 4621.f));
+	m_sprite.setScale({ 2.5f, 2.5f });
+	m_inBattle = false;
+}
+
+void Player::useAttack2(bool use)
+{
+	m_useAttack2 = use;
+}
+
+void Player::setVictoryPose(bool victory)
+{
+	m_victoryPose = victory;
 }
 
 InputHandler& Player::getInputHandler()
@@ -230,6 +250,10 @@ void Player::playerInit()
 	m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::RIGHT, 0, 6, 0.10f, 0,500,48, 48);
 	m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::UP, 0, 6, 0.10f,0,750,50, 48);
 
+	m_animationHandler.addAnimation(PlayerState::ATTACK2, Direction::LEFT,0,6, 0.10f, 0, 992, 48, 48);
+
+	m_animationHandler.addAnimation(PlayerState::VICTORY, Direction::LEFT,0,3, 0.10f, 0, 1136, 48, 48);
+
 	m_animationHandler.addAnimation(PlayerState::HURT, Direction::DOWN, 0, 4, 0.10f, 0, 93, 48, 48);
 	m_animationHandler.addAnimation(PlayerState::HURT, Direction::LEFT, 0, 4, 0.10f, 0, 350, 48, 48);
 	m_animationHandler.addAnimation(PlayerState::HURT, Direction::RIGHT, 0, 4, 0.10f, 0, 600, 48, 48);
@@ -245,6 +269,17 @@ void Player::playerInit()
 
 void Player::update(float dt)
 {
+	if (m_victoryPose)
+	{
+		m_State = PlayerState::VICTORY;
+
+		m_animationHandler.changeState(m_State);
+		m_animationHandler.changeDirection(m_direction);
+		m_animationHandler.update(dt);
+		m_animationHandler.applyToSprite(m_sprite);
+
+		return;
+	}
 	if (m_isDead)
 	{
 		if (m_deathTimer > 0.f)
@@ -282,8 +317,11 @@ void Player::update(float dt)
 		m_attackTimer -= dt;
 		if (m_attackTimer < 0.f) m_attackTimer = 0.f;
 
-		m_State = PlayerState::ATTACK;
-
+		m_State = m_useAttack2 ? PlayerState::ATTACK2 : PlayerState::ATTACK;
+		if (m_attackTimer <= 0.f)
+		{
+			m_useAttack2 = false;
+		}
 		m_animationHandler.changeState(m_State);
 		m_animationHandler.changeDirection(m_direction);
 		m_animationHandler.update(dt);
@@ -319,7 +357,7 @@ void Player::update(float dt)
 	}
 	else if (m_inBattle)
 	{
-		// turn-based idle fallback
+		// turnbased idle fallback
 		m_State = PlayerState::IDLE;
 	}
 	m_animationHandler.changeState(m_State);

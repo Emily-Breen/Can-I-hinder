@@ -8,6 +8,8 @@ enum class PlayerState {
     IDLE,
     WALK,
     ATTACK,
+    ATTACK2,
+    VICTORY,
     HURT,
     DEATH
 };

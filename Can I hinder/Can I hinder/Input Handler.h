@@ -17,6 +17,7 @@ public:
 	bool menuLeftPressed() const;
 	bool menuRightPressed() const;
 	bool menuSelectPressed() const;
+	bool menuCancelPressed() const;
 	void handleEvent(const sf::Event& event, const sf::RenderWindow& window, const sf::View& menuView);
 	bool controllerAttackJustPressed() const;
 	bool menuMouseMoved() const;
@@ -35,6 +36,7 @@ private:
 	bool m_menuLeftPressed{ false };
 	bool m_menuRightPressed{ false };
 	bool m_menuSelectPressed{ false };
+	bool m_menuCancelPressed{ false };
 	bool m_controllerAttackJustPressed{ false };
 	bool m_prevControllerAttack{ false };
 	bool m_prevUp{ false };
@@ -42,6 +44,7 @@ private:
 	bool m_prevLeft{ false };
 	bool m_prevRight{ false };
 	bool m_prevSelect{ false };
+	bool m_prevCancel{ false };
 	float m_deadZone{ 15.f };
 
 	// Menu mouse input

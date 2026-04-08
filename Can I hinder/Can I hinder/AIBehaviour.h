@@ -10,7 +10,8 @@ public:
 		Arrive,
 		Pursue,
 		Wander,
-		Flee
+		Flee,
+		None
 	};
 	AIBehaviour();
 

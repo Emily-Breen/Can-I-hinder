@@ -21,6 +21,7 @@ void InputHandler::update()
 	 m_menuLeftPressed = false;
 	 m_menuRightPressed = false;
      m_menuSelectPressed = false;
+     m_menuCancelPressed = false;
      m_controllerConnected = sf::Joystick::isConnected(m_controllerId);
      m_movement = { 0.f, 0.f };
      m_attackPressed = false;
@@ -32,6 +33,7 @@ void InputHandler::update()
 
          
          const bool aNow = sf::Joystick::isButtonPressed(m_controllerId, 0);
+         const bool cancelNow = sf::Joystick::isButtonPressed(m_controllerId, 1);
 
        
          const bool upNow = (y < -50.f);
@@ -53,6 +55,8 @@ void InputHandler::update()
          m_menuSelectPressed = aNow && !m_prevSelect;
          m_prevSelect = aNow;
 
+         m_menuCancelPressed = cancelNow && !m_prevCancel;
+         m_prevCancel = cancelNow;
        
          if (std::abs(x) < m_deadZone) x = 0.f;
          if (std::abs(y) < m_deadZone) y = 0.f;
@@ -76,17 +80,20 @@ void InputHandler::update()
 		 const bool leftNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Left);
 		 const bool rightNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Right);
          const bool selectNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Enter);
+         const bool cancelNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Tab);
 
          m_menuUpPressed = upNow && !m_prevUp;
          m_menuDownPressed = downNow && !m_prevDown;
          m_menuLeftPressed = leftNow && !m_prevLeft;
          m_menuRightPressed = rightNow && !m_prevRight;
          m_menuSelectPressed = selectNow && !m_prevSelect;
+         m_menuCancelPressed = cancelNow && !m_prevCancel;
 
          m_prevUp = upNow;
          m_prevDown = downNow;
          m_prevLeft = leftNow;
          m_prevRight = rightNow;
+         m_prevCancel = cancelNow;
          m_prevSelect = selectNow;
 
          // gameplay movement
@@ -148,6 +155,11 @@ bool InputHandler::menuRightPressed() const
 bool InputHandler::menuSelectPressed() const
 {
    return m_menuSelectPressed;
+}
+
+bool InputHandler::menuCancelPressed() const
+{
+    return m_menuCancelPressed;
 }
 
 void InputHandler::handleEvent(const sf::Event& event,

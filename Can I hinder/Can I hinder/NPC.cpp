@@ -87,10 +87,11 @@ void NPC::update(float dt)
     if (m_attackTimer > 0.f)
     {
         m_attackTimer -= dt;
+
         if (m_attackTimer < 0.f)
             m_attackTimer = 0.f;
 
-        m_State = PlayerState::ATTACK;
+        m_State = m_isUsingBossAttack2 ? PlayerState::ATTACK2 : PlayerState::ATTACK;
 
         m_animationHandler.changeState(m_State);
         m_animationHandler.changeDirection(m_direction);
@@ -98,8 +99,16 @@ void NPC::update(float dt)
         m_animationHandler.applyToSprite(m_sprite);
         return;
     }
-    if (m_type == EnemyType::Boss)
+    if (m_type == EnemyType::Boss && m_bossMode == BossMode::Battle)
     {
+        m_castTimer -= dt;
+
+        if (m_castTimer <= 0.f)
+        {
+            m_isCasting = true;
+            m_castTimer = m_castCooldown;
+        }
+    
         m_State = PlayerState::IDLE;
 
         if (m_bossMode == BossMode::MapIdle)
@@ -520,6 +529,7 @@ void NPC::setupDefaultAnimations()
     m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::LEFT, 0, 8, 0.08f, 0, 250, 48, 48);
     m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::RIGHT, 0, 8, 0.08f, 0, 500, 48, 48);
     m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::UP, 0, 8, 0.08f, 0, 750, 48, 48);
+
     //HURT ANIMATIONS
     m_animationHandler.addAnimation(PlayerState::HURT, Direction::DOWN, 0, 4, 0.08f, 0, 100, 48, 48);
     m_animationHandler.addAnimation(PlayerState::HURT, Direction::LEFT, 0, 4, 0.08f, 0, 350, 48, 48);
@@ -576,6 +586,10 @@ void NPC::setupBossAnimations()
 
     m_animationHandler.addAnimation(PlayerState::ATTACK, Direction::RIGHT, 0, 7, 0.08f, 0, 0, 80, 80);
 
+	m_animationHandler.addAnimation(PlayerState::ATTACK2, Direction::RIGHT, 0, 7, 0.08f, 0, 193, frameW, 80);
+
+	m_animationHandler.addAnimation(PlayerState::HURT, Direction::RIGHT, 0, 4, 0.08f, 0, 561, frameW, 80);
+
     m_animationHandler.addAnimation(PlayerState::DEATH, Direction::RIGHT, 0, 9, 0.08f, 0, 286, frameW, 80);
 }
 
@@ -601,5 +615,10 @@ void NPC::startAttack()
         return;
 
     m_attackTimer = m_attackDuration;
+}
+
+void NPC::useBossAttack2(bool use)
+{
+	m_isUsingBossAttack2 = use;
 }
 
