@@ -203,6 +203,25 @@ void WebsocketClient::readLoop(bool useTls)
 					else
 						m_ws->write(boost::asio::buffer(out));
 				}
+				if (action == "help") {
+					helpCount[user]++;
+
+					int count = helpCount[user];
+
+					json response;
+					response["type"] = "progress";
+					response["user"] = user;
+					response["helpCount"] = count;
+
+					if (count == 5) {
+						response["unlock"] = "god_mode";
+					}
+					std::string out = response.dump();
+					if (useTls)
+						m_wss->write(boost::asio::buffer(out));
+					else
+						m_ws->write(boost::asio::buffer(out));
+				}
 			}
 			catch (...) {
 				std::cout << "Failed to parse JSON: " << message << std::endl;
