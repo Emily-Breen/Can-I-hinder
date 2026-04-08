@@ -348,7 +348,31 @@ sf::Vector2f MapRenderer::getFloorSpawn(const sf::Vector2f& entitySize, const sf
 	// If the starting tile is not walkable, just spawn to the right of avoidPos
     if (!isTileWalkable(startTile.x, startTile.y))
     {
-        return avoidPos + sf::Vector2f(avoidRadius, 0.f);
+        bool found = false;
+
+        for (int y = -3; y <= 3 && !found; ++y)
+        {
+            for (int x = -3; x <= 3 && !found; ++x)
+            {
+                int nx = startTile.x + x;
+                int ny = startTile.y + y;
+
+                if (nx >= 0 && ny >= 0 && nx < mapWidth && ny < mapHeight)
+                {
+                    if (isTileWalkable(nx, ny))
+                    {
+                        startTile = { nx, ny };
+                        found = true;
+                    }
+                }
+            }
+        }
+
+        if (!found)
+        {
+            std::cout << "NO VALID TILE FOUND → fallback\n";
+            return avoidPos + sf::Vector2f(150.f, 0.f);
+        }
     }
 	// BFS to find all reachable tiles from the starting tile
     std::vector<uint8_t> visitedTiles(mapWidth * mapHeight, 0);
@@ -383,19 +407,30 @@ sf::Vector2f MapRenderer::getFloorSpawn(const sf::Vector2f& entitySize, const sf
     // Choose nearest reachable tile outside radius
     float closestValidDistance = std::numeric_limits<float>::max();
     sf::Vector2f bestSpawnPos = avoidPos + sf::Vector2f(avoidRadius, 0.f);
-	// Iterate over all reachable tiles and find the one closest to avoidPos but outside avoidRadius
+
+	//try outside radius first
     for (auto [tileX, tileY] : reachableTilesQueue)
     {
-        sf::Vector2f tileCenterPos = tileCenter(tileX, tileY);
-        float distanceFromCenter = MathUtils::vectorLength(tileCenterPos - avoidPos);
+        sf::Vector2f pos = tileCenter(tileX, tileY);
+        float dist = MathUtils::vectorLength(pos - avoidPos);
 
-        if (distanceFromCenter < avoidRadius) 
+        if (dist < avoidRadius)
             continue;
 
-        if (distanceFromCenter < closestValidDistance)
+        if (dist < closestValidDistance)
         {
-            closestValidDistance = distanceFromCenter;
-            bestSpawnPos = tileCenterPos;
+            closestValidDistance = dist;
+            bestSpawnPos = pos;
+        }
+    }
+
+	//fallback if no tiles outside radius just pick closest
+    if (closestValidDistance == std::numeric_limits<float>::max())
+    {
+        if (!reachableTilesQueue.empty())
+        {
+            auto& tile = reachableTilesQueue[std::rand() % reachableTilesQueue.size()];
+            bestSpawnPos = tileCenter(tile.x, tile.y);
         }
     }
 
