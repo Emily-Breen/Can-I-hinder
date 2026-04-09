@@ -37,8 +37,11 @@ const circumference = 2 * Math.PI * radius;
 // Define max for half circle
 const MAX = 5; // or whatever unlock threshold is
 
-const hinderRatio = Math.min(hinderCount / MAX, 1);
-const helpRatio = Math.min(helpCount / MAX, 1);
+const safeHinder = hinderCount ?? 0;
+const safeHelp = helpCount ?? 0;
+
+const hinderRatio = Math.min(safeHinder / MAX, 1);
+const helpRatio = Math.min(safeHelp / MAX, 1);
 
 // Only HALF circle each
 const half = circumference / 2;
@@ -82,8 +85,8 @@ const helpProgress = half * helpRatio;
           strokeWidth="4"
           fill="none"
           />
-
-        {/* HINDER (clockwise) */}
+        { safeHinder > 0 && (
+          // HINDER (clockwise)
           <circle
               cx="50"
               cy="50"
@@ -96,8 +99,9 @@ const helpProgress = half * helpRatio;
             transform="rotate(-90 50 50)"
             strokeLinecap="round"
             />
-
-           {/* HELP (counter-clockwise) */}
+        )}
+          { safeHelp > 0 && (
+           // HELP (counter-clockwise)
           <circle
             cx="50"
             cy="50"
@@ -110,6 +114,7 @@ const helpProgress = half * helpRatio;
             transform="rotate(-90 50 50)"
             strokeLinecap="round"
                 />
+          )}
           </svg>
         {placedItems.map(({ item, tx, ty }) => {
          
