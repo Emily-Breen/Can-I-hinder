@@ -19,4 +19,6 @@ export type RadialMenuProps = {
   items: RadialItem[];
   anchor: Point | null; // where the menu pops up (button center)
   onClose: () => void;
+  hinderCount: number;
+  helpCount: number;
 };

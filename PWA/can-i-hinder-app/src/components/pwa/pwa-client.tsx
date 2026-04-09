@@ -50,6 +50,7 @@ if (ws) {
     // Handle progress messages
     if (data.type === "progress") {
       console.log(`Hinder count: ${data.hinderCount}`);
+      console.log(`Help count: ${data.helpCount}`);
       // Log any unlocks that come in the progress updates for debugging
       if (data.unlock) {
         console.log(`Unlocked: ${data.unlock}`);

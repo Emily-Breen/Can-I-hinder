@@ -3,11 +3,12 @@ import "./styled.css";
 import type { RadialMenuProps } from "./types";
 import { getActionStatus } from "../pwa/rate-limit";
 
+
 function vibrate(ms: number= 20) {
   //vibarte on some devices for feedback, IOS apparently ignores this so will test to see if it will work
   if ("vibrate" in navigator) navigator.vibrate(ms);
 }
-export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuProps) {
+export default function RadialMenu({ open, items, anchor, onClose, hinderCount, helpCount }: RadialMenuProps) {
 
  //Ticker to update buttons during cooldown without closing the menu
   const [, setTick] = useState(0);
@@ -30,6 +31,18 @@ export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuP
   // Desktop centered
  const centerX = window.innerWidth / 2;
  const centerY = window.innerHeight / 2;
+ const radius = 45;
+const circumference = 2 * Math.PI * radius;
+
+// Define max for half circle
+const MAX = 10; // or whatever unlock threshold is
+
+const hinderRatio = Math.min(hinderCount / MAX, 1);
+const helpRatio = Math.min(helpCount / MAX, 1);
+
+// Only HALF circle each
+const hinderProgress = circumference * 0.5 * hinderRatio;
+const helpProgress = circumference * 0.5 * helpRatio;
 
   // Compute where each button sits around the circle
   const placedItems = items.map((item, index) => {
@@ -57,6 +70,41 @@ export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuP
         style={{ ...cssVars, left: centerX, top: centerY }}
         onPointerDown={(e) => e.stopPropagation()}
       >
+         <svg className="radial-progress" viewBox="0 0 100 100">
+        {/* Background */}
+        <circle
+          cx="50"
+          cy="50"
+          r="45"
+          stroke="#222"
+          strokeWidth="4"
+          fill="none"
+          />
+
+        {/* HINDER (clockwise) */}
+          <circle
+          cx="50"
+          cy="50"
+            r="45"
+          stroke="red"
+          strokeWidth="4"
+           fill="none"
+          strokeDasharray={`${hinderProgress} 999`}
+          transform="rotate(-90 50 50)"
+                />
+
+           {/* HELP (counter-clockwise) */}
+          <circle
+            cx="50"
+            cy="50"
+            r="45"
+            stroke="lime"
+              strokeWidth="4"
+             fill="none"
+             strokeDasharray={`${helpProgress} 999`}
+            transform="rotate(-90 50 50) scale(-1,1) translate(-100,0)"
+                />
+          </svg>
         {placedItems.map(({ item, tx, ty }) => {
          
          // Check cooldown status for this item if it has an associated action/effect, used to disable buttons and show cooldown timers in the UI
@@ -68,7 +116,7 @@ export default function RadialMenu({ open, items, anchor, onClose }: RadialMenuP
           const secondsLeft = status ? Math.ceil(status.cooldownMsLeft / 1000) : 0;
           // An item is disabled if it’s explicitly marked as disabled or if it’s currently blocked by cooldown
           const isDisabled = Boolean(item.disabled) || blockedByCooldown;
-
+         
           return (
             <button
               key={item.id}

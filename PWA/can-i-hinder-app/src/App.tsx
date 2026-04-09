@@ -18,10 +18,12 @@ function App() {
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
   const [unlocks, setUnlocks] = useState<string[]>([]);
  const [hinderCounts, setHinderCounts] = useState<Record<string, number>>({});
+ const [helpCounts, setHelpCounts] = useState<Record<string, number>>({});
 
 
  const username = getUsername() ?? "Guest";
  const myCount = hinderCounts[username] ?? 0;
+ const myHelpCount = helpCounts[username] ?? 0;
   // Set up the progress callback once on mount to receive updates from the server about hinder count and unlocks, which will update the UI as needs be.
   useEffect(() => {
  setOnProgressCallback((data) => {
@@ -31,7 +33,12 @@ function App() {
       ...prev,
       [data.user]: data.hinderCount
     }));
-
+    if (data.helpCount !== undefined) {
+    setHelpCounts(prev => ({
+      ...prev,
+      [data.user]: data.helpCount
+    }));
+  }
     const unlock = data.unlock;
     if (unlock) {
       setUnlocks(prev =>
@@ -60,8 +67,17 @@ const helpItems: RadialItem[] = useMemo(
       { id: "speed", label: "Speed up player", action: "help", effect: "speed_up_player", onClick: () => sendHelp("speed_up_player") },
       { id: "power", label: "Power boost", action: "help", effect: "power_boost", onClick: () => sendHelp("power_boost") },
       { id: "shield", label: "Shield player", action: "help", effect: "shield_player", onClick: () => sendHelp("shield_player") },
+      ...(unlocks.includes("god_mode")
+      ? [{
+          id: "god_mode",
+          label: "God Mode",
+          action: "help" as const,
+          effect: "god_mode" as const,
+          onClick: () => sendHelp("god_mode")
+        }]
+      : [])
     ],
-    []
+    [unlocks]
   );
   const hinderItems: RadialItem[] = useMemo(
   () => [
@@ -142,11 +158,15 @@ const helpItems: RadialItem[] = useMemo(
        open={helpOpen}
        items={helpItems}
        anchor={anchor}
+        hinderCount={myCount}
+        helpCount={myHelpCount}
        onClose={() => setHelpOpen(false)}
        />
       <RadialMenu
         open={hinderOpen}
         items={hinderItems}
+        hinderCount={myCount}
+        helpCount={myHelpCount}
         anchor={anchor}
         onClose={() => setHinderOpen(false)}
       />
