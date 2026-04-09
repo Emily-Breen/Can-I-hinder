@@ -47,7 +47,7 @@ export default function ForgotPassword() {
           </button>
 
           {message && (
-            <div className="login-note">{message}</div>
+            <div className="login-success">{message}</div>
           )}
         </form>
       </div>

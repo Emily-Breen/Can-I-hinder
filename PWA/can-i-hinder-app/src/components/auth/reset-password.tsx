@@ -13,6 +13,7 @@ export default function ResetPassword() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 // Handle form submission for password reset
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,12 +42,13 @@ export default function ResetPassword() {
       });
 // Handle API response
       if (!res.ok) {
-        throw new Error("Password reset failed.");
+  throw new Error("Password reset failed.");
       }
-// On success, alert the user and navigate to login page
-      alert("Password successfully reset!");
-      navigate("/login");
-
+      // On success, show a success message and redirect to login page after a short delay
+    setSuccess("Password successfully reset! Redirecting to login...");
+      setTimeout(() => {
+          navigate("/login");
+          }, 1500);
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong.");
     } finally {
@@ -82,6 +84,7 @@ export default function ResetPassword() {
           </label>
 
           {error && <div className="login-error">{error}</div>}
+          {success && <div className="login-success">{success}</div>}
 
           <button className="login-button" disabled={loading}>
             {loading ? "Updating..." : "Reset Password"}

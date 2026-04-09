@@ -130,7 +130,15 @@
   padding: 10px;
   font-size: 13px;
 }
-
+.login-success {
+  background: rgba(0, 255, 100, 0.1);
+  border: 1px solid rgba(0, 255, 100, 0.4);
+  color: #00ff88;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 14px;
+}
 /* ===== Footer ===== */
 .login-footer {
   margin-top: 14px;

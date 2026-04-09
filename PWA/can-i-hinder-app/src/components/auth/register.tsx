@@ -27,6 +27,7 @@ export default function Register() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const errors = validate(username, email, password);
   const canSubmit = errors.length === 0 && !loading;
 // Handle form submission for registration
@@ -42,7 +43,11 @@ export default function Register() {
 // Make API call to register the user, and on success, save the returned token and username to localStorage for session persistence, then navigate to the main app page. Handle any errors that occur during registration.
   try {
     await register(username.trim(), email.trim(), password);
+    setSuccess("Account created successfully!");
+     setTimeout(() => {
     navigate("/", { replace: true });
+  }, 1500);
+
   } catch (err: any) {
     setError(err?.message ?? "Registration failed");
   } finally {
@@ -55,6 +60,7 @@ export default function Register() {
       <div className="login-wrapper">
         <form className="login-card" onSubmit={handleSubmit}>
           <h1 className="login-title">Create Account</h1>
+          {success && <div className="login-success">{success}</div>}
 
           <label className="login-label">
             Username

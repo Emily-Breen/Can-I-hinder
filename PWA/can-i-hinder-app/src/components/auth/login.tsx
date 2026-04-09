@@ -133,7 +133,8 @@ console.log("API_BASE:", API_BASE);
    {showSessionModal && (
       <div className="session-modal">
         <div className="session-card">
-          <h2>Join Game</h2>
+          <h2>Login Successful</h2>
+            
           <p>Enter the code seen in game!</p>
 
           <input
