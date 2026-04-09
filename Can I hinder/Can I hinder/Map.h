@@ -39,6 +39,9 @@ public:
     const std::vector<DoorData>& getDoors() const;
 	sf::Vector2f getFloorSpawn(const sf::Vector2f& entitySize,const sf::Vector2f& avoidPos, float avoidRadius) const;
     const std::vector<sf::Vector2f>& getKeySpawns() const;
+	const std::vector<sf::Vector2f>& getHealthSpawns() const;
+	const std::vector<sf::Vector2f>& getSpeedSpawns() const;
+	const std::vector<sf::Vector2f>& getPowerSpawns() const;
     static bool rectHitsCollision(const sf::FloatRect& test,const std::vector<sf::FloatRect>& colliders);
     sf::Vector2i worldToTile(const sf::Vector2f& p) const;
     sf::Vector2f tileCenter(int tx, int ty) const;
@@ -49,6 +52,9 @@ private:
     std::vector<LayerGroup> m_layerGroups;
     std::vector<sf::FloatRect> m_collisionRects;
     std::vector<sf::Vector2f> m_keySpawns;
+    std::vector<sf::Vector2f> m_healthSpawns;
+    std::vector<sf::Vector2f> m_speedSpawns;
+    std::vector<sf::Vector2f> m_powerSpawns;
     std::string m_mapPath;
     std::vector<DoorData> m_doors;
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

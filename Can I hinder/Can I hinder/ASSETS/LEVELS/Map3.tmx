@@ -564,26 +564,146 @@
    </properties>
   </object>
  </objectgroup>
- <objectgroup id="24" name="HealthPotion">
-  <object id="363" x="302" y="1295" width="20" height="20"/>
-  <object id="364" x="772" y="614" width="20" height="22"/>
-  <object id="365" x="785" y="1060" width="19" height="21"/>
-  <object id="366" x="1326" y="1427" width="22" height="20"/>
-  <object id="367" x="1125" y="632" width="23" height="26"/>
-  <object id="368" x="1130" y="212" width="23" height="22"/>
+ <objectgroup id="24" name="HealthSpawns">
+  <object id="363" name="Health" x="302" y="1295" width="20" height="20">
+   <properties>
+    <property name="Class" value="Health"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="311"/>
+    <property name="Y" type="float" value="1305"/>
+   </properties>
+  </object>
+  <object id="364" name="Health" x="755" y="667" width="20" height="22">
+   <properties>
+    <property name="Class" value="Health"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="765"/>
+    <property name="Y" type="float" value="680"/>
+   </properties>
+  </object>
+  <object id="365" name="Health" x="775" y="1070" width="19" height="21">
+   <properties>
+    <property name="Class" value="Health"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="783"/>
+    <property name="Y" type="float" value="1079"/>
+   </properties>
+  </object>
+  <object id="366" name="Health" x="1326" y="1427" width="22" height="20">
+   <properties>
+    <property name="Class" value="Health"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="1339"/>
+    <property name="Y" type="float" value="1435"/>
+   </properties>
+  </object>
+  <object id="367" name="Health" x="1138" y="650" width="23" height="26">
+   <properties>
+    <property name="Class" value="Health"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="1135"/>
+    <property name="Y" type="float" value="664"/>
+   </properties>
+  </object>
+  <object id="368" name="Health" x="1214" y="233" width="23" height="22">
+   <properties>
+    <property name="Class" value="Health"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="1223"/>
+    <property name="Y" type="float" value="243"/>
+   </properties>
+  </object>
  </objectgroup>
- <objectgroup id="25" name="SpeedPotion">
-  <object id="369" x="75" y="1249" width="22" height="19"/>
-  <object id="370" x="310" y="835" width="16" height="19"/>
-  <object id="371" x="159" y="233" width="23" height="21"/>
-  <object id="372" x="798" y="334" width="21" height="23"/>
-  <object id="373" x="977" y="751" width="20" height="20"/>
+ <objectgroup id="25" name="SpeedSpawns">
+  <object id="369" name="Speed" x="75" y="1249" width="22" height="19">
+   <properties>
+    <property name="Class" value="Speed"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="86"/>
+    <property name="Y" type="float" value="1258"/>
+   </properties>
+  </object>
+  <object id="370" name="Speed" x="310" y="835" width="16" height="19">
+   <properties>
+    <property name="Class" value="Speed"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="315"/>
+    <property name="Y" type="float" value="843"/>
+   </properties>
+  </object>
+  <object id="371" name="Speed" x="155" y="250" width="23" height="21">
+   <properties>
+    <property name="Class" value="Speed"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="164"/>
+    <property name="Y" type="float" value="259"/>
+   </properties>
+  </object>
+  <object id="372" name="Speed" x="798" y="334" width="21" height="23">
+   <properties>
+    <property name="Class" value="Speed"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="808"/>
+    <property name="Y" type="float" value="344"/>
+   </properties>
+  </object>
+  <object id="373" name="Speed" x="977" y="764" width="20" height="20">
+   <properties>
+    <property name="Class" value="Speed"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="988"/>
+    <property name="Y" type="float" value="773"/>
+   </properties>
+  </object>
  </objectgroup>
- <objectgroup id="26" name="PowerPotion">
-  <object id="374" x="1421" y="902" width="23" height="24"/>
-  <object id="375" x="952" y="1260" width="19" height="17"/>
-  <object id="376" x="70" y="444" width="23" height="20"/>
-  <object id="377" x="567" y="180" width="19" height="21"/>
+ <objectgroup id="26" name="PowerSpawns">
+  <object id="374" name="Power" x="1421" y="902" width="23" height="24">
+   <properties>
+    <property name="Class" value="Power"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="1432"/>
+    <property name="Y" type="float" value="914"/>
+   </properties>
+  </object>
+  <object id="375" name="Power" x="952" y="1260" width="19" height="17">
+   <properties>
+    <property name="Class" value="Power"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="961"/>
+    <property name="Y" type="float" value="1267"/>
+   </properties>
+  </object>
+  <object id="376" name="Power" x="69" y="458" width="23" height="20">
+   <properties>
+    <property name="Class" value="Power"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="80"/>
+    <property name="Y" type="float" value="468"/>
+   </properties>
+  </object>
+  <object id="377" name="Power" x="567" y="180" width="19" height="21">
+   <properties>
+    <property name="Class" value="Power"/>
+    <property name="Height" type="float" value="16"/>
+    <property name="Width" type="float" value="16"/>
+    <property name="X" type="float" value="576"/>
+    <property name="Y" type="float" value="187"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="22" name="Collision" visible="0">
   <object id="147" x="472" y="1370" width="13.6667" height="220.333"/>

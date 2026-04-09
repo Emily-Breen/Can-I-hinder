@@ -4,7 +4,7 @@
 #include <iostream>
 auto desktopMode = sf::VideoMode::getDesktopMode();
 Game::Game() :
-	m_window{ desktopMode,"SFML Game 3.0",sf::State::Fullscreen },m_DELETEexitGame{ false }, m_camera(VIRTUAL_WIDTH,VIRTUAL_HEIGHT) //when true game will exit
+	m_window{ desktopMode,"SFML Game 3.0",sf::State::Fullscreen },m_DELETEexitGame{ false }, m_camera(VIRTUAL_WIDTH,VIRTUAL_HEIGHT),m_finalLevel(m_inputHandler) //when true game will exit
 {
 	
 
@@ -25,12 +25,6 @@ Game::Game() :
 				weakenPlayer = true;
 				m_hud.pushChatMessage(user, "has weakened you!", sf::Color(255, 80, 80));
 				m_stats.hindersReceived++;
-			}
-			else if (action == "hinder" && effect == "drop_trap")
-			{
-				
-					m_hud.pushChatMessage(user, "has blocked your path!", sf::Color(255, 80, 80));
-					m_stats.hindersReceived++;
 			}
 			else if (action == "hinder" && effect == "slow_player")
 			{
@@ -58,9 +52,23 @@ Game::Game() :
 			}
 			else if(action == "help" && effect == "shield_player")
 			{
-
+				shieldPlayer = true;
 				m_hud.pushChatMessage(user, "has shielded you!", sf::Color(80, 255, 80));
 				m_stats.helpsReceived++;
+			}
+			else if (action == "help" && effect == "god_mode") {
+				healPlayer = true;	
+				speedUpPlayer = true;
+				powerBoostPlayer = true;
+				shieldPlayer = true;
+				m_hud.pushChatMessage(user, "has granted you GOD MODE!", sf::Color(80, 255, 80));
+				m_stats.helpsReceived++;
+			}
+			else if (action == "hinder" && effect == "drop_trap")
+			{
+				dropTrap = true;
+				m_hud.pushChatMessage(user, "has blocked your way!", sf::Color(255, 0, 0));
+				m_stats.hindersReceived++;
 			}
 			else if (action == "hinder" && effect == "spawn_brute")
 			{
@@ -83,8 +91,14 @@ Game::Game() :
 		);
 	}
 
-	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
-
+	if (m_mapRenderer.load("ASSETS/LEVELS/Map3.tmx"))
+	{
+		
+	}
+	else
+	{
+		std::cout << "Failed to load map!\n";
+	}
 	for (const auto& pos : m_mapRenderer.getKeySpawns())
 	{
 		m_items.emplace_back(
@@ -92,9 +106,31 @@ Game::Game() :
 			pos
 		);
 	}
+	for (const auto& pos : m_mapRenderer.getHealthSpawns())
+	{
+		m_items.emplace_back(
+			ItemEffect{ ItemType::healthPotion, 0.f, 0.f, 1 },
+			pos
+		);
+	}
+	for (const auto& pos : m_mapRenderer.getSpeedSpawns())
+	{
+		m_items.emplace_back(
+			ItemEffect{ ItemType::speedPotion, 0.f, 0.f, 1 },
+			pos
+		);
+	}
+	for (const auto& pos : m_mapRenderer.getPowerSpawns())
+	{
+		m_items.emplace_back(
+			ItemEffect{ ItemType::powerPotion, 0.f, 0.f, 1 },
+			pos
+		);
+	}
+
 	std::cout << "player posX: " << m_player.getPosition().x << "player posY: " << m_player.getPosition().y;
 	std::cout << "Doors loaded: " << m_mapRenderer.getDoors().size() << "\n";
-
+	
 
 	//MAIN MENU SCREEN
 	if (!m_mainMenuTexture.loadFromFile("ASSETS/LEVELS/PNG/MainMenu.png"))
@@ -125,6 +161,19 @@ Game::Game() :
 		float scaleY = VIRTUAL_HEIGHT / m_gameOverTexture.getSize().y;
 		m_gameOverSprite.setScale({ scaleX, scaleY });
 	}
+	if (!m_finalLevelTexture.loadFromFile("ASSETS/LEVELS/PNG/Final level.png"))
+	{
+		std::cout << "Failed to load Final Level PNG\n";
+	}
+	else
+	{
+		m_finalLevelSprite.setTexture(m_finalLevelTexture, true); // reset texture rect
+		m_finalLevelSprite.setPosition({ 0.f, 0.f });
+
+		float scaleX = VIRTUAL_WIDTH / m_finalLevelTexture.getSize().x;
+		float scaleY = VIRTUAL_HEIGHT / m_finalLevelTexture.getSize().y;
+		m_finalLevelSprite.setScale({ scaleX, scaleY });
+	}
 
 	if (!m_MagicalWorldFont.openFromFile("ASSETS/FONTS/MagicalWorld.ttf"))
 	{
@@ -135,6 +184,15 @@ Game::Game() :
 	{
 		std::cout << "Failed to load Button.png\n";
 	}
+	else {
+		m_finalLevel.setDialogueTexture(m_buttonTexture);
+	}
+	m_trapTexture = std::make_shared<sf::Texture>();
+	if (!m_trapTexture->loadFromFile("ASSETS/IMAGES/Obstacle.png"))
+	{
+		std::cout << "Failed to load trap texture!\n";
+	}
+
 	setupMenuView();
 	setupMainMenuButtons();
 	setupMainMenuTitle();
@@ -154,7 +212,30 @@ Game::Game() :
 	;
 	// load the poof texture for the enemy spawn effect
 	m_poofTexture = std::make_shared<sf::Texture>();
-	m_poofTexture->loadFromFile("ASSETS/IMAGES/Destroy Effect.png");
+	if(!m_poofTexture->loadFromFile("ASSETS/IMAGES/Effects/Destroy Effect.png")) {
+		std::cout << "Failed to load poof texture!\n";
+	};
+
+	m_speedBoostTexture = std::make_shared<sf::Texture>();
+	if(!m_speedBoostTexture->loadFromFile("ASSETS/IMAGES/Effects/SpeedBoost.png")) {
+		std::cout << "Failed to load speed boost texture!\n";
+	}
+	m_powerBoostTexture = std::make_shared<sf::Texture>();
+	if(!m_powerBoostTexture->loadFromFile("ASSETS/IMAGES/Effects/PowerBoost.png")) {
+		std::cout << "Failed to load power boost texture!\n";
+	}
+	m_StealPowerTexture = std::make_shared<sf::Texture>();
+	if (!m_StealPowerTexture->loadFromFile("ASSETS/IMAGES/Effects/StealPower.png")) {
+		std::cout << "Failed to load steal power texture!\n";
+	}
+	m_slowTexture = std::make_shared<sf::Texture>();
+	if(!m_slowTexture->loadFromFile("ASSETS/IMAGES/Effects/SlowPlayer.png")) {
+		std::cout << "Failed to load slow texture!\n";
+	}
+	m_shieldTexture = std::make_shared<sf::Texture>();
+	if (!m_shieldTexture->loadFromFile("ASSETS/IMAGES/Effects/ShieldPlayer.png")) {
+		std::cout << "Failed to load shield texture!\n";
+	}
 }
 
 
@@ -207,6 +288,16 @@ void Game::run()
 			m_slowDuration = 6.0f;   
 			m_slowClock.restart();
 			m_slowActive = true;
+			auto effect = std::make_unique<Effects>(
+				m_slowTexture,
+				m_player.getPosition(),
+				EnemyType::None,
+				EffectType::SlowPlayer
+			);
+
+			effect->attachToPlayer(&m_player);
+
+			m_effects.emplace_back(std::move(effect));
 		}
 		if (healPlayer)
 		{
@@ -224,16 +315,38 @@ void Game::run()
 			m_stealPowerDuration = 6.0f;
 			m_stealPowerClock.restart();
 			m_stealPowerActive = true;
+			auto effect = std::make_unique<Effects>(
+				m_StealPowerTexture,
+				m_player.getPosition(),
+				EnemyType::None,
+				EffectType::StealPower
+			);
+
+
+			effect->attachToPlayer(&m_player);
+
+			m_effects.emplace_back(std::move(effect));
 		}
 		if (speedUpPlayer)
 		{
 			std::cout << "speed increased by viewer!\n";
 			speedUpPlayer = false;
 
-			m_speedMultiplier = 1.5f;  
+			m_speedMultiplier = 1.5f;  // 50% speed increase for 6 seconds
 			m_speedBuffDuration = 6.0f;  
 			m_speedBuffClock.restart();
 			m_speedBuffActive = true;
+			auto effect = std::make_unique<Effects>(
+				m_speedBoostTexture,
+				m_player.getPosition(),
+				EnemyType::None,
+				EffectType::SpeedBoost
+			);
+
+			
+			effect->attachToPlayer(&m_player);
+
+			m_effects.emplace_back(std::move(effect));
 		}
 
 		if (powerBoostPlayer)
@@ -241,10 +354,66 @@ void Game::run()
 			std::cout << "power boosted by viewer!\n";
 			powerBoostPlayer = false;
 
-			m_powerMultiplier = 1.75f; 
+			m_powerMultiplier = 1.75f; // 75% damage increase for 6 seconds
 			m_powerBuffDuration = 6.0f; 
 			m_powerBuffClock.restart();
 			m_powerBuffActive = true;
+			auto effect = std::make_unique<Effects>(
+				m_powerBoostTexture,
+				m_player.getPosition(),
+				EnemyType::None,
+				EffectType::PowerBoost
+			);
+
+			effect->attachToPlayer(&m_player);
+
+			m_effects.emplace_back(std::move(effect));
+		}
+		if (shieldPlayer)
+		{
+			shieldPlayer = false;
+
+			m_shieldActive = true;
+			m_shieldClock.restart();
+
+			auto effect = std::make_unique<Effects>(
+				m_shieldTexture, 
+				m_player.getPosition(),
+				EnemyType::None,
+				EffectType::SheildPlayer
+			);
+
+			effect->attachToPlayer(&m_player);
+			effect->setEffectScale({ 3.f, 3.f });
+
+			m_effects.emplace_back(std::move(effect));
+		}
+		if (godMode) {
+			godMode = false;
+
+			m_godModeActive = true;
+			m_godModeClock.restart();
+
+			//all buffs and remove debuffs
+			m_playerHealth = 1.f;
+
+			m_speedMultiplier = 2.0f;
+			m_speedBuffActive = true;
+
+			m_powerMultiplier = 2.0f;
+			m_powerBuffActive = true;
+
+			m_shieldActive = true;
+			m_shieldClock.restart();
+
+			m_playerDamageMultiplier = 1.0f; // cancel weaken
+			m_stealPowerActive = false;
+
+			m_slowActive = false;
+			m_slowMultiplier = 1.0f;
+
+			std::cout << "GOD MODE ACTIVATED\n";
+			
 		}
 		if (spawnBrute)
 		{
@@ -256,7 +425,47 @@ void Game::run()
 
 			spawnNPC(spawnPos, EnemyType::Brute);
 		}
+		if (dropTrap)
+		{
+			dropTrap = false;
 
+			sf::Vector2f playerPos = m_player.getPosition();
+			Direction dir = m_player.getPlayerDirection();
+
+			sf::Vector2f offset = { 0.f, 0.f };
+			float distance = 150.f; 
+
+			switch (dir)
+			{
+			case Direction::UP:
+				offset = { 0.f, -distance };
+				break;
+			case Direction::DOWN:
+				offset = { 0.f, distance };
+				break;
+			case Direction::LEFT:
+				offset = { -distance, 0.f };
+				break;
+			case Direction::RIGHT:
+				offset = { distance, 0.f };
+				break;
+			}
+
+			sf::Vector2f obstaclePos = playerPos + offset;
+			auto obstacle = std::make_unique<Obstacles>(m_trapTexture, obstaclePos);
+			m_obstacles.emplace_back(std::move(obstacle));
+
+			auto effect = std::make_unique<Effects>(
+				m_poofTexture,
+				obstaclePos,
+				EnemyType::None,
+				EffectType::SpawnTrap
+			);
+
+			effect->setEffectScale({ 6.f, 6.f });
+
+			m_effects.emplace_back(std::move(effect));
+		}
 	}
 }
 
@@ -281,10 +490,11 @@ void Game::processEvents()
 	                     static_cast<unsigned>(VIRTUAL_HEIGHT)
 		    }); //resizing to any screen (for mostly the 4k ones as my laptop is 1920x1080
 		}
+		m_inputHandler.handleEvent(*newEvent, m_window, m_menuView);
+
 		if (m_currentMenuState == menuState::MAIN_MENU || m_currentMenuState == menuState::GAME_OVER)
 		{
-			m_inputHandler.handleEvent(*newEvent, m_window, m_menuView);
-
+			
 			if (m_inputHandler.menuMouseMoved())
 			{
 				const sf::Vector2f mousePos = m_inputHandler.menuMousePosition();
@@ -323,13 +533,45 @@ void Game::processEvents()
 						break;
 					}
 				}
+				
+			}
+		}
+		if (m_currentMenuState == menuState::GAMEPLAY)
+		{
+			if (m_inputHandler.menuMouseClickReleased())
+			{
+				sf::Vector2i pixelPos = sf::Mouse::getPosition(m_window);
+
+				sf::View uiView;
+				uiView.setSize({ m_camera.getVirtualSize() });
+				uiView.setCenter({ m_camera.getVirtualSize() * 0.5f });
+				uiView.setViewport(m_camera.getViewport());
+
+				sf::Vector2f mousePos = m_window.mapPixelToCoords(pixelPos, uiView);
+
+				for (int i = 3; i <= 5; i++)
+				{
+					sf::FloatRect slotRect(
+						m_hud.getSlotPosition(i),
+						sf::Vector2f(48.f, 48.f)
+					);
+
+					if (slotRect.contains(mousePos))
+					{
+						std::cout << "CLICKED SLOT " << i << "\n";
+						useHotbarSlot(i);
+					}
+					std::cout << "Mouse: " << mousePos.x << ", " << mousePos.y << "\n";
+					std::cout << "Slot " << i << ": "
+						<< m_hud.getSlotPosition(i).x << ", "
+						<< m_hud.getSlotPosition(i).y << "\n";
+				}
+
 			}
 		}
 		
 	}
 }
-
-
 
 void Game::processKeys(const std::optional<sf::Event> t_event)
 {
@@ -338,15 +580,21 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 	{
 		if (m_currentMenuState == menuState::GAMEPLAY)
 		{
+			m_pausedFrom = menuState::GAMEPLAY;
 			m_currentMenuState = menuState::PAUSE;
 		}
 		else if (m_currentMenuState == menuState::PAUSE)
 		{
-			m_currentMenuState = menuState::GAMEPLAY;
+			m_currentMenuState = m_pausedFrom;
 		}
 		else if (m_currentMenuState == menuState::MAIN_MENU)
 		{
 			m_DELETEexitGame = true;
+		}
+		else if (m_currentMenuState == menuState::BOSS_BATTLE)
+		{
+			m_pausedFrom = menuState::BOSS_BATTLE;
+			m_currentMenuState = menuState::PAUSE;
 		}
 		else
 		{
@@ -371,20 +619,21 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 	}
 	if (sf::Keyboard::Key::Numpad2 == newKeypress->code || sf::Keyboard::Key::Num2 == newKeypress->code) //just for testing to see if the health is being updated will be removed later
 	{
-		m_playerHealth -= 0.1f;
-		if (m_playerHealth < 0.f) 
-			m_playerHealth = 0.f;
+		godMode = true;
 
 		
 	}
 	if (sf::Keyboard::Key::Numpad3 == newKeypress->code || sf::Keyboard::Key::Num3 == newKeypress->code) //testing healing player will be removed later
 	{
-		m_playerHealth += 0.1f;
-		if (m_playerHealth > 1.f) 
-			m_playerHealth = 1.f;
+		if (m_hud.hasHealthPotion())
+		{
+			m_hud.useHealthPotion();
+			m_playerHealth += 0.25f;
+		}
 	}
 	if (sf::Keyboard::Key::Numpad4 == newKeypress->code || sf::Keyboard::Key::Num4 == newKeypress->code)
 	{
+		weakenPlayer = true;
 		m_hud.pushChatMessage(
 			"TestUser",
 			"made you weaker!",
@@ -395,13 +644,7 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 	}
 	if (sf::Keyboard::Key::Numpad5 == newKeypress->code || sf::Keyboard::Key::Num5 == newKeypress->code)
 	{
-		m_hud.pushChatMessage(
-			"Didde57",
-			"healed you!",
-			sf::Color(80, 255, 80),
-			sf::Color::White,
-			6.0f
-		);
+		slowPlayer = true;
 	}
 	if (sf::Keyboard::Key::Numpad6 == newKeypress->code || sf::Keyboard::Key::Num6 == newKeypress->code)
 	{
@@ -413,6 +656,27 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 	if(sf::Keyboard::Key::Numpad7 == newKeypress->code || sf::Keyboard::Key::Num7 == newKeypress->code)
 	{
 		spawnBrute = true;
+	}
+	if (sf::Keyboard::Key::Numpad8 == newKeypress->code || sf::Keyboard::Key::Num8 == newKeypress->code)
+	{
+		speedUpPlayer = true;
+	}
+	if (sf::Keyboard::Key::Numpad9 == newKeypress->code || sf::Keyboard::Key::Num9 == newKeypress->code)
+	{
+		powerBoostPlayer = true;
+	}
+	if (sf::Keyboard::Key::Numpad0 == newKeypress->code || sf::Keyboard::Key::Num0 == newKeypress->code)
+	{
+		dropTrap = true;
+	}
+	if (sf::Keyboard::Key::G == newKeypress->code)
+	{
+		shieldPlayer = true;
+	}
+	if (sf::Keyboard::Key::B == newKeypress->code)
+	{
+		m_currentMenuState = menuState::BOSS_BATTLE;
+		m_finalLevel.start();
 	}
 
 }
@@ -430,6 +694,7 @@ void Game::update(sf::Time t_deltaTime)
 		}
 		m_inputHandler.update();
 		
+		m_flashTime += t_deltaTime.asSeconds();
 		//handle menu state changes sound only right now
 		if (m_currentMenuState != m_prevState)
 		{
@@ -438,6 +703,8 @@ void Game::update(sf::Time t_deltaTime)
 			{
 			case menuState::MAIN_MENU:
 			{
+				m_audio.stopWalkingSound();
+				m_audio.stopswordSlashSound();
 				m_audio.stopGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over music.ogg");
 				m_audio.playMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main Menu music.ogg");
 				setupMainMenuButtons();
@@ -452,8 +719,18 @@ void Game::update(sf::Time t_deltaTime)
 			{
 				m_audio.stopMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main Menu music.ogg");
 				m_audio.stopGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over music.ogg");
-				m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+
+				if (m_currentMap == "ASSETS/LEVELS/Map4.tmx" || m_currentMap == "Map4")
+				{
+					m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Map 4 Music.ogg");
+				}
+				else
+				{
+					m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+				}
+
 				m_audio.setInGameBackgroundMusicVolume(30.f);
+				 
 				break;
 			}
 			case menuState::PAUSE:
@@ -465,14 +742,27 @@ void Game::update(sf::Time t_deltaTime)
 			}
 			case menuState::GAME_OVER:
 			{
-				m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+				if (m_playerWonGame) {
+					m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Final Boss.ogg");
+					m_audio.playGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over Win music.ogg");
+					break;
+				}
+				else {
+					m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
 
-				m_audio.stopWalkingSound();
-				m_audio.stopNpcWalkingSound();
-				m_audio.playGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over music.ogg");
+					m_audio.stopWalkingSound();
+					m_audio.stopNpcWalkingSound();
+					m_audio.playGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over music.ogg");
+				}
 				break;
 			}
-
+			case menuState::BOSS_BATTLE:
+			{
+				m_audio.stopWalkingSound();
+				m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Final Boss.ogg");
+				m_audio.setInGameBackgroundMusicVolume(30.f);
+				break;
+			}
 			default:
 				break;
 			}
@@ -500,7 +790,7 @@ void Game::update(sf::Time t_deltaTime)
 			m_mainMenuTitleHighlight.setScale({ scale, scale });
 			m_mainMenuTitleText.setFillColor(sf::Color(255, glow, 0));
 
-			break;
+			return;
 		}
 
 		case menuState::SETTINGS:
@@ -512,13 +802,38 @@ void Game::update(sf::Time t_deltaTime)
 			m_audio.stopNpcWalkingSound();
 			return;
 		}
+		case menuState::BOSS_DIALOGUE:
+			m_finalLevel.updateTB(t_deltaTime.asSeconds());
 
+			if (m_finalLevel.isDialogueFinished())
+			{
+				startBossFight(); 
+				m_currentMenuState = menuState::BOSS_BATTLE;
+			}
+			
+
+			return;
+		case menuState::BOSS_BATTLE:
+		{
+			
+			m_finalLevel.updateTB(t_deltaTime.asSeconds());
+
+			if (m_finalLevel.hasPlayerLost())
+			{
+				m_currentMenuState = menuState::GAME_OVER;
+				setupGameOverButtons();
+			}
+			if (m_finalLevel.hasPlayerWon())
+			{
+				m_playerWonGame = true;
+				m_currentMenuState = menuState::GAME_OVER;
+				setupGameOverButtons();
+			}
+			break;
+		}
 		case menuState::GAMEPLAY:
 			break;
 		}
-
-		if (m_currentMenuState != menuState::GAMEPLAY)
-			return;
 
 		// steal power timer
 		if (m_stealPowerActive)
@@ -547,6 +862,14 @@ void Game::update(sf::Time t_deltaTime)
 				m_powerBuffActive = false;
 				m_powerMultiplier = 1.0f;
 			}
+			
+		}
+		if (m_shieldActive)
+		{
+			if (m_shieldClock.getElapsedTime().asSeconds() >= m_shieldDuration)
+			{
+				m_shieldActive = false;
+			}
 		}
 		// slow debuff timer
 		if (m_slowActive)
@@ -558,26 +881,203 @@ void Game::update(sf::Time t_deltaTime)
 
 			}
 		}
+		if(m_godModeActive)
+		{
+			if (m_godModeClock.getElapsedTime().asSeconds() >= m_godModeDuration)
+			{
+				m_godModeActive = false;
+				// reset everything
+				m_speedMultiplier = 1.0f;
+				m_powerMultiplier = 1.0f;
+				m_playerDamageMultiplier = 1.0f;
+
+				m_speedBuffActive = false;
+				m_powerBuffActive = false;
+				m_shieldActive = false;
+			}
+		}
+		bool isFlashing = false;
+		sf::Color finalColor = sf::Color::White;
+	     if (m_godModeActive)
+		{
+			float speed = 2.0f; //speed of the color change
+			float hue = std::fmod(m_flashTime * speed * 360.f, 360.f);
+
+			float c = 1.0f;
+			float x = c * (1 - std::fabs(std::fmod(hue / 60.0f, 2) - 1));
+			float m = 0.0f;
+
+			float r = 0, g = 0, b = 0;
+
+			if (hue < 60) { r = c; g = x; b = 0; }
+			else if (hue < 120) { r = x; g = c; b = 0; }
+			else if (hue < 180) { r = 0; g = c; b = x; }
+			else if (hue < 240) { r = 0; g = x; b = c; }
+			else if (hue < 300) { r = x; g = 0; b = c; }
+			else { r = c; g = 0; b = x; }
+
+			finalColor = sf::Color(
+				static_cast<uint8_t>((r + m) * 255),
+				static_cast<uint8_t>((g + m) * 255),
+				static_cast<uint8_t>((b + m) * 255)
+			);
+
+			isFlashing = true;
+		}
+		// steal power 
+		else if (m_stealPowerActive)
+		{
+			float pulse = (std::sin(m_flashTime * 12.f) + 1.f) * 0.5f;
+
+			finalColor = sf::Color(
+				255,
+				static_cast<uint8_t>(255 * (1.f - pulse)),
+				static_cast<uint8_t>(255 * (1.f - pulse))
+			);
+
+			isFlashing = true;
+		}
+
+		// speed (YELLOW)
+		else if (m_speedBuffActive)
+		{
+			float pulse = (std::sin(m_flashTime * 12.f) + 1.f) * 0.5f;
+
+			finalColor = sf::Color(
+				255,
+				255,
+				static_cast<uint8_t>(255 * pulse) 
+			);
+
+			isFlashing = true;
+		}
+
+		// power (BLUE)
+		else if (m_powerBuffActive)
+		{
+			float pulse = (std::sin(m_flashTime * 12.f) + 1.f) * 0.5f;
+
+			finalColor = sf::Color(
+				static_cast<uint8_t>(100 * pulse),
+				static_cast<uint8_t>(100 * pulse),
+				255
+			);
+
+			isFlashing = true;
+		}
+		else if (m_shieldActive)
+		{
+			float pulse = (std::sin(m_flashTime * 8.f) + 1.f) * 0.5f;
+
+			finalColor = sf::Color(
+				150,
+				150,
+				255
+			);
+
+			isFlashing = true;
+		}
+		else if (m_slowActive) {
+
+			float pulse = (std::sin(m_flashTime * 12.f) + 1.f) * 0.5f;
+
+			finalColor = sf::Color(
+				static_cast<uint8_t>(255 * pulse), 
+				255,                              
+				static_cast<uint8_t>(255 * pulse) 
+			);
+
+			isFlashing = true;
+		}
+		
+
+		// APPLY COLOR
+		if (isFlashing)
+			m_player.setColor(finalColor);
+		else
+			m_player.setColor(sf::Color::White);
+		
 		static bool attackWasHeld = false;
 		const bool spaceHeld = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
 		const bool spaceJustPressed = spaceHeld && !attackWasHeld;
 		attackWasHeld = spaceHeld;
 
 		const bool controllerJustPressed = m_inputHandler.controllerAttackJustPressed();
-
 		const bool attackJustPressed = spaceJustPressed || controllerJustPressed;
-		
+		//stops player input when in boss battle to prevent movemen
+		m_player.setInputEnabled(m_currentMenuState != menuState::BOSS_BATTLE);
+
 		m_player.update(t_deltaTime.asSeconds());
 
+		for (auto& npc : m_npcs)
+			npc.update(t_deltaTime.asSeconds());
+
+		for (auto& obstacle : m_obstacles)
+		{
+			obstacle->update(t_deltaTime.asSeconds());
+		}
+		m_obstacles.erase(
+			std::remove_if(m_obstacles.begin(), m_obstacles.end(),
+				[](const std::unique_ptr<Obstacles>& obstacle)
+				{
+					return obstacle->isExpired();
+				}),
+			m_obstacles.end()
+		);
+
+		//boss triggerzone
+		if (!isBossTriggered)
+		{
+			sf::FloatRect bossZone({ 800.f, 400.f }, { 200.f, 200.f });
+
+			if (Entity::rectsIntersect(m_player.getBounds(), bossZone))
+			{
+				isBossTriggered = true;
+				triggerBossBattle();
+			}
+		}
+		if (m_currentMenuState == menuState::BOSS_DIALOGUE)
+			return;
+		if (m_currentMenuState == menuState::BOSS_BATTLE)
+			return;
 		//tracks direction of player movement
-		sf::Vector2f direction = m_player.getMovement(); 
-		
+		sf::Vector2f direction = { 0.f, 0.f };
+
+		if (m_currentMenuState != menuState::BOSS_BATTLE)
+		{
+			direction = m_player.getMovement();
+		}
+		if (m_inputHandler.menuLeftPressed())
+		{
+			m_selectedHotbarSlot--;
+			if (m_selectedHotbarSlot < 3)
+				m_selectedHotbarSlot = 5;
+		}
+
+		if (m_inputHandler.menuRightPressed())
+		{
+			m_selectedHotbarSlot++;
+			if (m_selectedHotbarSlot > 5)
+				m_selectedHotbarSlot = 3;
+		}
+		if (m_inputHandler.controllerAttackJustPressed())
+		{
+			useHotbarSlot(m_selectedHotbarSlot);
+		}
+   
 		float speedMult = m_speedMultiplier;
-		if (m_slowActive) speedMult = 1.0f;
+		if (m_godModeActive)
+			speedMult = 2.5f;
+
+		if (m_slowActive) 
+			speedMult = 1.0f;
 
 		float speed = m_baseMoveSpeed * speedMult * m_slowMultiplier;
 		sf::Vector2f movement = direction * speed * t_deltaTime.asSeconds();
-		bool blocked = false;
+
+		bool blockedX = false;
+		bool blockedY = false;
+		bool blocked = blockedX && blockedY;
 		//for collision with walls 
 		if (movement != sf::Vector2f(0.f, 0.f))
 		{
@@ -589,6 +1089,7 @@ void Game::update(sf::Time t_deltaTime)
 			{
 				if (Entity::rectsIntersect(nextBounds, doorRef.rect))
 				{
+					
 					if (m_keyCount >= doorRef.requiredKeys)
 					{
 						m_keyCount = 0;
@@ -597,7 +1098,11 @@ void Game::update(sf::Time t_deltaTime)
 						m_items.clear();
 
 						m_mapRenderer.load(doorRef.nextMap);
+						m_currentMap = doorRef.nextMap;
+						finalLevelSpecificContent();
+						updateIngameMapMusic();
 						std::cout << "Loaded map: " << doorRef.nextMap << "\n";
+						
 						std::cout << "Key spawns: " << m_mapRenderer.getKeySpawns().size() << "\n";
 						
 						for (const auto& pos : m_mapRenderer.getKeySpawns())
@@ -607,6 +1112,29 @@ void Game::update(sf::Time t_deltaTime)
 								pos
 							);
 
+						}
+						for (const auto& pos : m_mapRenderer.getHealthSpawns())
+						{
+							m_items.emplace_back(
+								ItemEffect{ ItemType::healthPotion, 0.25f, 0.f, 1 },
+								pos
+							);
+						}
+
+						for (const auto& pos : m_mapRenderer.getSpeedSpawns())
+						{
+							m_items.emplace_back(
+								ItemEffect{ ItemType::speedPotion, 0.f, 5.f, 1 },
+								pos
+							);
+						}
+
+						for (const auto& pos : m_mapRenderer.getPowerSpawns())
+						{
+							m_items.emplace_back(
+								ItemEffect{ ItemType::powerPotion, 0.f, 5.f, 1 },
+								pos
+							);
 						}
 						m_player.setPosition(doorRef.spawn);
 						m_camera.follow(m_player.getPosition());
@@ -628,6 +1156,17 @@ void Game::update(sf::Time t_deltaTime)
 				for (const auto& wall : walls)
 				{
 					if (Entity::rectsIntersect(nextBounds, wall))
+					{
+						blocked = true;
+						break;
+					}
+				}
+			}
+			if (!blocked)
+			{
+				for (auto& obstacle : m_obstacles)
+				{
+					if (Entity::rectsIntersect(nextBounds, obstacle->getBounds()))
 					{
 						blocked = true;
 						break;
@@ -673,7 +1212,10 @@ void Game::update(sf::Time t_deltaTime)
 
 			//debuff overwrites power buff but not the other way around, so if steal power is active ignore power buff multiplier
 			float damageMult = m_powerMultiplier;
-			if (m_stealPowerActive) damageMult = 1.0f;
+			if(m_godModeActive)
+				damageMult = 3.0f;
+			if (m_stealPowerActive) 
+				damageMult = 1.0f;
 			const float finalDamage = m_baseDamage * m_playerDamageMultiplier * damageMult;
 			for (auto& npc : m_npcs)
 			{
@@ -690,12 +1232,37 @@ void Game::update(sf::Time t_deltaTime)
 		for (auto& npc : m_npcs)
 		{
 			const float dt = t_deltaTime.asSeconds();
+			//boss behaviour trigger and music change
+			if (npc.getType() == EnemyType::Boss && m_currentMenuState == menuState::GAMEPLAY)
+			{
+				npc.setVelocity({ 0.f, 0.f });
+				npc.setAttacking(false);
+				npc.setNPCDirection(Direction::DOWN);
 
+				sf::Vector2f bossPos = npc.getPosition();
+
+				sf::FloatRect bossZone(
+					{ bossPos.x - 100.f, bossPos.y - 100.f },
+					{ 200.f, 200.f }
+				);
+
+				if (Entity::rectsIntersect(m_player.getBounds(), bossZone))
+				{
+					isBossTriggered = true;
+					triggerBossBattle();
+					m_audio.stopWalkingSound();
+					if (m_currentMenuState != menuState::BOSS_BATTLE)
+					{
+						m_player.setDirection(Direction::UP);
+					}
+				}
+
+				continue; 
+			}
 			if (npc.isDead())
 			{
 				npc.setAttacking(false);
-				npc.setVelocity({ 0.f, 0.f });
-				npc.update(dt);    
+				npc.setVelocity({ 0.f, 0.f });    
 				if (!npc.hasDroppedLoot())
 				{
 					m_stats.enemiesDefeated++;
@@ -722,13 +1289,21 @@ void Game::update(sf::Time t_deltaTime)
 				if (npc.attackTimer(dt))
 				{
 					float damage = 0.2f;
-
+					if (m_shieldActive)
+					{
+						damage *= m_damageReduction;
+					}
 					if (npc.getType() == EnemyType::Brute)
 					{
 						damage = 0.4f;
+						if (m_shieldActive)
+							damage *= m_damageReduction;
 					}
 
-					m_playerHealth -= damage;
+					if (!m_godModeActive)
+					{
+						m_playerHealth -= damage;
+					}
 
 					if (m_playerHealth < 0.f) {
 						m_playerHealth = 0.f;
@@ -763,7 +1338,6 @@ void Game::update(sf::Time t_deltaTime)
 			if (std::abs(delta.x) > npcEpsilon || std::abs(delta.y) > npcEpsilon)
 				anyNpcMoving = true;
 
-			npc.update(dt);
 		}
 		static bool npcStepsOn = false;
 
@@ -800,9 +1374,15 @@ void Game::update(sf::Time t_deltaTime)
 
 				if (effect.type == ItemType::healthPotion)
 				{
-					m_playerHealth += effect.amount;
-					if (m_playerHealth > 1.f)
-						m_playerHealth = 1.f;
+					m_hud.addHealthPotion();
+				}
+				else if (effect.type == ItemType::speedPotion)
+				{
+					m_hud.addSpeedPotion();
+				}
+				else if (effect.type == ItemType::powerPotion)
+				{
+					m_hud.addPowerPotion();
 				}
 				else if (effect.type == ItemType::Key)
 				{
@@ -811,24 +1391,26 @@ void Game::update(sf::Time t_deltaTime)
 				}
 			}
 		}
-		//update effects and spawn npcs applying the ai behaviour this helps keep the poof spawn effect to where the npc spawns.
 		for (auto& effectPtr : m_effects)
 		{
 			effectPtr->updateEffects(t_deltaTime.asSeconds());
+		}
 
-			if (effectPtr->shouldSpawn())
+		for (auto& effect : m_effects)
+		{
+			if (effect->getEffectType() == EffectType::SpawnEnemy && effect->shouldSpawn())
 			{
 				//spawn the npc
-				auto tex = getEnemyTexture(effectPtr->getSpawnType());
+				auto tex = getEnemyTexture(effect->getSpawnType());
 				if (!tex) continue;
-				//spawn npc at the same time as the poof effect finishes
+				//spawn npc at the position as the poof effect
 				m_npcs.emplace_back(tex);
 				m_npcs.back().setAIMode(AIBehaviour::Mode::Pursue);
-				m_npcs.back().setPosition(
-					effectPtr->getSpawnPosition().x,
-					effectPtr->getSpawnPosition().y
-				);
-				m_npcs.back().setType(effectPtr->getSpawnType());
+				auto pos = effect->getSpawnPosition();
+				m_npcs.back().setPosition(pos.x, pos.y);
+				m_npcs.back().setType(effect->getSpawnType());
+
+				effect->markAsSpawned();
 			}
 		}
 		//remove finished effects
@@ -884,21 +1466,45 @@ void Game::render()
 	if (m_currentMenuState == menuState::PAUSE)
 	{
 		
-		m_camera.applyCam(m_window);
+		if (m_pausedFrom == menuState::BOSS_BATTLE)
+		{
+			
+			sf::View uiView;
+			uiView.setSize({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
+			uiView.setCenter({ VIRTUAL_WIDTH * 0.5f, VIRTUAL_HEIGHT * 0.5f });
+			uiView.setViewport({ {0.f, 0.f}, {1.f, 1.f} });
 
-		m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
+			m_window.setView(uiView);
 
-		for (auto& npc : m_npcs)
-			npc.draw(m_window);
+			m_window.draw(m_finalLevelSprite);
 
-		m_player.draw(m_window);
+			for (auto& npc : m_npcs)
+				npc.draw(m_window);
 
-		for (auto& item : m_items)
-			item.draw(m_window);
+			m_player.setPlayerScale(6.f, 6.f);
 
-		m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, true);
+			m_player.draw(m_window);
 
-		
+			m_finalLevel.drawTB(m_window, { VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
+		}
+		else
+		{
+			
+			m_camera.applyCam(m_window);
+
+			m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
+
+			for (auto& npc : m_npcs)
+				npc.draw(m_window);
+
+			m_player.draw(m_window);
+
+			for (auto& item : m_items)
+				item.draw(m_window);
+
+			m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, true);
+		}
+
 		sf::View uiView;
 		uiView.setSize({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
 		uiView.setCenter({ VIRTUAL_WIDTH * 0.5f, VIRTUAL_HEIGHT * 0.5f });
@@ -906,12 +1512,39 @@ void Game::render()
 
 		m_window.setView(uiView);
 
-		
-		m_hud.draw(m_window);
-
-		
+		if (m_pausedFrom == menuState::GAMEPLAY)
+		{
+			m_hud.draw(m_window);
+		}
 		m_window.draw(m_pauseOverlay);
 		m_window.draw(m_pauseText);
+
+		m_window.display();
+		return;
+	}
+
+	if (m_currentMenuState == menuState::BOSS_DIALOGUE)
+	{
+		m_camera.applyCam(m_window);
+
+		m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
+
+		for (auto& npc : m_npcs)
+			npc.draw(m_window);
+		
+		m_player.draw(m_window);
+
+		m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, true);
+
+		// UI view
+		sf::View uiView;
+		uiView.setSize({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
+		uiView.setCenter({ VIRTUAL_WIDTH * 0.5f, VIRTUAL_HEIGHT * 0.5f });
+		uiView.setViewport({ {0.f, 0.f}, {1.f, 1.f} });
+
+		m_window.setView(uiView);
+
+		m_finalLevel.drawTB(m_window, { VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
 
 		m_window.display();
 		return;
@@ -919,31 +1552,44 @@ void Game::render()
 	//BOSS BATTLE RENDERING
 	if (m_currentMenuState == menuState::BOSS_BATTLE)
 	{
-		// Use UI view (no camera)
 		sf::View uiView;
 		uiView.setSize({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
 		uiView.setCenter({ VIRTUAL_WIDTH * 0.5f, VIRTUAL_HEIGHT * 0.5f });
-		uiView.setViewport({ {0.f, 0.f}, {1.f, 1.f} });
+		sf::FloatRect viewport;
+		viewport.position = { 0.f, 0.f };
+		viewport.size = { 1.f, 1.f };
 
+		uiView.setViewport(viewport);
 		m_window.setView(uiView);
+		
+		m_window.draw(m_finalLevelSprite);
+		for (auto& npc : m_npcs)
+			npc.draw(m_window);
+		m_player.setPlayerScale(4.f, 4.f);
+		m_player.draw(m_window);
 
-		m_finalLevel.drawTB(m_window);
-
+		m_finalLevel.drawTB(m_window, { VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
 		m_window.display();
 		return;
 	}
+
 	m_camera.applyCam(m_window);
 	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, false);
 	for (auto& npc : m_npcs) {
 		npc.draw(m_window);
 	}
-	for (auto& e : m_effects)
-		e->drawEffects(m_window);
+	for (auto& obstacle : m_obstacles) {
+		obstacle->draw(m_window);
+	}
 	m_player.draw(m_window);
+	for (auto& effectPtr : m_effects)
+		effectPtr->drawEffects(m_window);
+	
 	for (auto& item : m_items)
 	{
 		item.draw(m_window);
 	}
+
 	//GAME OVER SCREEN RENDERING
 	if (m_currentMenuState == menuState::GAME_OVER)
 	{
@@ -987,18 +1633,6 @@ void Game::render()
 	}
 
 	m_mapRenderer.drawLayered(m_window, sf::RenderStates::Default, true);
-	
-	//DEBUG: Drawing Collision Rects
-	
-	//for (const auto& r : m_mapRenderer.getCollisionRects())
-	//{
-	//	sf::RectangleShape box;
-	//	box.setPosition(r.position);
-	//	box.setSize(r.size);
-	//	box.setFillColor({ 255,0,0,100 });
-	//	m_window.draw(box);
-	//}
-
 	sf::View uiView;
 	uiView.setSize({ m_camera.getVirtualSize()});
 	uiView.setCenter({ m_camera.getVirtualSize() * 0.5f});
@@ -1006,7 +1640,9 @@ void Game::render()
 	uiView.setViewport(m_camera.getViewport());
 
 	m_window.setView(uiView);
+
 	m_hud.draw(m_window);
+
 
 	if (m_currentMenuState == menuState::GAMEPLAY)
 	{
@@ -1029,8 +1665,10 @@ void Game::resetGame()
 
 	m_playerHealth = 1.f;
 	m_player.resetPlayer();
-
+	m_player.setInputEnabled(true);
+	m_player.setBattleMode(false);
 	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
+
 
 	for (const auto& pos : m_mapRenderer.getKeySpawns())
 	{
@@ -1045,9 +1683,106 @@ void Game::spawnNPC(sf::Vector2f position, EnemyType type)
 {
 	//spawn a poof effect at the spawn position and when the effect finishes it will spawn the npc 
 	// just to add a bit of visual flair to the npc spawning in
-	m_effects.emplace_back(
-		std::make_unique<Effects>(m_poofTexture, position, type)
+	auto effect = std::make_unique<Effects>(
+		m_poofTexture,
+		position,
+		type,
+		EffectType::SpawnEnemy
 	);
+
+	m_effects.emplace_back(std::move(effect));
+}
+
+void Game::triggerBossBattle()
+{
+	m_player.setInputEnabled(false);
+
+	// only start dialogue here
+	m_finalLevel.startDialogue();
+
+	m_currentMenuState = menuState::BOSS_DIALOGUE;
+
+	m_bossBattleStarted = false; 
+}
+
+void Game::startBossFight()
+{
+	//setting up boss battle, positioning player and boss, changing music, and starting the turn-based system
+	m_player.setBattleMode(true);
+	m_player.setInputEnabled(false);
+	m_player.getInputHandler().clearMovement();
+	m_finalLevel.setPlayer(&m_player);
+	m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+	m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Map 4 Music.ogg");
+
+	m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Final Boss.ogg");
+	m_audio.setInGameBackgroundMusicVolume(30.f);
+
+	// positions
+	sf::Vector2f playerBattlePos = { 1700.f, 800.f };
+	float bossBattlePosX = 500.f;
+	float bossBattlePosY = 800.f;
+
+	m_player.setPosition(playerBattlePos);
+	m_player.playerSetIdleAnimation();
+	m_player.setDirection(Direction::LEFT);
+	for (auto& npc : m_npcs)
+	{
+		if (npc.getType() == EnemyType::Boss)
+		{
+			npc.setBossMode(BossMode::Battle);
+			npc.setPosition(bossBattlePosX, bossBattlePosY);
+			npc.setNPCDirection(Direction::RIGHT);
+			m_finalLevel.setBoss(&npc);
+		}
+	}
+
+	// start turn-based system
+	m_finalLevel.start();
+}
+
+void Game::finalLevelSpecificContent()
+{
+	//adds the boss to the final level and sets its position and behaviour, also clears npcs 
+	// from previous levels to prevent any weird carryover
+	m_npcs.clear();
+
+	if (m_mapRenderer.getMapPath().find("Map4") != std::string::npos)
+	{
+		auto tex = getEnemyTexture(EnemyType::Boss);
+		if (tex)
+		{
+			m_npcs.emplace_back(tex);
+			auto& boss = m_npcs.back();
+
+			boss.setType(EnemyType::Boss);
+			boss.setAIMode(AIBehaviour::Mode::None);
+			boss.setBossMode(BossMode::MapIdle);
+			boss.setPosition(480.f, 500.f);
+			boss.setNPCDirection(Direction::DOWN);
+		}
+	}
+}
+
+void Game::updateIngameMapMusic()
+{
+	//stops any currently playing music and checks which map is loaded to determine which music to play
+	// , also sets volume
+	m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+	m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Map 4 Music.ogg");
+
+	if (m_mapRenderer.getMapPath().find("Map4") != std::string::npos)
+	{
+		std::cout << "Playing Map 4 music\n";
+		m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Map 4 Music.ogg");
+	}
+	else
+	{
+		std::cout << "Playing normal music\n";
+		m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+	}
+
+	m_audio.setInGameBackgroundMusicVolume(30.f);
 }
 
 void Game::setupMenuView()
@@ -1242,6 +1977,36 @@ void Game::setUpSessionCode(const std::string& code)
 	
 	m_sessionCodeText.setPosition({ VIRTUAL_WIDTH * 0.5f, 330.f });
 }
+
+void Game::useHotbarSlot(int index)
+{
+	switch (index)
+	{
+	case 3: // health
+		if (m_hud.hasHealthPotion())
+		{
+			m_hud.useHealthPotion();
+			m_playerHealth += 0.25f;
+		}
+		break;
+
+	case 4: // speed
+		if (m_hud.hasSpeedPotion())
+		{
+			m_hud.useSpeedPotion();
+			speedUpPlayer = true;
+		}
+		break;
+
+	case 5: // power
+		if (m_hud.hasPowerPotion())
+		{
+			m_hud.usePowerPotion();
+			powerBoostPlayer = true;
+		}
+		break;
+	}
+}
 	
 std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type)
 {
@@ -1267,6 +2032,8 @@ std::shared_ptr<sf::Texture> Game::getEnemyTexture(EnemyType type)
     case EnemyType::Boss:
 		filePath = "ASSETS/IMAGES/Boss.png";
 		break;
+	case EnemyType::None:
+		return nullptr;
 	}
 
 	if (!texture->loadFromFile(filePath))

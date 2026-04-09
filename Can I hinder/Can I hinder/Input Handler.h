@@ -21,7 +21,7 @@ public:
 	void handleEvent(const sf::Event& event, const sf::RenderWindow& window, const sf::View& menuView);
 	bool controllerAttackJustPressed() const;
 	bool menuMouseMoved() const;
-	bool menuMouseClickReleased() const;
+	bool menuMouseClickReleased();
 	sf::Vector2f menuMousePosition() const;
 	void setDeadZone(float deadZone);
 	void clearMovement();
@@ -45,6 +45,8 @@ private:
 	bool m_prevRight{ false };
 	bool m_prevSelect{ false };
 	bool m_prevCancel{ false };
+	bool m_prevMouseDown = false;
+	bool m_mouseReleasedThisFrame = false;
 	float m_deadZone{ 15.f };
 
 	// Menu mouse input

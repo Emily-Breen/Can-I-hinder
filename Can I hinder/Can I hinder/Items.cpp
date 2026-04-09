@@ -90,7 +90,7 @@ void Items::itemInit(sf::Vector2f worldPos)
 	m_texture = loadItemTextures(m_effect.type);  
 	
 	m_sprite.setPosition(worldPos);
-	m_sprite.setScale({ 2.f, 2.f });
+	m_sprite.setScale({ 3.f, 3.f });
 	m_sprite.setOrigin({ 8.f, 8.f }); 
 
 	m_baseY = worldPos.y;

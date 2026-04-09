@@ -8,8 +8,8 @@
 
 enum class ItemType {
 	healthPotion,
-	SpeedBoost,
-	StrengthBoost,
+	speedPotion,
+	powerPotion,
 	Key
 };
 struct ItemEffect {

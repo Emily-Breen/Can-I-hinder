@@ -25,6 +25,7 @@ void InputHandler::update()
      m_controllerConnected = sf::Joystick::isConnected(m_controllerId);
      m_movement = { 0.f, 0.f };
      m_attackPressed = false;
+     m_menuMouseMoved = false;
 
      if (m_controllerConnected)
      {
@@ -166,9 +167,8 @@ void InputHandler::handleEvent(const sf::Event& event,
     const sf::RenderWindow& window,
     const sf::View& menuView)
 {
-   
-    m_menuMouseMoved = false;
-    m_menuMouseClickReleased = false;
+  
+    
 
     if (const auto* moved = event.getIf<sf::Event::MouseMoved>())
     {
@@ -199,9 +199,14 @@ bool InputHandler::menuMouseMoved() const
     return m_menuMouseMoved;
 }
 
-bool InputHandler::menuMouseClickReleased() const
+bool InputHandler::menuMouseClickReleased()
 {
-    return m_menuMouseClickReleased;
+    if (m_menuMouseClickReleased)
+    {
+        m_menuMouseClickReleased = false;
+        return true;
+    }
+    return false;
 }
 
 sf::Vector2f InputHandler::menuMousePosition() const

@@ -29,6 +29,10 @@ bool MapRenderer::load(const std::string& tmxFilePath)
 	m_collisionRects.clear();
     m_doors.clear(); //this fecker I forgot to add it in when creating the door mechanic and caused me HOURS of debugging :'O
     m_keySpawns.clear();
+	m_healthSpawns.clear();
+	m_speedSpawns.clear();
+	m_powerSpawns.clear();
+
 
     // Load all tileset textures
     for (const auto& tileset : mapData.getTilesets())
@@ -101,7 +105,8 @@ bool MapRenderer::load(const std::string& tmxFilePath)
 
                 // Get the texture for this tileset
                 auto it = m_tilesetTextures.find(tileset->getImagePath());
-                if (it == m_tilesetTextures.end()) continue;
+                if (it == m_tilesetTextures.end()) 
+                    continue;
 
                 const sf::Texture* texture = &it->second;
                 sf::VertexArray& vertices = textureBatches[texture];
@@ -236,6 +241,48 @@ bool MapRenderer::load(const std::string& tmxFilePath)
                     correctedPos *= mapScale;
 
                     m_keySpawns.push_back(correctedPos);
+                }
+            }
+            if (layer->getName() == "HealthSpawns")
+            {
+                const auto& objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
+                for (const auto& obj : objects)
+                {
+                    auto pos = obj.getPosition();
+                    auto size = obj.getAABB();
+
+                    sf::Vector2f correctedPos(pos.x, pos.y - size.height);
+                    correctedPos *= mapScale;
+
+                    m_healthSpawns.push_back(correctedPos);
+                }
+            }
+             if (layer->getName() == "SpeedSpawns")
+            {
+                const auto& objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
+                for (const auto& obj : objects)
+                {
+                    auto pos = obj.getPosition();
+                    auto size = obj.getAABB();
+
+                    sf::Vector2f correctedPos(pos.x, pos.y - size.height);
+                    correctedPos *= mapScale;
+
+                    m_speedSpawns.push_back(correctedPos);
+                }
+            }
+            if (layer->getName() == "PowerSpawns")
+            {
+                const auto& objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
+                for (const auto& obj : objects)
+                {
+                    auto pos = obj.getPosition();
+                    auto size = obj.getAABB();
+
+                    sf::Vector2f correctedPos(pos.x, pos.y - size.height);
+                    correctedPos *= mapScale;
+
+                    m_powerSpawns.push_back(correctedPos);
                 }
             }
         }
@@ -440,6 +487,21 @@ sf::Vector2f MapRenderer::getFloorSpawn(const sf::Vector2f& entitySize, const sf
 const std::vector<sf::Vector2f>& MapRenderer::getKeySpawns() const
 {
     return m_keySpawns;
+}
+
+const std::vector<sf::Vector2f>& MapRenderer::getHealthSpawns() const
+{
+	return m_healthSpawns;
+}
+
+const std::vector<sf::Vector2f>& MapRenderer::getSpeedSpawns() const
+{
+	return m_speedSpawns;
+}
+
+const std::vector<sf::Vector2f>& MapRenderer::getPowerSpawns() const
+{
+	return m_powerSpawns;
 }
 
 bool MapRenderer::rectHitsCollision(const sf::FloatRect& test, const std::vector<sf::FloatRect>& colliders)

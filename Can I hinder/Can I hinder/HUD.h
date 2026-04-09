@@ -23,7 +23,17 @@ public:
 	void draw(sf::RenderWindow& window);
 	void pushChatMessage(const std::string& username, const std::string& message, const sf::Color& userColor, const sf::Color& messageColor = sf::Color::White, float timeToLive = 6.0f);
 	void addKey();
+	void addHealthPotion();
+	void addSpeedPotion();
+	void addPowerPotion();
+	void useHealthPotion();
+	bool hasHealthPotion() const;
+	void useSpeedPotion();
+	bool hasSpeedPotion() const;
+	void usePowerPotion();
+	bool hasPowerPotion() const;
 	void clearKeys();
+	sf::Vector2f getSlotPosition(int index) const;
 
 private:
 	
@@ -38,6 +48,9 @@ private:
 	sf::Texture m_weaponBgTexture2;
 	sf::Texture m_weaponTexture;
 	sf::Texture m_keyTexture;
+	sf::Texture m_healthPotionTexture;
+	sf::Texture m_speedPotionTexture;
+	sf::Texture m_powerPotionTexture;
 
 	sf::Sprite m_chatBGSprite;
 	sf::Sprite m_hotBarSprite;
@@ -48,6 +61,9 @@ private:
 	sf::Sprite m_weaponBgSprite;
 	sf::Sprite m_weaponBgSprite2;
 	sf::Sprite m_keySprite;
+	sf::Sprite m_healthPotionSprite;
+	sf::Sprite m_speedPotionSprite;
+	sf::Sprite m_powerPotionSprite;
 
 	
 
@@ -60,6 +76,10 @@ private:
 
 
 	int m_keys = 0;
+	int m_healthPotions = 0;
+	int m_speedPotions = 0;
+	int m_powerPotions = 0;
+
 
 	sf::Font m_font;
 	

@@ -17,6 +17,9 @@ HUD::HUD()
 	, m_hotBarSlotBackground(m_hotBarBackgroundTexture)
 	, m_hotBarCircleBackground(m_hotBarBackgroundTexture2)
 	, m_keySprite(m_keyTexture)
+	, m_healthPotionSprite(m_healthPotionTexture)
+	, m_speedPotionSprite(m_speedPotionTexture)
+	, m_powerPotionSprite(m_powerPotionTexture)
 {
 }
 
@@ -41,6 +44,12 @@ bool HUD::load()
 		return false;
 	if (!m_keyTexture.loadFromFile("ASSETS/IMAGES/ITEMS/key.png"))
 		return false;
+	if(!m_healthPotionTexture.loadFromFile("ASSETS/IMAGES/Items/BigHealthPotion.png"))
+		return false;
+	if (!m_speedPotionTexture.loadFromFile("ASSETS/IMAGES/Items/BigSpeedBoostPotion.png"))
+		return false;
+	if (!m_powerPotionTexture.loadFromFile("ASSETS/IMAGES/Items/BigStrengthPotion.png"))
+		return false;
 	if (!m_font.openFromFile("ASSETS/FONTS/Jersey20-Regular.ttf"))
 		return false;
 
@@ -54,6 +63,13 @@ bool HUD::load()
 	m_hotBarSlotBackground = sf::Sprite(m_hotBarBackgroundTexture);
 	m_hotBarCircleBackground = sf::Sprite(m_hotBarBackgroundTexture2);
 	m_keySprite = sf::Sprite(m_keyTexture);
+	m_healthPotionSprite = sf::Sprite(m_healthPotionTexture);
+	m_speedPotionSprite = sf::Sprite(m_speedPotionTexture);
+	m_powerPotionSprite = sf::Sprite(m_powerPotionTexture);
+
+	m_healthPotionSprite.setTextureRect({ {0, 0}, {16, 16} });
+	m_speedPotionSprite.setTextureRect({ {0, 0}, {16, 16} });
+	m_powerPotionSprite.setTextureRect({ {0, 0}, {16, 16} });
 
 	// Scaling
 	m_healthBarDecorSprite.setScale({ 6.f,6.f });
@@ -64,7 +80,9 @@ bool HUD::load()
 	m_hotBarSlotBackground.setScale({ 3.f, 3.f });
 	m_hotBarCircleBackground.setScale({ 3.2f, 3.2f });
 	m_keySprite.setScale({ 2.f,2.f });
-
+	m_healthPotionSprite.setScale({ 3.f, 3.f });
+	m_speedPotionSprite.setScale({ 3.f, 3.f });
+	m_powerPotionSprite.setScale({ 3.f, 3.f });
 	
 
 
@@ -225,6 +243,40 @@ void HUD::draw(sf::RenderWindow& window)
 
 		window.draw(key);
 	}
+	sf::Text countText(m_font);
+	countText.setCharacterSize(20);
+	countText.setFillColor(sf::Color::White);
+	if (m_healthPotions > 0)
+	{
+		auto sprite = m_healthPotionSprite;
+		sprite.setPosition(m_slotPositions[3]);
+		window.draw(sprite);
+
+		countText.setString(std::to_string(m_healthPotions));
+		countText.setPosition(m_slotPositions[3] + sf::Vector2f(30.f, 20.f));
+		window.draw(countText);
+	}
+	if (m_speedPotions > 0)
+	{
+		auto sprite = m_speedPotionSprite;
+		sprite.setPosition(m_slotPositions[4]);
+		window.draw(sprite);
+
+		countText.setString(std::to_string(m_speedPotions));
+		countText.setPosition(m_slotPositions[4] + sf::Vector2f(30.f, 20.f));
+		window.draw(countText);
+	}
+	if (m_powerPotions > 0)
+	{
+		auto sprite = m_powerPotionSprite;
+		sprite.setPosition(m_slotPositions[5]);
+		window.draw(sprite);
+
+		countText.setString(std::to_string(m_powerPotions));
+		countText.setPosition(m_slotPositions[5] + sf::Vector2f(30.f, 20.f));
+		window.draw(countText);
+	}
+	
 	//for the right circle
 	m_hotBarCircleBackground.setPosition(m_rightCirclePos);
 	window.draw(m_hotBarCircleBackground);
@@ -250,7 +302,66 @@ void HUD::addKey()
 	m_keys++;
 }
 
+void HUD::addHealthPotion()
+{
+	m_healthPotions++;
+}
+
+void HUD::addSpeedPotion()
+{
+	m_speedPotions++;
+}
+
+void HUD::addPowerPotion()
+{
+	m_powerPotions++;	
+}
+
+void HUD::useHealthPotion()
+{
+	if (m_healthPotions > 0)
+	{
+		m_healthPotions--;
+	}
+}
+
+bool HUD::hasHealthPotion() const
+{
+	return m_healthPotions > 0;
+}
+
+void HUD::useSpeedPotion()
+{
+	if (m_speedPotions > 0)
+	{
+		m_speedPotions--;
+	}
+}
+
+bool HUD::hasSpeedPotion() const
+{
+	return m_speedPotions > 0;
+}
+
+void HUD::usePowerPotion()
+{
+	if (m_powerPotions > 0)
+	{
+		m_powerPotions--;
+	}
+}
+
+bool HUD::hasPowerPotion() const
+{
+	return m_powerPotions > 0;
+}
+
 void HUD::clearKeys()
 {
 	m_keys = 0;
+}
+
+sf::Vector2f HUD::getSlotPosition(int index) const
+{
+	return m_slotPositions[index];
 }

@@ -1,4 +1,3 @@
-
 #ifndef GAME_HPP
 #define GAME_HPP
 #pragma warning( push )
@@ -22,6 +21,7 @@
 #include<iostream>
 #include "Camera.h"
 #include "HUD.h"
+#include "Obstacles.h"
 #include "Items.h"
 #include "Audio.h"
 #include "Input Handler.h"
@@ -34,9 +34,11 @@ enum class menuState
 	MAIN_MENU,
 	SETTINGS,
 	GAMEPLAY,
+	BOSS_DIALOGUE,
 	BOSS_BATTLE,
 	PAUSE,
-	GAME_OVER
+	GAME_OVER,
+	GAME_WON
 };
 //struct for spawn delay to hold position and type of enemy to spawn after a delay
 struct SpawnDelay {
@@ -88,8 +90,13 @@ private:
 
 	//Enemy system
 	void spawnNPC(sf::Vector2f position, EnemyType type);
+	void triggerBossBattle();
+	void startBossFight();
+	void finalLevelSpecificContent();
+	void updateIngameMapMusic();
 
 	std::vector<NPC> m_npcs;
+	std::vector<std::unique_ptr<Obstacles>> m_obstacles;
 	std::unordered_map<EnemyType, std::shared_ptr<sf::Texture>> m_enemyTextures; // enemy textures using unordered map to avoid reloading same texture
 	std::shared_ptr<sf::Texture> getEnemyTexture(EnemyType type);
 
@@ -104,12 +111,15 @@ private:
 	void setupMainMenuTitle();
 	void setupPauseMenu();
 	void setUpSessionCode(const std::string& code);
+	void useHotbarSlot(int index);
 
 	std::vector<Button> m_menuButtons;
 	sf::Texture m_mainMenuTexture;
 	sf::Sprite  m_mainMenuSprite{ m_mainMenuTexture };
 	sf::Texture m_gameOverTexture;
 	sf::Sprite  m_gameOverSprite{ m_gameOverTexture };
+	sf::Texture m_finalLevelTexture;
+	sf::Sprite  m_finalLevelSprite{ m_finalLevelTexture };
 	sf::Texture m_buttonTexture;
 	sf::View m_menuView;
 	int m_selectedButton = 0;
@@ -135,8 +145,23 @@ private:
 	float m_speedBuffDuration = 0.0f;
 	float m_slowMultiplier = 1.0f;
 	float m_slowDuration = 0.0f;
+	float m_flashTime = 0.f;
+	float m_shieldDuration = 0.f;
+	float m_damageReduction = 0.5f;
+	float m_godModeDuration = 6.0f;
+	float m_obstacleDuration = 5.0f;
+	int m_selectedHotbarSlot = 0;
+
+
 	sf::RectangleShape m_pauseOverlay;
 	std::shared_ptr<sf::Texture> m_poofTexture;
+	std::shared_ptr<sf::Texture> m_speedBoostTexture;
+	std::shared_ptr<sf::Texture> m_powerBoostTexture;
+	std::shared_ptr<sf::Texture> m_slowTexture;
+	std::shared_ptr<sf::Texture> m_healTexture;
+	std::shared_ptr<sf::Texture> m_StealPowerTexture;
+	std::shared_ptr<sf::Texture> m_trapTexture;
+	std::shared_ptr<sf::Texture> m_shieldTexture;
 	std::vector<SpawnDelay> m_spawnDelay;
 	
 
@@ -150,9 +175,15 @@ private:
 	bool m_stealPowerActive{ false };
 	bool speedUpPlayer{ false };
 	bool powerBoostPlayer{ false };
+	bool godMode{ false };
 	bool  m_speedBuffActive = false;
 	bool  m_powerBuffActive = false;
 	bool m_slowActive = false;
+	bool m_godModeActive = false;
+	bool dropTrap = false;
+	bool trapActive = false;
+	bool shieldPlayer = false;
+	bool m_shieldActive = false;
 	std::string session;
 
 	//Timers and state flags
@@ -161,13 +192,21 @@ private:
 	sf::Clock m_speedBuffClock;
 	sf::Clock m_powerBuffClock;
 	sf::Clock m_slowClock;
+	sf::Clock m_shieldClock;
+	sf::Clock m_godModeClock;
+	sf::Clock m_obstacleClock;
 	bool m_DELETEexitGame; // control exiting game
 	bool isSpawnNPC{ false };
+	bool bossSpawned{ false };
+	bool isBossTriggered{ false };
+	bool m_bossBattleStarted = false;
+	bool m_playerWonGame = false;
 
 	//Windowing and rendering
 	sf::RenderWindow m_window; // main SFML window
 	menuState m_currentMenuState{ menuState::MAIN_MENU };
 	menuState m_prevState{ menuState::GAMEPLAY };
+	menuState m_pausedFrom {menuState::GAMEPLAY};
 
 	//UI and Hud
 	sf::Font m_MagicalWorldFont;// font used by message
@@ -183,18 +222,12 @@ private:
 	//Map and Camera
 	Camera m_camera;
 	MapRenderer m_mapRenderer;
+	std::string m_currentMap;
 
 	//Audio
 	Audio m_audio;
 	
 	
-	
-	
-	
-	
-	
-
-
 };
 
 #pragma warning( pop ) 
