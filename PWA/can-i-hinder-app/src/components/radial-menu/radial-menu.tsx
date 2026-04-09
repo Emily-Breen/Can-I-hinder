@@ -83,26 +83,30 @@ const helpProgress = circumference * 0.5 * helpRatio;
 
         {/* HINDER (clockwise) */}
           <circle
-          cx="50"
-          cy="50"
-            r="45"
-          stroke="red"
-          strokeWidth="4"
-           fill="none"
-          strokeDasharray={`${hinderProgress} 999`}
-          transform="rotate(-90 50 50)"
-                />
+              cx="50"
+              cy="50"
+              r="45"
+             stroke="red"
+            strokeWidth="4"
+            fill="none"
+            strokeDasharray={`${hinderProgress} ${circumference}`}
+            strokeDashoffset="0"
+            transform="rotate(-90 50 50)"
+            strokeLinecap="round"
+            />
 
            {/* HELP (counter-clockwise) */}
           <circle
             cx="50"
             cy="50"
             r="45"
-            stroke="lime"
-              strokeWidth="4"
+            stroke="cyan"
+            strokeWidth="4"
              fill="none"
-             strokeDasharray={`${helpProgress} 999`}
-            transform="rotate(-90 50 50) scale(-1,1) translate(-100,0)"
+             strokeDasharray={`${helpProgress} ${circumference}`}
+             strokeDashoffset={`${-helpProgress}`}
+            transform="rotate(-90 50 50)"
+            strokeLinecap="round"
                 />
           </svg>
         {placedItems.map(({ item, tx, ty }) => {
