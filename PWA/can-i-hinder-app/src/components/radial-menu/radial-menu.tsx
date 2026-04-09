@@ -32,22 +32,24 @@ export default function RadialMenu({ open, items, anchor, onClose, hinderCount, 
  const centerX = window.innerWidth / 2;
  const centerY = window.innerHeight / 2;
  const radius = 45;
-const circumference = 2 * Math.PI * radius;
 
 // Define max for half circle
 const MAX = 5; // or whatever unlock threshold is
 
-const safeHinder = hinderCount ?? 0;
-const safeHelp = helpCount ?? 0;
+const safeHinder = Math.max(hinderCount ?? 0, 0);
+const safeHelp = Math.max(helpCount ?? 0, 0);
 
 const hinderRatio = Math.min(safeHinder / MAX, 1);
 const helpRatio = Math.min(safeHelp / MAX, 1);
 
-// Only HALF circle each
-const half = circumference / 2;
+const hinderPercent = hinderRatio * 100;
+const helpPercent = helpRatio * 100;
 
-const hinderProgress = half * hinderRatio;
-const helpProgress = half * helpRatio;
+// Arc paths for each side so help and hinder never overlap.
+const topY = 50 - radius;
+const bottomY = 50 + radius;
+const rightArcPath = `M 50 ${topY} A ${radius} ${radius} 0 0 1 50 ${bottomY}`;
+const leftArcPath = `M 50 ${topY} A ${radius} ${radius} 0 0 0 50 ${bottomY}`;
 
   // Compute where each button sits around the circle
   const placedItems = items.map((item, index) => {
@@ -76,7 +78,7 @@ const helpProgress = half * helpRatio;
         onPointerDown={(e) => e.stopPropagation()}
       >
          <svg className="radial-progress" viewBox="0 0 100 100">
-        {/* Background */}
+        {/* Background ring */}
         <circle
           cx="50"
           cy="50"
@@ -85,36 +87,36 @@ const helpProgress = half * helpRatio;
           strokeWidth="4"
           fill="none"
           />
-        { safeHinder > 0 && (
-          // HINDER (clockwise)
-          <circle
-              cx="50"
-              cy="50"
-              r="45"
-             stroke="red"
-            strokeWidth="4"
-            fill="none"
-            strokeDasharray={`${half} ${circumference}`}
-            strokeDashoffset={`${half - hinderProgress}`}
-            transform="rotate(-90 50 50)"
-            strokeLinecap="round"
-            />
-        )}
-          { safeHelp > 0 && (
-           // HELP (counter-clockwise)
-          <circle
-            cx="50"
-            cy="50"
-            r="45"
+
+        {/* Side lanes for each mode */}
+        <path d={leftArcPath} stroke="rgba(0, 255, 255, 0.2)" strokeWidth="4" fill="none" />
+        <path d={rightArcPath} stroke="rgba(255, 0, 0, 0.2)" strokeWidth="4" fill="none" />
+
+        {/* HELP progress: left side */}
+        {safeHelp > 0 && (
+          <path
+            d={leftArcPath}
             stroke="cyan"
             strokeWidth="4"
-             fill="none"
-             strokeDasharray={`${half} ${circumference}`}
-             strokeDashoffset={`${half - helpProgress}`}
-            transform="rotate(-90 50 50)"
+            fill="none"
             strokeLinecap="round"
-                />
-          )}
+            pathLength={100}
+            strokeDasharray={`${helpPercent} 100`}
+          />
+        )}
+
+        {/* HINDER progress: right side */}
+        {safeHinder > 0 && (
+          <path
+            d={rightArcPath}
+            stroke="red"
+            strokeWidth="4"
+            fill="none"
+            strokeLinecap="round"
+            pathLength={100}
+            strokeDasharray={`${hinderPercent} 100`}
+          />
+        )}
           </svg>
         {placedItems.map(({ item, tx, ty }) => {
          
