@@ -183,39 +183,32 @@ void WebsocketClient::readLoop(bool useTls)
 				if (onMessage) {
 					onMessage(user, action, effect);
 				}
-
-				if (action == "hinder") {
-					hinderCount[user]++;
-
-					int count = hinderCount[user];
+				// Reset counts and send progress update if a hinder or help effect is removed
+				if (action == "hinder" && effect == "spawn_brute") {
+					hinderCount[user] = 0;
 
 					json response;
 					response["type"] = "progress";
 					response["user"] = user;
-					response["hinderCount"] = count;
+					response["hinderCount"] = 0;
+					response["remove"] = "spawn_brute";
 
-					if (count == 5) {
-						response["unlock"] = "spawn_brute"; 
-					}
 					std::string out = response.dump();
 					if (useTls)
 						m_wss->write(boost::asio::buffer(out));
 					else
 						m_ws->write(boost::asio::buffer(out));
 				}
-				if (action == "help") {
-					helpCount[user]++;
-
-					int count = helpCount[user];
+				// Reset help count and send progress update if god mode is removed
+				if (action == "help" && effect == "god_mode") {
+					helpCount[user] = 0;
 
 					json response;
 					response["type"] = "progress";
 					response["user"] = user;
-					response["helpCount"] = count;
+					response["helpCount"] = 0;
+					response["remove"] = "god_mode";
 
-					if (count == 5) {
-						response["unlock"] = "god_mode";
-					}
 					std::string out = response.dump();
 					if (useTls)
 						m_wss->write(boost::asio::buffer(out));
