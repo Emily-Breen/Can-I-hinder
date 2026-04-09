@@ -120,7 +120,6 @@ const helpItems: RadialItem[] = useMemo(
            </span>
           ))}
       </h1>
-       <p>Hinders used: {myCount}</p>
       <div className="button-group">
         <div className="action">
           <img src={Bee} alt="Bee" className="character bee" />
