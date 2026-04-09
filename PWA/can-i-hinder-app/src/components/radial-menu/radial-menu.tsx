@@ -35,14 +35,16 @@ export default function RadialMenu({ open, items, anchor, onClose, hinderCount, 
 const circumference = 2 * Math.PI * radius;
 
 // Define max for half circle
-const MAX = 10; // or whatever unlock threshold is
+const MAX = 5; // or whatever unlock threshold is
 
 const hinderRatio = Math.min(hinderCount / MAX, 1);
 const helpRatio = Math.min(helpCount / MAX, 1);
 
 // Only HALF circle each
-const hinderProgress = circumference * 0.5 * hinderRatio;
-const helpProgress = circumference * 0.5 * helpRatio;
+const half = circumference / 2;
+
+const hinderProgress = half * hinderRatio;
+const helpProgress = half * helpRatio;
 
   // Compute where each button sits around the circle
   const placedItems = items.map((item, index) => {
@@ -89,8 +91,8 @@ const helpProgress = circumference * 0.5 * helpRatio;
              stroke="red"
             strokeWidth="4"
             fill="none"
-            strokeDasharray={`${hinderProgress} ${circumference}`}
-            strokeDashoffset="0"
+            strokeDasharray={`${half} ${circumference}`}
+            strokeDashoffset={`${half - hinderProgress}`}
             transform="rotate(-90 50 50)"
             strokeLinecap="round"
             />
@@ -103,8 +105,8 @@ const helpProgress = circumference * 0.5 * helpRatio;
             stroke="cyan"
             strokeWidth="4"
              fill="none"
-             strokeDasharray={`${helpProgress} ${circumference}`}
-             strokeDashoffset={`${-helpProgress}`}
+             strokeDasharray={`${half} ${circumference}`}
+             strokeDashoffset={`${half - helpProgress}`}
             transform="rotate(-90 50 50)"
             strokeLinecap="round"
                 />
