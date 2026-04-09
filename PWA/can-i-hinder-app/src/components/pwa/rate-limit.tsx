@@ -5,6 +5,7 @@ const HELP_COOLDOWN_MS: Record<HelpEffect, number> = {
   speed_up_player: 12_000,
   shield_player: 15_000,
   power_boost: 8_000,
+  god_mode: 20_000,
 };
 // Cooldown durations for each effect, used by the limiter to determine how long to block an action after it’s used
 const HINDER_COOLDOWN_MS: Record<HinderEffect, number> = {
