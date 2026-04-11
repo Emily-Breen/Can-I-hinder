@@ -62,6 +62,12 @@ if (ws) {
       }
     }
 
+    if (data.type === "reset") {
+      if (onProgressCallback) {
+        onProgressCallback(data);
+      }
+    }
+      
   } catch (err) {
     console.error("Failed to parse message:", err);
   }

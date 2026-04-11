@@ -3,9 +3,10 @@ export type GameAction =
   | { user: string; action: "help"; effect: HelpEffect }
   | { user: string; action: "hinder"; effect: HinderEffect };
 // Types for messages received from the gameclient over WebSocket
-export type IncomingGameAction = 
-  | { type: "action"; user: string; action: "help" | "hinder"; effect: string }
-  | { type: "progress"; user: string; hinderCount: number; helpCount: number; unlock?: string };
+export type IncomingGameAction =
+  | {type: "action";user: string;action: "help" | "hinder";effect: string;}
+  | {type: "progress";user: string;hinderCount?: number;helpCount?: number;unlock?: string;}
+  | {type: "reset";action: "help" | "hinder";user?: string;}
 
 export type HinderEffect =
   | "spawn_enemy"
