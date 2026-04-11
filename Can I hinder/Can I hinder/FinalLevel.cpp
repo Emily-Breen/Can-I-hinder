@@ -486,6 +486,7 @@ void FinalLevel::updateTB(float dt)
 
                 if (m_playerRef)
                 {
+					m_audio.playSoundEffect("ASSETS/AUDIO/SFX/sword slash.ogg");
                     m_playerRef->setDirection(Direction::LEFT);
                     m_playerRef->forceAttack();
                 }
@@ -625,6 +626,7 @@ void FinalLevel::updateTB(float dt)
 
                 if (m_bossRef)
                 {
+                    m_audio.playSoundEffect("ASSETS/AUDIO/SFX/sword slash.ogg");
                     m_bossRef->setNPCDirection(Direction::RIGHT);
                     m_bossRef->startAttack();
                 }
@@ -651,10 +653,12 @@ void FinalLevel::updateTB(float dt)
 
         if (!m_enemyDoingMagic && m_actionTimer >= m_actionDuration)
         {
+            
             int damage = rand() % 15 + 5;
             m_playerHealth -= damage;
             if (m_playerRef)
             {
+               
                 m_playerRef->takeDamage(0.4f);
             }
             spawnDamageText(

@@ -16,6 +16,8 @@ void NPC::draw(sf::RenderWindow& window)
     Entity::draw(window);
     if (m_dead)
         return;
+    if (m_type == EnemyType::Boss)
+        return;
 	const float healthPercentage = heathRatio();
 	if (healthPercentage >= 0.999f)
 		return;

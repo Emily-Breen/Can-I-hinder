@@ -104,7 +104,7 @@ Game::Game()
 		);
 	}
 
-	if (m_mapRenderer.load("ASSETS/LEVELS/Map.tmx"))
+	if (m_mapRenderer.load("ASSETS/LEVELS/Map3.tmx"))
 	{
 		
 	}
