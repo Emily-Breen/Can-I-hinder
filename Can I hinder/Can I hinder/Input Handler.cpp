@@ -26,21 +26,27 @@ void InputHandler::update()
      m_movement = { 0.f, 0.f };
      m_attackPressed = false;
      m_menuMouseMoved = false;
+     m_pausePressed = false;
 
      if (m_controllerConnected)
      {
          float x = sf::Joystick::getAxisPosition(m_controllerId, sf::Joystick::Axis::X);
          float y = sf::Joystick::getAxisPosition(m_controllerId, sf::Joystick::Axis::Y);
 
+         float rx = sf::Joystick::getAxisPosition(m_controllerId, sf::Joystick::Axis::U);
          
          const bool aNow = sf::Joystick::isButtonPressed(m_controllerId, 0);
          const bool cancelNow = sf::Joystick::isButtonPressed(m_controllerId, 1);
+         const bool xNow = sf::Joystick::isButtonPressed(m_controllerId, 2);
+         const bool pauseNow = sf::Joystick::isButtonPressed(m_controllerId, 7); 
 
        
          const bool upNow = (y < -50.f);
          const bool downNow = (y > 50.f);
          const bool leftNow = (x < -50.f);
          const bool rightNow = (x > 50.f);
+         const bool cycleLeftNow = (rx < -50.f);
+         const bool cycleRightNow = (rx > 50.f);
          
          m_menuLeftPressed = leftNow && !m_prevLeft;
          m_menuRightPressed = rightNow && !m_prevRight;
@@ -52,6 +58,9 @@ void InputHandler::update()
          m_prevUp = upNow;
          m_prevDown = downNow;
 
+         m_pausePressed = pauseNow && !m_prevPause;
+         m_prevPause = pauseNow;
+
 
          m_menuSelectPressed = aNow && !m_prevSelect;
          m_prevSelect = aNow;
@@ -61,6 +70,7 @@ void InputHandler::update()
        
          if (std::abs(x) < m_deadZone) x = 0.f;
          if (std::abs(y) < m_deadZone) y = 0.f;
+         if (std::abs(rx) < m_deadZone) rx = 0.f;
 
          m_movement = { x / 100.f, y / 100.f };
 
@@ -68,10 +78,15 @@ void InputHandler::update()
          if (len > 1.f)
              m_movement /= len;
 
-
+         m_cycleLeft = cycleLeftNow && !m_prevCycleLeft;
+         m_cycleRight = cycleRightNow && !m_prevCycleRight;
          m_attackPressed = aNow;
          m_controllerAttackJustPressed = aNow && !m_prevControllerAttack;
          m_prevControllerAttack = aNow;
+         m_prevCycleLeft = cycleLeftNow;
+         m_prevCycleRight = cycleRightNow;
+         m_useItemPressed = xNow && !m_prevUseItem;
+         m_prevUseItem = xNow;
      }
      else
      {
@@ -207,6 +222,26 @@ bool InputHandler::menuMouseClickReleased()
         return true;
     }
     return false;
+}
+
+bool InputHandler::cycleLeft() const
+{
+	return m_cycleLeft;
+}
+
+bool InputHandler::cycleRight() const
+{
+    return m_cycleRight;
+}
+
+bool InputHandler::useItemPressed() const
+{
+	return m_useItemPressed;
+}
+
+bool InputHandler::pausePressed() const
+{
+	return m_pausePressed;
 }
 
 sf::Vector2f InputHandler::menuMousePosition() const

@@ -165,10 +165,34 @@ void FinalLevel::updateTB(float dt)
 
             return;
         }
-        if (m_input.menuLeftPressed())
+        if (m_inItemMenu)
+        {
+            const int itemCount = 3; 
+
+            if (m_input.menuUpPressed())
+                m_selectedItem = (m_selectedItem - 1 + itemCount) % itemCount;
+
+            if (m_input.menuDownPressed())
+                m_selectedItem = (m_selectedItem + 1) % itemCount;
+
+            if (m_input.menuSelectPressed())
+            {
+                m_itemTriggered = true;
+                m_inItemMenu = false;
+                m_turnState = TurnState::PLAYER_ACTION;
+            }
+
+            if (m_input.menuCancelPressed())
+            {
+                m_inItemMenu = false;
+            }
+
+            return;
+        }
+        if (m_input.menuUpPressed())
             m_selectedOption = (m_selectedOption + 2) % 3;
 
-        if (m_input.menuRightPressed())
+        if (m_input.menuDownPressed())
             m_selectedOption = (m_selectedOption + 1) % 3;
 
         if (m_input.menuSelectPressed())
@@ -182,7 +206,7 @@ void FinalLevel::updateTB(float dt)
             }
             else if (m_selectedOption == 2)
             {
-                //this is for item stuff
+                m_inItemMenu = true;
             }
         }
         break;
@@ -193,7 +217,126 @@ void FinalLevel::updateTB(float dt)
         {
             m_actionStarted = true;
             m_actionTimer = 0.f;
+            if (m_itemTriggered)
+            {
+                if (m_selectedItem == 0) // HEALTH
+                {
+                    int healAmount = 30;
 
+                    if (m_hudRef && m_hudRef->hasHealthPotion())
+                    {
+                        m_hudRef->useHealthPotion();
+						m_audio.playSoundEffect("ASSETS/AUDIO/SFX/Heal.ogg");
+                        m_playerHealth += healAmount;
+                        m_playerHealth = std::min(m_playerHealth, 100);
+
+                        showSpellBanner("Potion!");
+
+                        spawnDamageText(
+                            healAmount,
+                            m_playerRef->getPosition(),
+                            sf::Color::Green
+                        );
+                    }
+                    else
+                    {
+                        showSpellBanner("No Potions!");
+                    }
+                    if (m_playerHealth > 100)
+                        m_playerHealth = 100;
+
+                    showSpellBanner("Potion!");
+
+                    spawnDamageText(
+                        healAmount,
+                        m_playerRef->getPosition(),
+                        sf::Color::Green
+                    );
+                }
+                else if (m_selectedItem == 1) //MP
+                {
+                    int mpAmount = 20;
+
+                    if (m_hudRef && m_hudRef->hasSpeedPotion())
+                    {
+                        m_hudRef->useSpeedPotion();
+                        m_audio.playSoundEffect("ASSETS/AUDIO/SFX/Heal.ogg");
+                        int mpAmount = 20;
+
+                        m_playerMP += mpAmount;
+                        m_playerMP = std::min(m_playerMP, 50);
+                        auto tex = std::make_shared<sf::Texture>();
+
+                        tex->loadFromFile("ASSETS/IMAGES/Effects/SpeedBoost.png");
+
+                        sf::Vector2f spawnPos = m_playerRef->getPosition();
+                        spawnPos.y -= 100.f;
+
+                        auto effect = std::make_unique<Effects>(
+                            tex,
+                            spawnPos,
+                            EnemyType::None,
+                            EffectType::SpeedBoost
+                        );
+
+                        m_effects.emplace_back(std::move(effect));
+                        showSpellBanner("Ether!");
+
+                        spawnDamageText(
+                            mpAmount,
+                            m_playerRef->getPosition(),
+                            sf::Color::Cyan
+                        );
+                    }
+                    else
+                    {
+                        showSpellBanner("No Ether!");
+                    }
+                    if (m_playerMP > 50)
+                        m_playerMP = 50;
+
+                    showSpellBanner("Ether!");
+
+                    spawnDamageText(
+                        mpAmount,
+                        m_playerRef->getPosition(),
+                        sf::Color::Cyan
+                    );
+                }
+				if (m_hudRef && m_hudRef->hasPowerPotion()) //DAMAGE BOOST
+                {
+                    m_hudRef->usePowerPotion();
+                    m_audio.playSoundEffect("ASSETS/AUDIO/SFX/Heal.ogg");
+                    showSpellBanner("Power Boost!");
+                    m_tempDamageBoost = true;
+                    auto tex = std::make_shared<sf::Texture>();
+                    tex->loadFromFile("ASSETS/IMAGES/Effects/PowerBoost.png");
+
+                    sf::Vector2f spawnPos = m_playerRef->getPosition();
+                    spawnPos.y -= 100.f;
+
+                    auto effect = std::make_unique<Effects>(
+                        tex,
+                        spawnPos,
+                        EnemyType::None,
+                        EffectType::PowerBoost
+                    );
+
+                    m_effects.emplace_back(std::move(effect));
+
+                }
+                else
+                {
+                    showSpellBanner("No Power!");
+                }
+                m_itemTriggered = false;
+
+                if (m_itemUsed)
+                {
+                    m_turnState = TurnState::ENEMY_ACTION;
+                }
+                return;
+            }
             if (m_magicTriggered)
             {
                 int mpCost = 0;
@@ -298,7 +441,7 @@ void FinalLevel::updateTB(float dt)
 
                     m_playerHealth += healAmount;
 
-                    // clamp so you don’t overheal
+                    
                     if (m_playerHealth > 100)
                         m_playerHealth = 100;
 
@@ -333,7 +476,11 @@ void FinalLevel::updateTB(float dt)
             {
                 
                 int damage = rand() % 13 + 4;
-
+                if (m_tempDamageBoost)
+                {
+                    damage *= 2;
+                    m_tempDamageBoost = false;
+                }
                 if (m_bossRef)
                     m_bossRef->takeDamage(damage);
 
@@ -515,7 +662,7 @@ void FinalLevel::updateTB(float dt)
                 m_playerRef->getPosition(),
                 sf::Color::Red
             );
-            if (m_playerHealth <= 0)
+            if (m_playerHealth < 0)
             {
                 if (m_playerRef)
                 {
@@ -709,7 +856,7 @@ void FinalLevel::updateTB(float dt)
             for (auto& e : newEffects) {
                 m_effects.emplace_back(std::move(e));
             }
-            if (m_playerHealth <= 0)
+            if (m_playerHealth < 0)
             {
                 if (m_playerRef)
                 {
@@ -738,7 +885,7 @@ void FinalLevel::updateTB(float dt)
                 {
                     m_bossRef->useBossAttack2(false);
                 }
-                if (m_playerHealth <= 0)
+                if (m_playerHealth < 0)
                     m_turnState = TurnState::LOSE;
                 else
                     m_turnState = TurnState::PLAYER_CHOICE;
@@ -951,6 +1098,28 @@ void FinalLevel::drawTB(sf::RenderWindow& window, sf::Vector2f screenSize)
         window.draw(thunderText);
 		window.draw(iceText);
     }
+    if (m_inItemMenu)
+    {
+        sf::Text healthText = m_attackText;
+        sf::Text mpText = m_attackText;
+        sf::Text powerText = m_attackText;
+		//displays the amount of potions the player has from the overworld
+        healthText.setString("Potion x" + std::to_string(m_hudRef->getHealthPotionCount()));
+        mpText.setString("Ether x" + std::to_string(m_hudRef->getSpeedPotionCount()));
+        powerText.setString("Power x" + std::to_string(m_hudRef->getPowerPotionCount()));
+
+        healthText.setPosition({ 500.f, baseY });
+        mpText.setPosition({ 500.f, baseY + 50 });
+        powerText.setPosition({ 500.f, baseY + 100 });
+
+        healthText.setFillColor(m_selectedItem == 0 ? sf::Color::Yellow : sf::Color::White);
+        mpText.setFillColor(m_selectedItem == 1 ? sf::Color::Yellow : sf::Color::White);
+        powerText.setFillColor(m_selectedItem == 2 ? sf::Color::Yellow : sf::Color::White);
+
+        window.draw(healthText);
+        window.draw(mpText);
+        window.draw(powerText);
+    }
     if (m_showSpellBanner)
     {
         
@@ -1032,6 +1201,11 @@ void FinalLevel::trigger()
 void FinalLevel::setPlayer(Player* player)
 {
 	m_playerRef = player;
+}
+
+void FinalLevel::setHUD(HUD* hud)
+{
+    m_hudRef = hud;
 }
 
 void FinalLevel::setBoss(NPC* boss)

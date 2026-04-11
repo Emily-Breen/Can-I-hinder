@@ -22,6 +22,11 @@ public:
 	bool controllerAttackJustPressed() const;
 	bool menuMouseMoved() const;
 	bool menuMouseClickReleased();
+	bool cycleLeft() const;
+	bool cycleRight() const;
+	bool useItemPressed() const;
+	bool pausePressed() const;
+	
 	sf::Vector2f menuMousePosition() const;
 	void setDeadZone(float deadZone);
 	void clearMovement();
@@ -47,6 +52,14 @@ private:
 	bool m_prevCancel{ false };
 	bool m_prevMouseDown = false;
 	bool m_mouseReleasedThisFrame = false;
+	bool m_cycleLeft{ false };
+	bool m_cycleRight{ false };
+	bool m_prevCycleLeft{ false };
+	bool m_prevCycleRight{ false };
+	bool m_useItemPressed{ false };
+	bool m_prevUseItem{ false };
+	bool m_pausePressed{ false };
+	bool m_prevPause{ false };
 	float m_deadZone{ 15.f };
 
 	// Menu mouse input

@@ -3,10 +3,25 @@
 
 #include <iostream>
 auto desktopMode = sf::VideoMode::getDesktopMode();
-Game::Game() :
-	m_window{ desktopMode,"SFML Game 3.0",sf::State::Fullscreen },m_DELETEexitGame{ false }, m_camera(VIRTUAL_WIDTH,VIRTUAL_HEIGHT),m_finalLevel(m_inputHandler) //when true game will exit
+Game::Game()
+	: m_DELETEexitGame{ false }, m_camera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+	, m_finalLevel(m_inputHandler)
 {
-	
+	bool fullscreen = true; 
+
+	if (fullscreen)
+	{
+		m_window.create(desktopMode, "Can I Hinder?", sf::Style::Default);
+	}
+	else
+	{
+		m_window.create(
+			sf::VideoMode({ 1280, 720 }),
+			"Can I Hinder?",
+			sf::Style::Default
+		);
+	}
+
 
 	m_camera.onResize(m_window.getSize());
 	m_window.setVerticalSyncEnabled(true);
@@ -57,10 +72,8 @@ Game::Game() :
 				m_stats.helpsReceived++;
 			}
 			else if (action == "help" && effect == "god_mode") {
-				healPlayer = true;	
-				speedUpPlayer = true;
-				powerBoostPlayer = true;
-				shieldPlayer = true;
+				godMode = true;
+
 				m_hud.pushChatMessage(user, "has granted you GOD MODE!", sf::Color(80, 255, 80));
 				m_stats.helpsReceived++;
 			}
@@ -91,7 +104,7 @@ Game::Game() :
 		);
 	}
 
-	if (m_mapRenderer.load("ASSETS/LEVELS/Map3.tmx"))
+	if (m_mapRenderer.load("ASSETS/LEVELS/Map.tmx"))
 	{
 		
 	}
@@ -127,7 +140,6 @@ Game::Game() :
 			pos
 		);
 	}
-
 	std::cout << "player posX: " << m_player.getPosition().x << "player posY: " << m_player.getPosition().y;
 	std::cout << "Doors loaded: " << m_mapRenderer.getDoors().size() << "\n";
 	
@@ -236,6 +248,14 @@ Game::Game() :
 	if (!m_shieldTexture->loadFromFile("ASSETS/IMAGES/Effects/ShieldPlayer.png")) {
 		std::cout << "Failed to load shield texture!\n";
 	}
+	m_godModeTexture = std::make_shared<sf::Texture>();
+	if (!m_godModeTexture->loadFromFile("ASSETS/IMAGES/Effects/GodMode.png")) {
+		std::cout << "Failed to load god mode texture!\n";
+	}
+	m_healTexture = std::make_shared<sf::Texture>();
+	if (!m_healTexture->loadFromFile("ASSETS/IMAGES/Effects/Healing.png")) {
+		std::cout << "Failed to load heal texture!\n";
+	}
 }
 
 
@@ -276,7 +296,7 @@ void Game::run()
 				(std::rand() % 2 == 0)
 				? EnemyType::Skeleton
 				: EnemyType::Goblin;
-
+			m_audio.playSoundEffect("ASSETS/AUDIO/SFX/MagicImpact2.ogg");
 			spawnNPC(spawnPos, type);
 		}
 		if (slowPlayer)
@@ -296,7 +316,7 @@ void Game::run()
 			);
 
 			effect->attachToPlayer(&m_player);
-
+			m_audio.playSoundEffect("ASSETS/AUDIO/SFX/MagicImpact.ogg");
 			m_effects.emplace_back(std::move(effect));
 		}
 		if (healPlayer)
@@ -307,6 +327,19 @@ void Game::run()
 			m_playerHealth += 0.25f;
 			if (m_playerHealth > 1.f)
 				m_playerHealth = 1.f;
+			m_audio.playSoundEffect("ASSETS/AUDIO/SFX/Heal.ogg");
+			auto effect = std::make_unique<Effects>(
+				m_healTexture,
+				m_player.getPosition(),
+				EnemyType::None,
+				EffectType::Healing
+			);
+
+			effect->attachToPlayer(&m_player);
+			effect->setEffectColor(sf::Color(100, 255, 100, 200));
+			effect->setEffectScale({ 2.5f, 1.5f });
+
+			m_effects.emplace_back(std::move(effect));
 		}
 		if (weakenPlayer) {
 			std::cout << "power reduced by viewer!\n";
@@ -322,7 +355,7 @@ void Game::run()
 				EffectType::StealPower
 			);
 
-
+			m_audio.playSoundEffect("ASSETS/AUDIO/SFX/MagicImpact.ogg");
 			effect->attachToPlayer(&m_player);
 
 			m_effects.emplace_back(std::move(effect));
@@ -345,7 +378,7 @@ void Game::run()
 
 			
 			effect->attachToPlayer(&m_player);
-
+			m_audio.playSoundEffect("ASSETS/AUDIO/SFX/MagicImpact3.ogg");
 			m_effects.emplace_back(std::move(effect));
 		}
 
@@ -366,7 +399,7 @@ void Game::run()
 			);
 
 			effect->attachToPlayer(&m_player);
-
+		   m_audio.playSoundEffect("ASSETS/AUDIO/SFX/MagicImpact3.ogg");
 			m_effects.emplace_back(std::move(effect));
 		}
 		if (shieldPlayer)
@@ -385,7 +418,7 @@ void Game::run()
 
 			effect->attachToPlayer(&m_player);
 			effect->setEffectScale({ 3.f, 3.f });
-
+			m_audio.playSoundEffect("ASSETS/AUDIO/SFX/MagicImpact3.ogg");
 			m_effects.emplace_back(std::move(effect));
 		}
 		if (godMode) {
@@ -394,7 +427,6 @@ void Game::run()
 			m_godModeActive = true;
 			m_godModeClock.restart();
 
-			//all buffs and remove debuffs
 			m_playerHealth = 1.f;
 
 			m_speedMultiplier = 2.0f;
@@ -406,14 +438,24 @@ void Game::run()
 			m_shieldActive = true;
 			m_shieldClock.restart();
 
-			m_playerDamageMultiplier = 1.0f; // cancel weaken
+			m_playerDamageMultiplier = 1.0f;
 			m_stealPowerActive = false;
 
 			m_slowActive = false;
 			m_slowMultiplier = 1.0f;
 
-			std::cout << "GOD MODE ACTIVATED\n";
-			
+			auto effect = std::make_unique<Effects>(
+				m_godModeTexture,
+				m_player.getPosition(),
+				EnemyType::None,
+				EffectType::GodMode
+			);
+
+			effect->attachToPlayer(&m_player);
+			m_audio.playSoundEffect("ASSETS/AUDIO/SFX/GodMode.ogg");
+			effect->setEffectScale({ 3.f, 3.f }); 
+
+			m_effects.emplace_back(std::move(effect));
 		}
 		if (spawnBrute)
 		{
@@ -693,8 +735,25 @@ void Game::update(sf::Time t_deltaTime)
 			return;
 		}
 		m_inputHandler.update();
-		
+		if (m_inputHandler.pausePressed())
+		{
+			if (m_currentMenuState == menuState::GAMEPLAY)
+			{
+				m_pausedFrom = menuState::GAMEPLAY;
+				m_currentMenuState = menuState::PAUSE;
+			}
+			else if (m_currentMenuState == menuState::PAUSE)
+			{
+				m_currentMenuState = m_pausedFrom;
+			}
+			else if (m_currentMenuState == menuState::BOSS_BATTLE)
+			{
+				m_pausedFrom = menuState::BOSS_BATTLE;
+				m_currentMenuState = menuState::PAUSE;
+			}
+		}
 		m_flashTime += t_deltaTime.asSeconds();
+
 		//handle menu state changes sound only right now
 		if (m_currentMenuState != m_prevState)
 		{
@@ -705,6 +764,8 @@ void Game::update(sf::Time t_deltaTime)
 			{
 				m_audio.stopWalkingSound();
 				m_audio.stopswordSlashSound();
+				m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+				m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Final Boss.ogg");
 				m_audio.stopGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over music.ogg");
 				m_audio.playMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main Menu music.ogg");
 				setupMainMenuButtons();
@@ -738,10 +799,16 @@ void Game::update(sf::Time t_deltaTime)
 				m_audio.stopWalkingSound();
 				m_audio.stopNpcWalkingSound();
 				m_audio.setInGameBackgroundMusicVolume(15.f);
+
+				setupPauseMenu();
+				m_selectedButton = 0;
+				updateMenuHighlight();
+
 				break;
 			}
 			case menuState::GAME_OVER:
 			{
+				m_audio.stopMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Credits.ogg");
 				if (m_playerWonGame) {
 					m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Final Boss.ogg");
 					m_audio.playGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over Win music.ogg");
@@ -754,6 +821,13 @@ void Game::update(sf::Time t_deltaTime)
 					m_audio.stopNpcWalkingSound();
 					m_audio.playGameOverBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Game Over music.ogg");
 				}
+				break;
+			}
+			case menuState::CREDITS:
+			{
+				m_creditsClock.restart();
+				m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Final Boss.ogg");
+				m_audio.playMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Credits.ogg");
 				break;
 			}
 			case menuState::BOSS_BATTLE:
@@ -792,11 +866,29 @@ void Game::update(sf::Time t_deltaTime)
 
 			return;
 		}
+		case menuState::CREDITS:
+		{
 
+			if (m_creditsClock.getElapsedTime().asSeconds() >= m_creditsDuration)
+			{
+				m_audio.stopMenuBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Credits.ogg");
+				m_currentMenuState = menuState::GAME_OVER;
+				setupGameOverButtons();
+			}
+			return;
+		}
 		case menuState::SETTINGS:
 		case menuState::PAUSE:
 		case menuState::GAME_OVER:
 		{
+			if (m_inputHandler.menuUpPressed())
+				moveMenuSelection(-1);
+
+			if (m_inputHandler.menuDownPressed())
+				moveMenuSelection(+1);
+
+			if (m_inputHandler.menuSelectPressed())
+				activateSelectedButton();
 			// stop looping gameplay sounds
 			m_audio.stopWalkingSound();
 			m_audio.stopNpcWalkingSound();
@@ -826,15 +918,15 @@ void Game::update(sf::Time t_deltaTime)
 			if (m_finalLevel.hasPlayerWon())
 			{
 				m_playerWonGame = true;
-				m_currentMenuState = menuState::GAME_OVER;
+				m_currentMenuState = menuState::CREDITS;
 				setupGameOverButtons();
 			}
 			break;
 		}
+		
 		case menuState::GAMEPLAY:
 			break;
 		}
-
 		// steal power timer
 		if (m_stealPowerActive)
 		{
@@ -1047,24 +1139,24 @@ void Game::update(sf::Time t_deltaTime)
 		{
 			direction = m_player.getMovement();
 		}
-		if (m_inputHandler.menuLeftPressed())
+		if ( m_inputHandler.cycleLeft())
 		{
 			m_selectedHotbarSlot--;
 			if (m_selectedHotbarSlot < 3)
 				m_selectedHotbarSlot = 5;
 		}
 
-		if (m_inputHandler.menuRightPressed())
+		if (m_inputHandler.cycleRight())
 		{
 			m_selectedHotbarSlot++;
 			if (m_selectedHotbarSlot > 5)
 				m_selectedHotbarSlot = 3;
 		}
-		if (m_inputHandler.controllerAttackJustPressed())
+		if (m_inputHandler.useItemPressed())
 		{
 			useHotbarSlot(m_selectedHotbarSlot);
 		}
-   
+		m_hud.setSelectedSlot(m_selectedHotbarSlot);
 		float speedMult = m_speedMultiplier;
 		if (m_godModeActive)
 			speedMult = 2.5f;
@@ -1259,6 +1351,21 @@ void Game::update(sf::Time t_deltaTime)
 
 				continue; 
 			}
+			sf::Vector2f npcPos = npc.getPosition();
+			sf::Vector2f toPlayer = playerPos - npcPos;
+
+			float distance = MathUtils::vectorLength(toPlayer);
+
+			if (m_godModeActive &&
+				distance < 400.f &&
+				(npc.getType() == EnemyType::Goblin || npc.getType() == EnemyType::Skeleton))
+			{
+				npc.setAIMode(AIBehaviour::Mode::Flee);
+			}
+			else
+			{
+				npc.setAIMode(AIBehaviour::Mode::Pursue);
+			}
 			if (npc.isDead())
 			{
 				npc.setAttacking(false);
@@ -1272,10 +1379,7 @@ void Game::update(sf::Time t_deltaTime)
 				continue;           
 			}
 
-			sf::Vector2f npcPos = npc.getPosition();
-			sf::Vector2f toPlayer = playerPos - npcPos;
-
-			float distance = MathUtils::vectorLength(toPlayer);
+		
 
 			const float attackRange = npc.getAttackRange();
 			sf::Vector2f delta{ 0.f, 0.f };
@@ -1423,6 +1527,7 @@ void Game::update(sf::Time t_deltaTime)
 		{
 			item.update(t_deltaTime.asSeconds());
 		}
+		
 		sf::View view = m_window.getView();
 		m_hud.update(m_playerHealth,t_deltaTime.asSeconds());
 		//Camera follows player
@@ -1459,6 +1564,106 @@ void Game::render()
 			m_window.draw(b.sprite);
 			m_window.draw(b.text);
 		}
+		m_window.display();
+		return;
+	}
+	if (m_currentMenuState == menuState::CREDITS)
+	{
+		sf::View uiView;
+		uiView.setSize({ VIRTUAL_WIDTH, VIRTUAL_HEIGHT });
+		uiView.setCenter({ VIRTUAL_WIDTH * 0.5f, VIRTUAL_HEIGHT * 0.5f });
+		uiView.setViewport({ {0.f, 0.f}, {1.f, 1.f} });
+
+		m_window.setView(uiView);
+
+		std::vector<std::string> lines = {
+			"YOU ESCAPED THE CRYPT!",
+			"",
+			"CONGRATULATIONS!",
+			"",
+			"",
+			"A Game By",
+			"Emily Breen",
+			"",
+			"",
+			"Programming & Design",
+			"Emily Breen",
+			"",
+			"",
+			"Music",
+			"ebunny (Pixabay)",
+			"",
+			"",
+			"Art",
+			"Emily Breen",
+			"Foozle",
+			"Szadi",
+			"",
+			"",
+			"Executive Producer / Sanity Manager",
+			"Bridget Dempsey",
+			"",
+			"Happiness Manager / Sock Collector",
+			"Master Rodney Breen",
+			"",
+			"",
+			"Testers",
+			"Bridget Dempsey",
+			"Tina Kavanagh",
+			"Pagan McGrath",
+			"Wayne Talbot",
+			"Janine Beck",
+			"Liz Simpson",
+			"Stephen Dunne",
+			"Ryan Holloway",
+			"",
+			"",
+			"Special Thanks",
+			"Amr Abdelhafez",
+			"Dr Omer Ali",
+			"Dr Martin Harrington",
+			"Ben O'Shaughnessy",
+			"Dr Noel O'Hara",
+			"Oisin Cawley",
+			"Martin Tobin",
+			"Paul Simpson",
+			"Stephen Fitzgerald",
+			"And to you the player!",
+			"",
+			"",
+			"This game is dedicated to",
+			"Hunter Dempsey",
+			"RIP 2025",
+			"",
+			"",
+			"Thanks for Playing!"
+		};
+
+		float scrollY = VIRTUAL_HEIGHT - (m_creditsClock.getElapsedTime().asSeconds() * 40.f);
+		float lineSpacing = 60.f;
+
+		for (size_t i = 0; i < lines.size(); ++i)
+		{
+			sf::Text line{ m_MagicalWorldFont };
+			line.setCharacterSize(50);
+			line.setFillColor(sf::Color::White);
+			line.setString(lines[i]);
+
+			auto bounds = line.getLocalBounds();
+
+			line.setOrigin({
+				bounds.position.x + bounds.size.x * 0.5f,
+				bounds.position.y + bounds.size.y * 0.5f
+				});
+
+			line.setPosition({
+				VIRTUAL_WIDTH * 0.5f,
+				scrollY + i * lineSpacing
+				});
+
+			m_window.draw(line);
+		}
+
 		m_window.display();
 		return;
 	}
@@ -1518,9 +1723,14 @@ void Game::render()
 		}
 		m_window.draw(m_pauseOverlay);
 		m_window.draw(m_pauseText);
-
+		for (auto& b : m_menuButtons)
+		{
+			m_window.draw(b.sprite);
+			m_window.draw(b.text);
+		}
 		m_window.display();
 		return;
+		
 	}
 
 	if (m_currentMenuState == menuState::BOSS_DIALOGUE)
@@ -1660,13 +1870,16 @@ void Game::resetGame()
 {
 	m_npcs.clear();
 	m_items.clear();
-
+	
 	m_stats = {}; 
 
 	m_playerHealth = 1.f;
 	m_player.resetPlayer();
 	m_player.setInputEnabled(true);
 	m_player.setBattleMode(false);
+	m_hud.clearKeys();
+	m_hud.clearPotions();
+	m_player.setVictoryPose(false);
 	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
 
 
@@ -1736,7 +1949,7 @@ void Game::startBossFight()
 			m_finalLevel.setBoss(&npc);
 		}
 	}
-
+	m_finalLevel.setHUD(&m_hud);
 	// start turn-based system
 	m_finalLevel.start();
 }
@@ -1766,23 +1979,27 @@ void Game::finalLevelSpecificContent()
 
 void Game::updateIngameMapMusic()
 {
-	//stops any currently playing music and checks which map is loaded to determine which music to play
-	// , also sets volume
-	m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
-	m_audio.stopInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Map 4 Music.ogg");
+	std::string newTrack;
 
 	if (m_mapRenderer.getMapPath().find("Map4") != std::string::npos)
 	{
-		std::cout << "Playing Map 4 music\n";
-		m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Map 4 Music.ogg");
+		newTrack = "ASSETS/AUDIO/BACKGROUND MUSIC/Map 4 Music.ogg";
 	}
 	else
 	{
-		std::cout << "Playing normal music\n";
-		m_audio.playInGameBackgroundMusic("ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg");
+		newTrack = "ASSETS/AUDIO/BACKGROUND MUSIC/Main game music.ogg";
 	}
 
+	if (newTrack == m_currentMusic)
+		return;
+
+	if (!m_currentMusic.empty())
+		m_audio.stopInGameBackgroundMusic(m_currentMusic.c_str());
+
+	m_audio.playInGameBackgroundMusic(newTrack.c_str());
 	m_audio.setInGameBackgroundMusicVolume(30.f);
+
+	m_currentMusic = newTrack;
 }
 
 void Game::setupMenuView()
@@ -1797,7 +2014,7 @@ void Game::setupMainMenuButtons()
 {
 	m_menuButtons.clear();
 
-	const float startY = 500.f;
+	const float startY = 600.f;
 	const float gap = 200.f;
 	//creates the main menu buttons and sets their on click functions to change the menu state or exit the game
 	createMenuButton("PLAY", startY, [this]()
@@ -1806,12 +2023,7 @@ void Game::setupMainMenuButtons()
 			m_currentMenuState = menuState::GAMEPLAY;
 		});
 
-	createMenuButton("SETTINGS", startY + gap, [this]()
-		{
-			m_currentMenuState = menuState::SETTINGS;
-		});
-
-	createMenuButton("EXIT", startY + gap * 2.f, [this]()
+	createMenuButton("EXIT", startY + gap, [this]()
 		{
 			m_DELETEexitGame = true;
 		});
@@ -1821,8 +2033,8 @@ void Game::setupGameOverButtons()
 {
 	m_menuButtons.clear();
 
-	const float centerY = VIRTUAL_HEIGHT * 0.7f;
-	const float gap = 120.f;
+	const float centerY = VIRTUAL_HEIGHT * 0.6f;
+	const float gap = 200.f;
 
 	createMenuButton("RESTART", centerY, [this]()
 		{
@@ -1941,26 +2153,43 @@ void Game::setupMainMenuTitle()
 
 void Game::setupPauseMenu()
 {
-	// Overlay
+	
 	m_pauseOverlay.setSize({ (float)VIRTUAL_WIDTH, (float)VIRTUAL_HEIGHT });
-	m_pauseOverlay.setFillColor(sf::Color(0, 0, 0, 150)); 
+	m_pauseOverlay.setFillColor(sf::Color(0, 0, 0, 150));
 
 	
 	m_pauseText.setString("PAUSED");
 	m_pauseText.setCharacterSize(100);
 	m_pauseText.setFillColor(sf::Color::White);
 
-	
 	auto bounds = m_pauseText.getLocalBounds();
 	m_pauseText.setOrigin({
 		bounds.position.x + bounds.size.x * 0.5f,
 		bounds.position.y + bounds.size.y * 0.5f
 		});
+
 	m_pauseText.setPosition({
 		VIRTUAL_WIDTH * 0.5f,
-		VIRTUAL_HEIGHT * 0.5f
+		VIRTUAL_HEIGHT * 0.3f
+		});
+
+	m_menuButtons.clear();
+
+	float centerY = VIRTUAL_HEIGHT * 0.55f;
+	float gap = 200.f;
+
+	createMenuButton("RESUME", centerY, [this]()
+		{
+			m_currentMenuState = m_pausedFrom;
+		});
+
+	createMenuButton("MAIN MENU", centerY + gap, [this]()
+		{
+			resetGame();
+			m_currentMenuState = menuState::MAIN_MENU;
 		});
 }
+
 
 void Game::setUpSessionCode(const std::string& code)
 {
@@ -1986,7 +2215,7 @@ void Game::useHotbarSlot(int index)
 		if (m_hud.hasHealthPotion())
 		{
 			m_hud.useHealthPotion();
-			m_playerHealth += 0.25f;
+			healPlayer = true;
 		}
 		break;
 

@@ -527,8 +527,8 @@
    <properties>
     <property name="nextMap" value="ASSETS/LEVELS/Map4.tmx"/>
     <property name="requiredKeys" type="int" value="3"/>
-    <property name="spawnX" type="float" value="450"/>
-    <property name="spawnY" type="float" value="1900"/>
+    <property name="spawnX" type="float" value="1590"/>
+    <property name="spawnY" type="float" value="4621"/>
    </properties>
   </object>
  </objectgroup>

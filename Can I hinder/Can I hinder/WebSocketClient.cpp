@@ -39,6 +39,7 @@ void WebsocketClient::setOnMessage(std::function<void(const std::string& ,const 
 {
 	onMessage = callback; // this is so it'll define what happens when a message is recieved (spawning an eneny)
 }
+
 std::string WebsocketClient::createSession()
 {
 	//using try catch to handle any errors to stop from crashing if the session creation fails
@@ -166,16 +167,33 @@ void WebsocketClient::readLoop(bool useTls)
 				auto data = json::parse(message);
 				std::string type = data.value("type", "action");
 				if (type == "progress") {
-					int count = data.value("hinderCount", 0);
-					std::string unlock = data.value("unlock", "");
+					if (data.contains("hinderCount")) {
+						m_hinderCount = data["hinderCount"];
+						std::cout << "Hinder count: " << m_hinderCount << std::endl;
+					}
 
-					std::cout << "Hinder count: " << count << std::endl;
+					if (data.contains("helpCount")) {
+						m_helpCount = data["helpCount"];
+						std::cout << "Help count: " << m_helpCount << std::endl;
+					}
+
+					std::string unlock = data.value("unlock", "");
 
 					if (!unlock.empty()) {
 						std::cout << "Unlocked: " << unlock << std::endl;
 					}
+
 					continue;
 				}
+				if (type == "reset") {
+					m_hinderCount = 0;
+					m_helpCount = 0;
+
+					std::cout << "Progress reset\n";
+
+					continue;
+				}
+				
 				std::string user = data.value("user", "");
 				std::string action = data.value("action", "");
 				std::string effect = data.value("effect", "");
@@ -183,38 +201,8 @@ void WebsocketClient::readLoop(bool useTls)
 				if (onMessage) {
 					onMessage(user, action, effect);
 				}
-				// Reset counts and send progress update if a hinder or help effect is removed
-				if (action == "hinder" && effect == "spawn_brute") {
-					hinderCount[user] = 0;
-
-					json response;
-					response["type"] = "progress";
-					response["user"] = user;
-					response["hinderCount"] = 0;
-					response["remove"] = "spawn_brute";
-
-					std::string out = response.dump();
-					if (useTls)
-						m_wss->write(boost::asio::buffer(out));
-					else
-						m_ws->write(boost::asio::buffer(out));
-				}
-				// Reset help count and send progress update if god mode is removed
-				if (action == "help" && effect == "god_mode") {
-					helpCount[user] = 0;
-
-					json response;
-					response["type"] = "progress";
-					response["user"] = user;
-					response["helpCount"] = 0;
-					response["remove"] = "god_mode";
-
-					std::string out = response.dump();
-					if (useTls)
-						m_wss->write(boost::asio::buffer(out));
-					else
-						m_ws->write(boost::asio::buffer(out));
-				}
+				
+				
 			}
 			catch (...) {
 				std::cout << "Failed to parse JSON: " << message << std::endl;

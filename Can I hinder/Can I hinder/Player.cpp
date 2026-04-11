@@ -200,6 +200,7 @@ void Player::resetPlayer()
 	m_hurtTimer = 0.f;
 	m_invulnerabilityTimer = 0.f;
 	m_deathTimer = 0.f;
+	m_victoryPose = false;
 	m_State = PlayerState::IDLE;
 	m_direction = Direction::DOWN;
 	m_sprite.setPosition(sf::Vector2f(1590, 4621.f));

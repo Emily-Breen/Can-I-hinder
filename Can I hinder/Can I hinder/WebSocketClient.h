@@ -41,8 +41,8 @@ class WebsocketClient {
 	   std::thread m_thread;
 	   //flag so all threads know when to stop
 	   std::atomic<bool> m_running{ false };
-       std::unordered_map<std::string, int> hinderCount;
-	   std::unordered_map<std::string, int> helpCount;
+	   int m_hinderCount = 0;
+	   int m_helpCount = 0;
        boost::asio::io_context m_ioc;
 	   boost::asio::ip::tcp::resolver m_resolver;
 	   // For non-secure WebSocket (ws://) local testing

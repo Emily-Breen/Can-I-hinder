@@ -33,6 +33,11 @@ public:
 	void usePowerPotion();
 	bool hasPowerPotion() const;
 	void clearKeys();
+	void clearPotions();
+	int getHealthPotionCount() const;
+	int getSpeedPotionCount() const;
+	int getPowerPotionCount() const;
+	void setSelectedSlot(int slot);
 	sf::Vector2f getSlotPosition(int index) const;
 
 private:
@@ -79,7 +84,7 @@ private:
 	int m_healthPotions = 0;
 	int m_speedPotions = 0;
 	int m_powerPotions = 0;
-
+	int m_selectedSlot = 3;
 
 	sf::Font m_font;
 	

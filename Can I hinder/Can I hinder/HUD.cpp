@@ -230,6 +230,17 @@ void HUD::draw(sf::RenderWindow& window)
 	{
 		m_hotBarSlotBackground.setPosition(m_slotPositions[i]);
 		window.draw(m_hotBarSlotBackground);
+
+		if (i == m_selectedSlot)
+		{
+			sf::RectangleShape highlight({ 48.f, 48.f });
+			highlight.setPosition(m_slotPositions[i]);
+			highlight.setFillColor(sf::Color::Transparent);
+			highlight.setOutlineColor(sf::Color::Yellow);
+			highlight.setOutlineThickness(3.f);
+
+			window.draw(highlight);
+		}
 	}
 	//keys in hotbar 
 	for (int i = 0; i < std::min(m_keys, HOTBAR_SLOTS); i++)
@@ -359,6 +370,33 @@ bool HUD::hasPowerPotion() const
 void HUD::clearKeys()
 {
 	m_keys = 0;
+}
+
+void HUD::clearPotions()
+{
+	m_healthPotions = 0;
+	m_speedPotions = 0;
+	m_powerPotions = 0;
+}
+
+int HUD::getHealthPotionCount() const
+{
+	return m_healthPotions;
+}
+
+int HUD::getSpeedPotionCount() const
+{
+	return m_speedPotions;
+}
+
+int HUD::getPowerPotionCount() const
+{
+	return m_powerPotions;
+}
+
+void HUD::setSelectedSlot(int slot)
+{
+	m_selectedSlot = slot;
 }
 
 sf::Vector2f HUD::getSlotPosition(int index) const

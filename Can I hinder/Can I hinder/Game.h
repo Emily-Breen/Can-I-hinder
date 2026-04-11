@@ -37,6 +37,7 @@ enum class menuState
 	BOSS_DIALOGUE,
 	BOSS_BATTLE,
 	PAUSE,
+	CREDITS,
 	GAME_OVER,
 	GAME_WON
 };
@@ -150,6 +151,7 @@ private:
 	float m_damageReduction = 0.5f;
 	float m_godModeDuration = 6.0f;
 	float m_obstacleDuration = 5.0f;
+	float m_creditsDuration =120.0f;
 	int m_selectedHotbarSlot = 0;
 
 
@@ -162,6 +164,7 @@ private:
 	std::shared_ptr<sf::Texture> m_StealPowerTexture;
 	std::shared_ptr<sf::Texture> m_trapTexture;
 	std::shared_ptr<sf::Texture> m_shieldTexture;
+	std::shared_ptr<sf::Texture> m_godModeTexture;
 	std::vector<SpawnDelay> m_spawnDelay;
 	
 
@@ -195,6 +198,7 @@ private:
 	sf::Clock m_shieldClock;
 	sf::Clock m_godModeClock;
 	sf::Clock m_obstacleClock;
+	sf::Clock m_creditsClock;	
 	bool m_DELETEexitGame; // control exiting game
 	bool isSpawnNPC{ false };
 	bool bossSpawned{ false };
@@ -226,7 +230,7 @@ private:
 
 	//Audio
 	Audio m_audio;
-	
+	std::string m_currentMusic;
 	
 };
 

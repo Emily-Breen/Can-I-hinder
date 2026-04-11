@@ -11,6 +11,7 @@
 #include <vector>
 #include <optional>
 #include "MathUtils.h"
+#include "HUD.h"
 enum class DialogueState
 {
 	NONE,
@@ -45,6 +46,7 @@ public:
 	void dialogue();
 	void trigger();
 	void setPlayer(Player* player);
+	void setHUD(HUD* hud);
 	void setBoss(NPC* boss);
 	void spawnDamageText(int amount, sf::Vector2f position, sf::Color color);
 	void setDialogueTexture(const sf::Texture& texture);
@@ -64,6 +66,7 @@ private:
 	InputHandler& m_input;
 	Player* m_playerRef{ nullptr };
 	NPC* m_bossRef = nullptr;
+	HUD* m_hudRef = nullptr;
 	EffectType spell;
 	MagicType m_selectedMagic = MagicType::Fireball;
 	MagicType m_enemySelectedMagic = MagicType::Fireball;
@@ -101,6 +104,11 @@ private:
 	int m_playerMP{ 78 };
 	int m_enemyHealth{ 100 };
 	int m_selectedOption = 0;
+	bool m_inItemMenu = false;
+	bool m_itemTriggered = false;
+	bool m_tempDamageBoost = false;
+	bool m_itemUsed = false;
+	int m_selectedItem = 0;
 	sf::Font TBFont;
 	sf::Text TBText{ TBFont };
 
