@@ -16,7 +16,6 @@ function App() {
   const [hinderOpen, setHinderOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
-  const [unlocks, setUnlocks] = useState<string[]>([]);
  const [hinderCounts, setHinderCounts] = useState<Record<string, number>>({});
  const [helpCounts, setHelpCounts] = useState<Record<string, number>>({});
 
@@ -26,29 +25,44 @@ function App() {
  const myHelpCount = helpCounts[username] ?? 0;
   // Set up the progress callback once on mount to receive updates from the server about hinder count and unlocks, which will update the UI as needs be.
   useEffect(() => {
- setOnProgressCallback((data) => {
-  if (data.type === "progress") {
+    setOnProgressCallback((data) => {
+      if (data.type === "progress") {
+        const progressUser = data.user ?? username;
 
-    setHinderCounts(prev => ({
-      ...prev,
-      [data.user]: data.hinderCount
-    }));
-    if (data.helpCount !== undefined) {
-    setHelpCounts(prev => ({
-      ...prev,
-      [data.user]: data.helpCount
-    }));
-  }
-    const unlock = data.unlock;
-    if (unlock) {
-      setUnlocks(prev =>
-        prev.includes(unlock) ? prev : [...prev, unlock]
-      );
-    }
-  }
-});
-}, 
-[]);
+        if (data.hinderCount !== undefined) {
+          setHinderCounts((prev) => ({
+            ...prev,
+            [progressUser]: data.hinderCount ?? 0,
+          }));
+        }
+
+        if (data.helpCount !== undefined) {
+          setHelpCounts((prev) => ({
+            ...prev,
+            [progressUser]: data.helpCount ?? 0,
+          }));
+        }
+      }
+
+      if (data.type === "reset") {
+        const resetUser = data.user ?? username;
+
+        if (data.action === "hinder") {
+          setHinderCounts((prev) => ({
+            ...prev,
+            [resetUser]: 0,
+          }));
+        }
+
+        if (data.action === "help") {
+          setHelpCounts((prev) => ({
+            ...prev,
+            [resetUser]: 0,
+          }));
+        }
+      }
+    });
+  }, [username]);
 
  function handleLogout() {
   // Always close menus immediately
@@ -67,7 +81,7 @@ const helpItems: RadialItem[] = useMemo(
       { id: "speed", label: "Speed up player", action: "help", effect: "speed_up_player", onClick: () => sendHelp("speed_up_player") },
       { id: "power", label: "Power boost", action: "help", effect: "power_boost", onClick: () => sendHelp("power_boost") },
       { id: "shield", label: "Shield player", action: "help", effect: "shield_player", onClick: () => sendHelp("shield_player") },
-      ...(unlocks.includes("god_mode")
+      ...(myHelpCount >= 5
       ? [{
           id: "god_mode",
           label: "God Mode",
@@ -77,7 +91,7 @@ const helpItems: RadialItem[] = useMemo(
         }]
       : [])
     ],
-    [unlocks]
+    [myHelpCount]
   );
   const hinderItems: RadialItem[] = useMemo(
   () => [
@@ -87,7 +101,7 @@ const helpItems: RadialItem[] = useMemo(
     { id: "steal", label: "Steal power", action: "hinder", effect: "steal_power", onClick: () => sendHinder("steal_power") },
 
       // Unlock spawn brute hinder if it’s in the unlocks array from progress updates coming from the gameclient, which means required hinder amount has been reached 
-    ...(unlocks.includes("spawn_brute")
+    ...(myCount >= 5
       ? [{
           id: "brute",
           label: "Spawn Brute",
@@ -97,7 +111,7 @@ const helpItems: RadialItem[] = useMemo(
         }]
       : [])
   ],
-  [unlocks]
+  [myCount]
 );
   
   return (
