@@ -231,7 +231,21 @@ void FinalLevel::updateTB(float dt)
                         m_playerHealth = std::min(m_playerHealth, 100);
 
                         showSpellBanner("Potion!");
+                        auto tex = std::make_shared<sf::Texture>();
 
+                        tex->loadFromFile("ASSETS/IMAGES/Effects/Healing.png");
+
+                        sf::Vector2f spawnPos = m_playerRef->getPosition();
+                        spawnPos.y -= 100.f;
+
+                        auto effect = std::make_unique<Effects>(
+                            tex,
+                            spawnPos,
+                            EnemyType::None,
+                            EffectType::SpeedBoost
+                        );
+                        effect->setEffectColor(sf::Color(100, 255, 100, 200));
+                        m_effects.emplace_back(std::move(effect));
                         spawnDamageText(
                             healAmount,
                             m_playerRef->getPosition(),

@@ -2,24 +2,21 @@
 #include "Game.h"
 
 #include <iostream>
-auto desktopMode = sf::VideoMode::getDesktopMode();
 Game::Game()
 	: m_DELETEexitGame{ false }, m_camera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
 	, m_finalLevel(m_inputHandler)
 {
-	bool fullscreen = true; 
+	bool fullscreen = true;
+
+	auto desktopMode = sf::VideoMode::getDesktopMode();
 
 	if (fullscreen)
 	{
-		m_window.create(desktopMode, "Can I Hinder?", sf::Style::Default);
+		m_window.create(desktopMode, "Can I Hinder?", sf::Style::None);
 	}
 	else
 	{
-		m_window.create(
-			sf::VideoMode({ 1280, 720 }),
-			"Can I Hinder?",
-			sf::Style::Default
-		);
+		m_window.create(sf::VideoMode({ 1280u, 720u }), "Can I Hinder?", sf::Style::Default);
 	}
 
 
@@ -104,7 +101,7 @@ Game::Game()
 		);
 	}
 
-	if (m_mapRenderer.load("ASSETS/LEVELS/Map3.tmx"))
+	if (m_mapRenderer.load("ASSETS/LEVELS/Map.tmx"))
 	{
 		
 	}
@@ -534,7 +531,7 @@ void Game::processEvents()
 		}
 		m_inputHandler.handleEvent(*newEvent, m_window, m_menuView);
 
-		if (m_currentMenuState == menuState::MAIN_MENU || m_currentMenuState == menuState::GAME_OVER)
+		if (m_currentMenuState == menuState::MAIN_MENU || m_currentMenuState == menuState::GAME_OVER|| m_currentMenuState == menuState::PAUSE)
 		{
 			
 			if (m_inputHandler.menuMouseMoved())
@@ -653,72 +650,101 @@ void Game::processKeys(const std::optional<sf::Event> t_event)
 		return;
 	}
 	//FUTURE EMILY REMEMBER TO REMOVE THESE TEST KEYS LATER!!!
+	if (sf::Keyboard::Key::F1 == newKeypress->code)
+	{
+		m_debugMode = !m_debugMode;
 
-	if (sf::Keyboard::Key::Numpad1 == newKeypress->code || sf::Keyboard::Key::Num1 == newKeypress->code) //just for testing so I dont have to set up the PWA aswell will be removed later
-	{
-		spawnEnemy = true;
-		
-	}
-	if (sf::Keyboard::Key::Numpad2 == newKeypress->code || sf::Keyboard::Key::Num2 == newKeypress->code) //just for testing to see if the health is being updated will be removed later
-	{
-		godMode = true;
-
-		
-	}
-	if (sf::Keyboard::Key::Numpad3 == newKeypress->code || sf::Keyboard::Key::Num3 == newKeypress->code) //testing healing player will be removed later
-	{
-		if (m_hud.hasHealthPotion())
-		{
-			m_hud.useHealthPotion();
-			m_playerHealth += 0.25f;
-		}
-	}
-	if (sf::Keyboard::Key::Numpad4 == newKeypress->code || sf::Keyboard::Key::Num4 == newKeypress->code)
-	{
-		weakenPlayer = true;
+		std::cout << "Debug Mode: " << (m_debugMode ? "ON" : "OFF") << "\n";
 		m_hud.pushChatMessage(
-			"TestUser",
-			"made you weaker!",
-			sf::Color(255, 80, 80),     
-			sf::Color::White,           
-			6.0f                        
+			"SYSTEM",
+			m_debugMode ? "Debug ON" : "Debug OFF",
+			sf::Color::Yellow
 		);
+		return;
 	}
-	if (sf::Keyboard::Key::Numpad5 == newKeypress->code || sf::Keyboard::Key::Num5 == newKeypress->code)
+	if (m_debugMode)
 	{
-		slowPlayer = true;
-	}
-	if (sf::Keyboard::Key::Numpad6 == newKeypress->code || sf::Keyboard::Key::Num6 == newKeypress->code)
-	{
-		m_items.emplace_back(
-			ItemEffect{ ItemType::healthPotion, 0.25f, 0.f, 1 },
-			sf::Vector2f(1500.f, 1500.f)
-		);
-	}
-	if(sf::Keyboard::Key::Numpad7 == newKeypress->code || sf::Keyboard::Key::Num7 == newKeypress->code)
-	{
-		spawnBrute = true;
-	}
-	if (sf::Keyboard::Key::Numpad8 == newKeypress->code || sf::Keyboard::Key::Num8 == newKeypress->code)
-	{
-		speedUpPlayer = true;
-	}
-	if (sf::Keyboard::Key::Numpad9 == newKeypress->code || sf::Keyboard::Key::Num9 == newKeypress->code)
-	{
-		powerBoostPlayer = true;
-	}
-	if (sf::Keyboard::Key::Numpad0 == newKeypress->code || sf::Keyboard::Key::Num0 == newKeypress->code)
-	{
-		dropTrap = true;
-	}
-	if (sf::Keyboard::Key::G == newKeypress->code)
-	{
-		shieldPlayer = true;
-	}
-	if (sf::Keyboard::Key::B == newKeypress->code)
-	{
-		m_currentMenuState = menuState::BOSS_BATTLE;
-		m_finalLevel.start();
+		if (sf::Keyboard::Key::Numpad1 == newKeypress->code || sf::Keyboard::Key::Num1 == newKeypress->code)
+		{
+			spawnEnemy = true;
+		}
+
+		if (sf::Keyboard::Key::Numpad2 == newKeypress->code || sf::Keyboard::Key::Num2 == newKeypress->code)
+		{
+			godMode = true;
+		}
+
+		if (sf::Keyboard::Key::Numpad3 == newKeypress->code || sf::Keyboard::Key::Num3 == newKeypress->code)
+		{
+			if (m_hud.hasHealthPotion())
+			{
+				m_hud.useHealthPotion();
+				m_playerHealth += 0.25f;
+			}
+		}
+
+		if (sf::Keyboard::Key::Numpad4 == newKeypress->code || sf::Keyboard::Key::Num4 == newKeypress->code)
+		{
+			weakenPlayer = true;
+		}
+
+		if (sf::Keyboard::Key::Numpad5 == newKeypress->code || sf::Keyboard::Key::Num5 == newKeypress->code)
+		{
+			slowPlayer = true;
+		}
+
+		if (sf::Keyboard::Key::Numpad6 == newKeypress->code || sf::Keyboard::Key::Num6 == newKeypress->code)
+		{
+			m_items.emplace_back(
+				ItemEffect{ ItemType::healthPotion, 0.25f, 0.f, 1 },
+				sf::Vector2f(1500.f, 1500.f)
+			);
+		}
+
+		if (sf::Keyboard::Key::Numpad7 == newKeypress->code || sf::Keyboard::Key::Num7 == newKeypress->code)
+		{
+			spawnBrute = true;
+		}
+
+		if (sf::Keyboard::Key::Numpad8 == newKeypress->code || sf::Keyboard::Key::Num8 == newKeypress->code)
+		{
+			speedUpPlayer = true;
+		}
+
+		if (sf::Keyboard::Key::Numpad9 == newKeypress->code || sf::Keyboard::Key::Num9 == newKeypress->code)
+		{
+			powerBoostPlayer = true;
+		}
+
+		if (sf::Keyboard::Key::Numpad0 == newKeypress->code || sf::Keyboard::Key::Num0 == newKeypress->code)
+		{
+			dropTrap = true;
+		}
+
+		if (sf::Keyboard::Key::G == newKeypress->code)
+		{
+			shieldPlayer = true;
+			m_hud.pushChatMessage(
+				"testingareallyreallylongname",
+				"Has slowed your movements!",
+				sf::Color::Yellow
+			);
+		}
+		if (sf::Keyboard::Key::K == newKeypress->code)
+		{
+			m_keyCount = 3;
+			m_hud.pushChatMessage(
+				"DEBUG",
+				"x3 keys enabled",
+				sf::Color::Yellow
+			);
+		}
+
+		if (sf::Keyboard::Key::B == newKeypress->code)
+		{
+			m_currentMenuState = menuState::BOSS_BATTLE;
+			m_finalLevel.start();
+		}
 	}
 
 }
@@ -1882,11 +1908,31 @@ void Game::resetGame()
 	m_player.setVictoryPose(false);
 	m_mapRenderer.load("ASSETS/LEVELS/Map.tmx");
 
-
 	for (const auto& pos : m_mapRenderer.getKeySpawns())
 	{
 		m_items.emplace_back(
 			ItemEffect{ ItemType::Key, 0.f, 0.f, 1 },
+			pos
+		);
+	}
+	for (const auto& pos : m_mapRenderer.getHealthSpawns())
+	{
+		m_items.emplace_back(
+			ItemEffect{ ItemType::healthPotion, 0.f, 0.f, 1 },
+			pos
+		);
+	}
+	for (const auto& pos : m_mapRenderer.getSpeedSpawns())
+	{
+		m_items.emplace_back(
+			ItemEffect{ ItemType::speedPotion, 0.f, 0.f, 1 },
+			pos
+		);
+	}
+	for (const auto& pos : m_mapRenderer.getPowerSpawns())
+	{
+		m_items.emplace_back(
+			ItemEffect{ ItemType::powerPotion, 0.f, 0.f, 1 },
 			pos
 		);
 	}

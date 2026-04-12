@@ -12,7 +12,7 @@
 #include <tmxlite/Layer.hpp>
 #include <tmxlite/TileLayer.hpp>
 #include <cstdlib> 
-#include <ctime>   
+#include <ctime>
 #include <unordered_map>
 #include <vector>
 #include <functional>
@@ -127,7 +127,7 @@ private:
 
 	//Items
 	std::vector<Items> m_items;
-	int m_keyCount = 3; // for testing level progression
+	int m_keyCount = 0; // for testing level progression
 
 	//Player & gameplay
 	Player m_player; // player object
@@ -205,7 +205,7 @@ private:
 	bool isBossTriggered{ false };
 	bool m_bossBattleStarted = false;
 	bool m_playerWonGame = false;
-
+	bool m_debugMode = false;
 	//Windowing and rendering
 	sf::RenderWindow m_window; // main SFML window
 	menuState m_currentMenuState{ menuState::MAIN_MENU };

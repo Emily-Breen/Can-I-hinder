@@ -73,7 +73,7 @@ bool HUD::load()
 
 	// Scaling
 	m_healthBarDecorSprite.setScale({ 6.f,6.f });
-	m_chatBGSprite.setScale({ 8.f, 6.f });
+	m_chatBGSprite.setScale({ 12.f, 6.f });
 	m_hotBarSprite.setScale({ 3.f, 3.f });
 	m_weaponBgSprite.setScale({ 2.7f, 2.7f });
 	m_weaponBgSprite2.setScale({ 2.7f, 2.7f });
@@ -125,7 +125,7 @@ void HUD::layout(const sf::Vector2u& windowSize)
 		});
 
 	// Text starts inside the chat box with some padding
-	m_chatMessageTopLeft = m_chatBGSprite.getPosition() + sf::Vector2f(45.f, 28.f);
+	m_chatMessageTopLeft = m_chatBGSprite.getPosition() + sf::Vector2f(60.f, 28.f);
 
 
 	//for inner healthbar fill position and scale
@@ -233,7 +233,7 @@ void HUD::draw(sf::RenderWindow& window)
 
 		if (i == m_selectedSlot)
 		{
-			sf::RectangleShape highlight({ 48.f, 48.f });
+			sf::RectangleShape highlight({ 35.f, 35.f });
 			highlight.setPosition(m_slotPositions[i]);
 			highlight.setFillColor(sf::Color::Transparent);
 			highlight.setOutlineColor(sf::Color::Yellow);
@@ -293,8 +293,8 @@ void HUD::draw(sf::RenderWindow& window)
 	window.draw(m_hotBarCircleBackground);
 
 	window.draw(m_hotBarSprite);
-	window.draw(m_weaponBgSprite);
-	window.draw(m_weaponBgSprite2);
+	//window.draw(m_weaponBgSprite);
+	//window.draw(m_weaponBgSprite2);
 
 
 }
