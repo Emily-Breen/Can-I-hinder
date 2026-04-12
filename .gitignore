@@ -72,7 +72,6 @@ external/
 *.xcf
 *.wav
 *.mp3
-*.mp4
 *.avi
 *.zip
 *.rar
