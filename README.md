@@ -11,6 +11,43 @@ An interactive multiplayer game experience where spectators can influence gamepl
 3. **REST API** - An ASP.NET Core backend for authentication, session code generation, password reset flow, and persistent user data
 4. **PWA Control Interface** - A React-based web app with login/register flows and radial spectator controls for help/hinder actions
 
+## 🧭 Architecture Flow Diagram
+
+```mermaid
+flowchart LR
+  S[Player Starts Game\nC++ SFML Client] --> A[Request Session Code]
+  A --> API[ASP.NET Core API]
+  API --> S
+
+  U[Spectator PWA\nReact + TypeScript] --> L[Auth + Join Session]
+  L --> API
+
+  S --> WSS[Node WebSocket Relay\nSession Scoped]
+  U --> WSS
+
+  U --> V[Send Help/Hinder Vote]
+  V --> WSS
+
+  WSS --> P[Broadcast Progress\nhelpCount / hinderCount]
+  P --> U
+
+  WSS --> K{Count >= 5?}
+  K -->|Help| UH[Unlock god_mode]
+  K -->|Hinder| UI[Unlock spawn_brute]
+  UH --> U
+  UI --> U
+
+  WSS --> G[Broadcast Action Payload]
+  G --> S
+  S --> E[Apply Gameplay Effect]
+
+  U --> X[Use Unlocked Action]
+  X --> WSS
+  WSS --> R[Broadcast Reset\nclear unlock + reset count]
+  R --> U
+  R --> S
+```
+
 ## 🏗️ Project Structure
 
 ```
@@ -33,6 +70,7 @@ Can I hinder/
 │   │   ├── Audio.cpp/h             # Audio system for music and SFX
 │   │   ├── FinalLevel.cpp/h        # Final level / boss battle flow
 │   │   ├── Puzzles.cpp/h           # Puzzle mechanic barebones
+│   │   ├── Effects.cpp/h           # Runtime gameplay effects and timed effect control
 │   │   ├── MathUtils.cpp/h         # Utility helpers
 │   │   ├── Obstacles.h             # Obstacle definitions for gameplay hazards
 │   │   ├── ASSETS/
@@ -52,6 +90,7 @@ Can I hinder/
 │   ├── Can I HinderAPI.sln         # ASP.NET Core API solution
 │   └── Can I HinderAPI/
 │       ├── Program.cs              # API startup, JWT auth, CORS, Swagger, migrations
+│       ├── Can I HinderAPI.http    # Local endpoint request collection for API testing
 │       ├── Controllers/
 │       │   ├── AuthController.cs   # Register, login, forgot password, reset password
 │       │   ├── GameController.cs   # Game session code generation
@@ -65,7 +104,8 @@ Can I hinder/
 │       ├── Services/
 │       │   └── EmailService.cs     # Password reset email delivery
 │       ├── Migrations/             # EF Core migration history
-│       └── appsettings.json        # Local DB, JWT, and CORS configuration
+│       ├── appsettings.json        # Local DB, JWT, and CORS configuration
+│       └── appsettings.Development.json # Environment-specific local overrides
 │
 ├── can-i-hinder-server/            # Session-based WebSocket relay
 │   ├── server.js                   # HTTP + WebSocket server with per-session fanout
@@ -197,10 +237,13 @@ For local testing, the game can be switched between secure hosted networking and
 3. **Web Client Connection**: Spectators open the PWA, authenticate, and join a game session using its code.
 4. **Game Client Connection**: The game connects to the same session on the WebSocket server.
 5. **Interaction**: Users choose help or hinder actions from the radial menus.
-6. **Action Processing**:
-   - Help actions currently include `heal_player`, `speed_up_player`, `power_boost`, and `shield_player`
-   - Hinder actions currently include `spawn_enemy`, `drop_trap`, `slow_player`, and `steal_power`
-7. **Game Response**: The game client receives the JSON payload and applies the relevant gameplay effect.
+6. **Unlock Progress Tracking**: Each help or hinder vote increments a per-session counter on the relay server.
+7. **Action Processing**:
+  - After 5 help votes, the relay unlocks the special help action `god_mode`
+  - After 5 hinder votes, the relay unlocks the special hinder action `spawn_brute`
+  - The relay broadcasts progress updates so all connected clients can update unlock UI state
+8. **Game Response**: The game client receives the JSON payload and applies the relevant gameplay effect.
+9. **Unlock Reset**: When `god_mode` or `spawn_brute` is used, that side's counter resets to 0 and the unlock is cleared for the session.
 
 ### WebSocket Communication
 
@@ -211,6 +254,30 @@ Messages are sent as JSON objects:
   "user": "spectator_name",
   "action": "help",
   "effect": "heal_player"
+}
+```
+
+The relay also emits progress and reset messages:
+
+```json
+{
+  "type": "progress",
+  "helpCount": 3
+}
+```
+
+```json
+{
+  "type": "progress",
+  "hinderCount": 5,
+  "unlock": "spawn_brute"
+}
+```
+
+```json
+{
+  "type": "reset",
+  "action": "help"
 }
 ```
 
@@ -236,6 +303,7 @@ ws://localhost:8080/?session=ABC123
 - **AIBehaviour**: Separates NPC movement logic and steering rules
 - **FinalLevel**: Contains the boss/final encounter flow
 - **Puzzles**: Placeholder for planned puzzle gameplay systems
+- **Effects**: Centralized application of temporary gameplay effects and cleanup timing
 - **Audio**: Audio system scaffolding for music and sound effects
 - **Obstacles**: Placeholder definitions for spawned gameplay hazards
 
@@ -313,19 +381,5 @@ Default settings:
 
 See `ASSETS/LICENSES/` for asset licensing information.
 
-
- ### TODO:
- **Networking**
- - Add analytics endpoints and wire `AnalyticsEvent`/`UserPreference` models into live API features.
- - Improve spectator session UX with clearer join flow, connection state, and reconnect feedback.
- - Finalize hosted deployment wiring between the PWA, relay server, and API endpoints.
- **SFML**
- - Finish puzzle mechanic logic and integrate it into gameplay.
- - Connect remaining item effects cleanly into HUD/health feedback.
- - Finish level progression flow into the final level / ending path.
- - Implement obstacle spawning for the `drop_trap` hinder action.
- - Continue refactoring older gameplay code and dead paths for maintainability/performance.
- - Expand and fully integrate audio into the game loop.
----
 
 **Built using C++, Node.js, ASP.NET Core, TypeScript & React**
